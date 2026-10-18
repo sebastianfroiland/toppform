@@ -29,7 +29,7 @@
   --accent: #3f46e0;
   --on-grad: #ffffff;
   --bg: #f2f3f8;
-  --bg-grad: radial-gradient(120% 80% at 50% 0%, #ffffff, #eef0f7 70%);
+  --bg-grad: radial-gradient(90% 45% at 85% 100%, rgba(0,201,173,.10), transparent 70%), radial-gradient(90% 45% at 10% 100%, rgba(255,95,168,.09), transparent 70%), radial-gradient(120% 80% at 50% 0%, #ffffff, #eef0f7 70%);
   --text: #10132a; --dim: rgba(16,19,42,.56);
   --up: #0a9a63; --down: #d43a5c; --warn: #c27c00;
   --glass: rgba(255,255,255,.55); --edge: rgba(255,255,255,.9);
@@ -53,7 +53,7 @@
   :root:not([data-theme="light"]) {
     --accent: #ffffff;
     --bg: #07081a;
-    --bg-grad: radial-gradient(120% 80% at 50% 0%, #1b1446, #07081a 70%);
+    --bg-grad: radial-gradient(90% 45% at 85% 100%, rgba(0,201,173,.16), transparent 70%), radial-gradient(90% 45% at 10% 100%, rgba(255,95,168,.13), transparent 70%), radial-gradient(120% 80% at 50% 0%, #1b1446, #07081a 70%);
     --text: #fff; --dim: rgba(255,255,255,.6);
     --up: #7dffc4; --down: #ff8fa6; --warn: #ffd27a;
     --glass: rgba(255,255,255,.10); --edge: rgba(255,255,255,.3);
@@ -73,7 +73,7 @@
 :root[data-theme="dark"] {
   --accent: #ffffff;
   --bg: #07081a;
-  --bg-grad: radial-gradient(120% 80% at 50% 0%, #1b1446, #07081a 70%);
+  --bg-grad: radial-gradient(90% 45% at 85% 100%, rgba(0,201,173,.16), transparent 70%), radial-gradient(90% 45% at 10% 100%, rgba(255,95,168,.13), transparent 70%), radial-gradient(120% 80% at 50% 0%, #1b1446, #07081a 70%);
   --text: #fff; --dim: rgba(255,255,255,.6);
   --up: #7dffc4; --down: #ff8fa6; --warn: #ffd27a;
   --glass: rgba(255,255,255,.10); --edge: rgba(255,255,255,.3);
@@ -102,11 +102,14 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 /* ---------- background lights ---------- */
 .bg { position: fixed; top: 0; left: 0; right: 0; bottom: calc(-1 * var(--gap)); z-index: 0; overflow: hidden; background: var(--bg-grad); }
 .par { position: absolute; inset: 0; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); will-change: transform; }
-.blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: var(--blob-op); animation: var(--a) ease-in-out infinite; will-change: transform; transition: opacity .6s; }
-.b1 { width: 360px; height: 360px; background: #6b6bff; top: -100px; left: -90px; --a: d1 26s; }
-.b2 { width: 320px; height: 320px; background: #00c9ad; top: 35%; right: -130px; --a: d2 31s; }
-.b3 { width: 300px; height: 300px; background: #ff5fa8; bottom: -110px; left: 20%; --a: d3 23s; }
-.b4 { width: 220px; height: 220px; background: #9a5dff; top: 58%; left: -40px; opacity: calc(var(--blob-op) * .65); --a: d2 37s reverse; }
+/* The lights are soft gradients, not blurred circles: iPhone Safari can drop big blur filters and paint nothing.
+   Each one is 420 px larger than the circle it replaces, so it fades out where the blur used to. */
+.blob { position: absolute; border-radius: 50%; opacity: var(--blob-op); animation: var(--a) ease-in-out infinite; will-change: transform; transition: opacity .6s;
+  background: radial-gradient(closest-side, var(--c) 22%, color-mix(in srgb, var(--c) 50%, transparent) 43%, color-mix(in srgb, var(--c) 16%, transparent) 62%, color-mix(in srgb, var(--c) 3%, transparent) 82%, transparent); }
+.b1 { --c: #6b6bff; width: 780px; height: 780px; top: -310px; left: -300px; --a: d1 26s; }
+.b2 { --c: #00c9ad; width: 740px; height: 740px; top: calc(35% - 210px); right: -340px; --a: d2 31s; }
+.b3 { --c: #ff5fa8; width: 720px; height: 720px; bottom: -320px; left: calc(20% - 210px); --a: d3 23s; }
+.b4 { --c: #9a5dff; width: 640px; height: 640px; top: calc(58% - 210px); left: -250px; opacity: calc(var(--blob-op) * .65); --a: d2 37s reverse; }
 @keyframes d1 { 0%, 100% { transform: translate(0,0) scale(1); } 33% { transform: translate(28vw,14vh) scale(1.2); } 66% { transform: translate(8vw,36vh) scale(.9); } }
 @keyframes d2 { 0%, 100% { transform: translate(0,0) scale(1); } 30% { transform: translate(-30vw,-18vh) scale(1.15); } 70% { transform: translate(-12vw,22vh) scale(.85); } }
 @keyframes d3 { 0%, 100% { transform: translate(0,0) scale(1); } 40% { transform: translate(-22vw,-30vh) scale(1.25); } 75% { transform: translate(18vw,-12vh) scale(.95); } }
@@ -301,8 +304,40 @@ body.resting .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px - va
 /* workout */
 .cards { display: flex; flex-direction: column; }
 .ex { scroll-margin-top: 20px; }
+
+/* cards view: one exercise at a time, swipe between them, with an overview grid */
+.deck { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; }
+.dk-n { font-size: 13px; font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 36px; }
+.dk-dots { flex: 1; display: flex; gap: 4px; min-width: 0; }
+.dk { flex: 1 1 0; min-width: 0; padding: 12px 0; background: none; border: 0; }
+.dk span { display: block; height: 5px; border-radius: 3px; background: var(--fill-2); overflow: hidden; transition: height .35s var(--spring), box-shadow .25s; }
+.dk.on span { height: 9px; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--text) 40%, transparent); }
+.dk i { display: block; height: 100%; background: var(--accent-grad); border-radius: inherit; transition: width .45s var(--ease); }
+.dk.done i { background: var(--up); }
+.cards.deck-on { position: relative; flex-direction: row; align-items: flex-start; gap: 12px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 -16px; padding: 6px 22px 22px; margin-bottom: -10px; }
+.cards.deck-on::-webkit-scrollbar { display: none; }
+.cards.deck-on .ex { flex: 0 0 100%; min-width: 0; margin-bottom: 0; scroll-snap-align: center; scroll-snap-stop: always; }
+/* The card in focus is full size; the ones on each side shrink and fade as they slide away */
+@supports (animation-timeline: view()) {
+  .cards.deck-on .ex { animation: deckPeek linear both; animation-timeline: view(inline); }
+}
+@keyframes deckPeek { 0% { transform: scale(.88); opacity: .35; } 50% { transform: none; opacity: 1; } 100% { transform: scale(.88); opacity: .35; } }
+.ovw { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 12px; }
+.ovt { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; text-align: left; padding: 14px; border-radius: 22px; min-height: 116px; min-width: 0; transition: transform .35s var(--spring); animation: ovIn .5s var(--spring) both; animation-delay: calc(var(--j, 0) * 35ms); }
+.ovt:active { transform: scale(.96); transition-duration: .12s; }
+.ovt small { color: var(--dim); font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+.ovt b { font-size: 15.5px; line-height: 1.2; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ovt .ovs { margin-top: auto; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.ovt .ovbar { width: 100%; height: 5px; border-radius: 3px; background: var(--fill-2); overflow: hidden; }
+.ovt .ovbar i { display: block; height: 100%; background: var(--accent-grad); border-radius: inherit; }
+.ovt.done .ovbar i { background: var(--up); }
+.ovt.done small::after { content: "  ✓"; color: var(--up); }
+.ovt.cur { box-shadow: var(--glass-shadow), 0 0 0 2px color-mix(in srgb, var(--g1) 65%, transparent); }
+@keyframes ovIn { from { opacity: 0; transform: translateY(10px) scale(.94); } }
 .ex-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .ex-head > div { min-width: 0; }
+.ex-acts { display: flex; gap: 6px; align-items: center; flex: none; }
+.ex-acts .sel { min-height: 34px; padding-left: 12px; padding-right: 28px; background-position: right 10px center; font-weight: 600; }
 .ex h2 { font-size: 19px; }
 .ex.done h2::after { content: "  ✓"; color: var(--up); }
 .last { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; margin-top: 8px; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; line-height: 1.45; }
@@ -327,9 +362,19 @@ body.resting .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px - va
 .stp.scrub { touch-action: pan-y; cursor: ew-resize; }
 .stp.scrub input { pointer-events: none; -webkit-user-select: none; user-select: none; }
 .stp.scrub.typing input { pointer-events: auto; }
-.ruler { width: 100%; height: 26px; margin-top: 4px; border-radius: 10px; background-color: var(--fill-2); background-image: repeating-linear-gradient(90deg, var(--dim) 0 1.5px, transparent 1.5px 14px); background-size: 14px 9px; background-repeat: repeat-x; background-position: calc(50% + var(--off, 0px)) 50%; opacity: .55; position: relative; }
+.ruler { width: 100%; height: 26px; margin-top: 4px; border-radius: 10px; background-color: var(--fill-2); position: relative;
+  /* A small tick per step and a taller one every fifth. Both patterns are centred, so they line up under the marker. */
+  background-image: linear-gradient(90deg, transparent calc(50% - 1px), color-mix(in srgb, var(--text) 55%, transparent) 0 calc(50% + 1px), transparent 0),
+                    linear-gradient(90deg, transparent calc(50% - .75px), color-mix(in srgb, var(--text) 30%, transparent) 0 calc(50% + .75px), transparent 0);
+  background-size: 70px 60%, 14px 32%; background-repeat: repeat-x; background-position: calc(50% + var(--off, 0px)) 50%; }
 .ruler::after { content: ''; position: absolute; left: 50%; top: 3px; bottom: 3px; width: 2.5px; margin-left: -1.25px; border-radius: 2px; background: var(--g1); }
 .stp.scrub.dragging { background: var(--fill-2); }
+/* Slide mode: one full-width row per value, so the ruler runs from side to side */
+.steppers.slide { grid-template-columns: 1fr; gap: 8px; }
+.steppers.slide .stp { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; row-gap: 6px; padding: 9px 14px 12px; border-radius: 20px; }
+.steppers.slide .stp input { text-align: right; font-size: 30px; }
+.steppers.slide .ruler { grid-column: 1 / -1; height: 40px; margin-top: 0; border-radius: 13px; }
+.steppers.slide .ruler::after { top: 4px; bottom: 4px; width: 3px; margin-left: -1.5px; }
 .ex .wide { margin-top: 10px; }
 
 /* rest */
@@ -414,7 +459,7 @@ body.resting .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px - va
 .report p { margin: 0 0 8px; }
 .fbmeta { font-size: 12px; color: var(--dim); margin: 0 0 8px; }
 
-@media (prefers-reduced-motion: reduce) { .blob { animation: none; } .par, .sheet, .settings, .tabbar { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .blob, .cards.deck-on .ex, .ovt { animation: none; } .par, .sheet, .settings, .tabbar { transition: none; } }
 @media (prefers-reduced-transparency: reduce) { :root { --glass: color-mix(in srgb, var(--bg) 92%, transparent); } }
 @media (max-width: 360px) { .stp input { font-size: 27px; } .tabbar { width: calc(100% - 24px); } .tabbar a { font-size: 9px; } }
 </style>
@@ -442,6 +487,8 @@ body.resting .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px - va
     <header class="top"><small><span id="wo-sub"></span><span class="status" data-s="busy"></span></small><h1 id="wo-title">Workout</h1></header>
     <article class="glass card empty" id="wo-idle"></article>
     <div id="wo-live" hidden>
+      <div class="deck" id="deck" hidden></div>
+      <div class="ovw" id="overview" hidden></div>
       <div class="cards" id="cards"></div>
       <button class="btn-glass wide" data-a="add-ex" style="margin-bottom:12px">+ Add exercise</button>
       <article class="glass card">
@@ -665,7 +712,7 @@ const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
 const ACCENTS = {aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', theme:'system', text:'M', glow:true, accent:'aurora'};
+const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora'};
 const RMS = [1, 3, 5, 8, 10];
 const MINE = 'mine';
 
@@ -1222,6 +1269,7 @@ function renderWorkout(){
   $('#wo-sub').textContent = dShort(s.date) + ' · ' + done + (total ? ' of ' + total : '') + ' sets';
   $('#wo-title').textContent = sessionTitle(s);
   ensureCards(s);
+  renderDeck(s);
   if(S.ui.noteFor !== s.id){ S.ui.noteFor = s.id; $('#s-note').value = s.note || ''; }
   if(document.activeElement !== $('#s-knee')) $('#s-knee').value = s.knee || '';
   if(document.activeElement !== $('#s-rpe')) $('#s-rpe').value = s.rpe || '';
@@ -1255,9 +1303,9 @@ function buildCard(ex, mode){
   const info = infoOf(ex.name), el = document.createElement('article');
   const wl = info.bw === 'bw' ? '+kg' : info.bw === 'assist' ? 'assist' : 'kg';
   el.className = 'glass card ex'; el.dataset.key = cardKey(ex); el.dataset.k = ex.k; el.dataset.mode = mode;
-  el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button></div>' +
+  el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-ex-sets="' + ex.k + '" data-r="sets" aria-label="Sets for ' + esc(ex.name) + '"></select><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button></div></div>' +
     '<div class="target" data-r="target" hidden></div><button class="last" data-a="exhist" data-n="' + esc(ex.name) + '" data-r="last"></button><span class="badge" data-r="tag" hidden></span><div class="logged" data-r="logged"></div>' +
-    '<div data-r="entry"><div class="steppers">' + stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + stp(ex.k, 'p', 'partials', mode) + '</div>' +
+    '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : '') + '">' + stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + stp(ex.k, 'p', 'partials', mode) + '</div>' +
     '<button class="btn-primary wide" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button></div>' +
     '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>';
   return el;
@@ -1265,7 +1313,9 @@ function buildCard(ex, mode){
 function fillCard(el, ex, s){
   const info = infoOf(ex.name), today = todaySets(ex.name, s.id), last = lastSession(ex.name, s.id), tg = targetFor(ex.name);
   const r = n => el.querySelector('[data-r="' + n + '"]');
-  r('meta').textContent = (SLOTS[info.slot] || 'Custom') + (ex.planned ? ' · ' + plural(ex.planned, 'set') : '') + (ex.hint ? ' · ' + ex.hint : '');
+  r('meta').textContent = (SLOTS[info.slot] || 'Custom') + (ex.hint ? ' · ' + ex.hint : '');
+  const ss = r('sets'), pl = ex.planned || 0;
+  if(document.activeElement !== ss){ const n = Math.max(8, pl); ss.innerHTML = opts([[0, 'Sets']].concat(Array.from({length: n}, (_, i) => [i + 1, plural(i + 1, 'set')])), pl); }
   const t = r('target');
   if(tg){ t.hidden = false; t.innerHTML = 'Target <b>' + (tg.w != null ? esc(wTxt(tg.w, info)) + (info.bw ? '' : ' kg') + ' × ' : '') + (tg.lo ? tg.lo + (tg.hi && tg.hi !== tg.lo ? '-' + tg.hi : '') : '') + '</b>' + (tg.note ? '<span>' + esc(tg.note) + '</span>' : ''); }
   else t.hidden = true;
@@ -1278,7 +1328,7 @@ function fillCard(el, ex, s){
   const done = ex.planned > 0 && today.length >= ex.planned && !S.ui.expanded.has(ex.k);
   el.classList.toggle('done', done);
   r('entry').hidden = done; r('more').hidden = !done;
-  r('logbtn').textContent = 'Log set ' + (today.length + 1);
+  r('logbtn').textContent = 'Log set ' + (today.length + 1) + (ex.planned && today.length < ex.planned ? ' of ' + ex.planned : '');
   const pf = prefill(ex.name, s.id);
   el.querySelectorAll('.stp input').forEach(inp => { if(!inp.dataset.touched && inp.value === '' && document.activeElement !== inp){ const v = pf[inp.dataset.f]; if(v != null) inp.value = fmt(v); } });
 }
@@ -1287,7 +1337,7 @@ function startSession(id){
   const r = id ? routineById(id) : null, now = Date.now(), sid = newId();
   const s = {id:sid, kind:'styrke', template: r ? r.id : 'F', title: r ? r.name : 'Quick Workout', date:todayISO(), startedAt:now, endedAt:null, knee:null, rpe:null, note:'',
     exercises: r ? (r.items || []).map(x => ({k:newId(), name:x.name, planned:x.sets || 1, hint:x.hint || ''})) : [], updatedAt:now};
-  S.activeId = sid; ls.set('tl.active', sid); S.ui.expanded.clear();
+  S.activeId = sid; ls.set('tl.active', sid); S.ui.expanded.clear(); S.ui.deckI = 0; S.ui.overview = false;
   queue('set', 'sessions', sid, s);
   closeSheet(); selectTab(1);
   if(!r) setTimeout(() => openLib('add', null), 420);
@@ -1318,8 +1368,43 @@ function scrollNext(k){
   const cards = [...document.querySelectorAll('#cards .ex')];
   const i = cards.findIndex(c => c.dataset.k === k);
   const nxt = cards.slice(i + 1).find(c => !c.classList.contains('done'));
-  if(nxt) setTimeout(() => nxt.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block:'start'}), 80);
+  if(!nxt) return;
+  // In the cards view the finished card stays a moment so you see the tick, then the next one slides in
+  if($('#cards').classList.contains('deck-on')) setTimeout(() => deckGo(cards.indexOf(nxt), true), 650);
+  else setTimeout(() => nxt.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block:'start'}), 80);
 }
+
+/* ---------- cards view ----------
+   One exercise per card, side by side. The bar on top has a strip per exercise that fills as you log sets.
+   Overview swaps the cards for a grid of every exercise; tap one to jump to it. */
+function renderDeck(s){
+  const wrap = $('#cards'), deck = $('#deck'), ov = $('#overview');
+  const on = ST().view === 'cards' && s.exercises.length > 0, showOv = on && !!S.ui.overview;
+  wrap.classList.toggle('deck-on', on && !showOv);
+  deck.hidden = !on; ov.hidden = !showOv; wrap.hidden = showOv;
+  if(!on) return;
+  const n = s.exercises.length, i = Math.max(0, Math.min(S.ui.deckI || 0, n - 1));
+  const prog = s.exercises.map(ex => { const d = todaySets(ex.name, s.id).length, pl = ex.planned || 0; return {d, pl, pct: pl ? Math.min(100, d / pl * 100) : (d ? 100 : 0), done: pl > 0 && d >= pl}; });
+  setHTML(deck, '<span class="dk-n">' + (showOv ? prog.filter(x => x.done).length + ' / ' + n : (i + 1) + ' / ' + n) + '</span>' +
+    '<div class="dk-dots">' + prog.map((x, j) => '<button class="dk' + (j === i && !showOv ? ' on' : '') + (x.done ? ' done' : '') + '" data-a="deck-go" data-i="' + j + '" aria-label="' + esc(s.exercises[j].name) + '"><span><i style="width:' + x.pct + '%"></i></span></button>').join('') + '</div>' +
+    '<button class="chip" data-a="deck-ov">' + (showOv ? 'Cards' : 'Overview') + '</button>');
+  if(showOv) setHTML(ov, s.exercises.map((ex, j) => { const x = prog[j];
+    return '<button class="glass ovt' + (x.done ? ' done' : '') + (j === i ? ' cur' : '') + '" style="--j:' + j + '" data-a="deck-go" data-i="' + j + '"><small>' + (j + 1) + '</small><b>' + esc(ex.name) + '</b>' +
+      '<span class="ovs">' + (x.pl ? x.d + ' of ' + plural(x.pl, 'set') : plural(x.d, 'set')) + '</span><span class="ovbar"><i style="width:' + x.pct + '%"></i></span></button>'; }).join(''));
+}
+function deckGo(i, smooth){
+  const wrap = $('#cards'), el = wrap.querySelectorAll('.ex')[i]; if(!el) return;
+  S.ui.deckI = i;
+  wrap.scrollTo({left: el.offsetLeft - (wrap.clientWidth - el.offsetWidth) / 2, behavior: smooth && !reduceMotion() ? 'smooth' : 'auto'});
+  const s = activeSession(); if(s) renderDeck(s);
+}
+// Keep the bar in step with the card you have swiped to
+$('#cards').addEventListener('scroll', () => {
+  const wrap = $('#cards'); if(!wrap.classList.contains('deck-on')) return;
+  const first = wrap.querySelector('.ex'); if(!first) return;
+  const i = Math.round(wrap.scrollLeft / (first.offsetWidth + 12));
+  if(i !== S.ui.deckI){ S.ui.deckI = i; const s = activeSession(); if(s) renderDeck(s); }
+}, {passive: true});
 let noteT = null;
 function saveNote(){
   clearTimeout(noteT); noteT = null;
@@ -1622,7 +1707,9 @@ function libPick(name){
   updateSession(s.id, {exercises:ex});
   closeSheet();
   if(mode === 'swap') toast('Swapped to ' + name);
-  if(newK) setTimeout(() => { const el = document.querySelector('#cards .ex[data-k="' + newK + '"]'); if(el) el.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block:'start'}); }, 120);
+  if(newK) setTimeout(() => { const el = document.querySelector('#cards .ex[data-k="' + newK + '"]'); if(!el) return;
+    if($('#cards').classList.contains('deck-on')) deckGo([...document.querySelectorAll('#cards .ex')].indexOf(el), true);
+    else el.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block:'start'}); }, 120);
 }
 function libNew(){
   const L = S.ui.lib; if(!L) return;
@@ -1799,7 +1886,8 @@ function renderSettings(){
     srow('Start date', '', '<input class="field small" type="date" data-set="start" value="' + esc(st.start) + '">') +
     srow('Length', '', sel('weeks', [[0,'No end date'],[8,'8 weeks'],[12,'12 weeks'],[16,'16 weeks'],[26,'26 weeks'],[52,'52 weeks']], st.weeks)) +
     srow('Weekly goal', 'Strength sessions', sel('goal', [1,2,3,4,5,6,7].map(n => [n, String(n)]), st.goal));
-  p.workout = srow('Weight and reps', '', seg('input', [['buttons','Buttons'],['slide','Slide']], st.input)) +
+  p.workout = srow('Workout view', '', seg('view', [['list','List'],['cards','Cards']], st.view)) +
+    srow('Weight and reps', '', seg('input', [['buttons','Buttons'],['slide','Slide']], st.input)) +
     srow('Weight step', '', sel('step', [[1,'1 kg'],[1.25,'1.25 kg'],[2.5,'2.5 kg'],[5,'5 kg']], st.step)) +
     srow('Rest, compound', '', sel('restB', [[90,'1:30'],[120,'2:00'],[150,'2:30'],[180,'3:00'],[240,'4:00']], st.restB)) +
     srow('Rest, isolation', '', sel('restI', [[45,'0:45'],[60,'1:00'],[90,'1:30'],[120,'2:00']], st.restI)) +
@@ -1941,6 +2029,8 @@ document.addEventListener('click', e => {
     case 'swap': openLib('swap', b.dataset.k); break;
     case 'add-ex': openLib('add', null); break;
     case 'more': S.ui.expanded.add(b.dataset.k); renderWorkout(); break;
+    case 'deck-go': { const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
+    case 'deck-ov': S.ui.overview = !S.ui.overview; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
     case 'exhist': openExHistory(b.dataset.n); break;
     case 'set': {
       const id = b.dataset.id;
@@ -2031,6 +2121,7 @@ document.addEventListener('change', e => {
   if(t.id === 's-knee' || t.id === 's-rpe'){ const s = activeSession(); if(s) updateSession(s.id, t.id === 's-knee' ? {knee: t.value || null} : {rpe: num(t.value)}); return; }
   if(t.id === 'c-act'){ const was = S.ui.c && S.ui.c.activity, now = t.value; if(S.ui.c) S.ui.c.activity = now; $('#c-unit').textContent = now === 'Row' ? 'm' : 'km';
     const di = $('#c-dist'), dv = num(di.value); if(dv != null && (was === 'Row') !== (now === 'Row')) di.value = now === 'Row' ? String(Math.round(dv * 1000)) : fmt(dv / 1000); return; }
+  if(t.dataset && t.dataset.exSets != null){ const s = activeSession(), k = t.dataset.exSets; if(s){ S.ui.expanded.delete(k); updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {planned: +t.value}) : e)}); } return; }
   if(t.dataset && t.dataset.rdSets != null && S.ui.rd){ S.ui.rd.items[+t.dataset.rdSets].sets = +t.value; return; }
   if(t.id === 'rd-rot' && S.ui.rd){ S.ui.rd.rotation = t.value === '1'; return; }
   if(t.id === 'rd-folder' && S.ui.rd){ S.ui.rd.folder = t.value; return; }
