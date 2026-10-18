@@ -1249,7 +1249,7 @@ function fillCard(el, ex, s){
 function startSession(id){
   const r = routineById(id), now = Date.now(), sid = newId();
   const s = {id:sid, kind:'styrke', template: r ? r.id : 'F', title: r ? r.name : 'Fri økt', date:todayISO(), startedAt:now, endedAt:null, knee:null, rpe:null, note:'',
-    exercises: r ? (r.items || []).map(x => ({k:newId(), name:x.name, planned:x.sets || 1, hint:''})) : [], updatedAt:now};
+    exercises: r ? (r.items || []).map(x => ({k:newId(), name:x.name, planned:x.sets || 1, hint:x.hint || ''})) : [], updatedAt:now};
   S.activeId = sid; ls.set('tl.active', sid); S.ui.expanded.clear(); S.ui.start = null;
   queue('set', 'sessions', sid, s);
   selectTab(1);
@@ -1610,7 +1610,7 @@ function libRemove(){
 /* mine økter (rutiner) */
 function openRoutine(id){
   const r = id ? routineById(id) : null;
-  S.ui.rd = r ? {id:r.id, name:r.name, rotation:r.rotation !== false, order:r.order || 0, items:(r.items || []).map(x => ({name:x.name, sets:x.sets || 1}))} : {id:null, name:'', rotation:true, order:0, items:[]};
+  S.ui.rd = r ? {id:r.id, name:r.name, rotation:r.rotation !== false, order:r.order || 0, items:(r.items || []).map(x => Object.assign({}, x, {sets:x.sets || 1}))} : {id:null, name:'', rotation:true, order:0, items:[]};
   renderRoutineSheet();
 }
 function renderRoutineSheet(){
