@@ -132,7 +132,7 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 body.resting .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
 
 /* ---------- tab bar ---------- */
-.tabbar { position: fixed; z-index: 20; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px - var(--gap)); display: flex; padding: 4px; border-radius: 999px; user-select: none; -webkit-user-select: none; touch-action: none; transition: transform .35s var(--ease), opacity .25s; }
+.tabbar { position: fixed; z-index: 20; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 8px); display: flex; padding: 4px; border-radius: 999px; user-select: none; -webkit-user-select: none; touch-action: none; transition: transform .35s var(--ease), opacity .25s; }
 .tabbar a { flex: 1 1 0; min-width: 0; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 5px 0 4px; border-radius: 999px; color: var(--dim); text-decoration: none; font-size: 9.5px; font-weight: 600; line-height: 1.1; transition: color .25s, transform .45s var(--spring); white-space: nowrap; -webkit-touch-callout: none; }
 .tabbar a svg { width: 19px; height: 19px; }
 .tabbar a.on { color: var(--text); }
@@ -238,9 +238,9 @@ textarea.field { height: auto; min-height: 80px; padding: 11px 14px; resize: ver
 .x { border: 0; background: var(--fill-2); border-radius: 999px; min-height: 32px; padding: 0 13px; font-size: 13.5px; font-weight: 600; flex: none; }
 
 /* ---------- toast ---------- */
-.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 74px - var(--gap)); z-index: 60; transform: translate(-50%, 30px); opacity: 0; padding: 9px 17px; border-radius: 999px; font-size: 14px; font-weight: 500; white-space: nowrap; pointer-events: none; transition: transform .6s var(--spring), opacity .4s, bottom .3s; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
+.toast { position: fixed; left: 50%; bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 74px); z-index: 60; transform: translate(-50%, 30px); opacity: 0; padding: 9px 17px; border-radius: 999px; font-size: 14px; font-weight: 500; white-space: nowrap; pointer-events: none; transition: transform .6s var(--spring), opacity .4s, bottom .3s; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
-body.resting .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px - var(--gap)); }
+body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 130px); }
 
 /* ---------- page parts ---------- */
 .top { margin: 2px 56px 16px 2px; }
@@ -359,26 +359,24 @@ body.resting .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px - va
 .pm { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100%; margin-top: 2px; }
 .pm button { height: 40px; border-radius: 999px; border: 0; background: var(--fill-2); font-size: 21px; font-weight: 500; line-height: 1; transition: transform .3s var(--spring); }
 .pm button:active { transform: scale(.92); }
-.stp.scrub { touch-action: pan-y; cursor: ew-resize; }
-.stp.scrub input { pointer-events: none; -webkit-user-select: none; user-select: none; }
-.stp.scrub.typing input { pointer-events: auto; }
-.ruler { width: 100%; height: 26px; margin-top: 4px; border-radius: 10px; background-color: var(--fill-2); position: relative;
-  /* A small tick per step and a taller one every fifth. Both patterns are centred, so they line up under the marker. */
-  background-image: linear-gradient(90deg, transparent calc(50% - 1px), color-mix(in srgb, var(--text) 55%, transparent) 0 calc(50% + 1px), transparent 0),
-                    linear-gradient(90deg, transparent calc(50% - .75px), color-mix(in srgb, var(--text) 30%, transparent) 0 calc(50% + .75px), transparent 0);
-  background-size: 70px 60%, 14px 32%; background-repeat: repeat-x; background-position: calc(50% + var(--off, 0px)) 50%; }
-.ruler::after { content: ''; position: absolute; left: 50%; top: 3px; bottom: 3px; width: 2.5px; margin-left: -1.25px; border-radius: 2px; background: var(--g1); }
-.stp.scrub.dragging { background: var(--fill-2); }
-/* Slide mode: one full-width row per value, so the ruler runs from side to side */
+/* Slide mode: one plain slider per value, full width. Tap the number to type it instead. */
 .steppers.slide { grid-template-columns: 1fr; gap: 8px; }
-.steppers.slide .stp { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; row-gap: 6px; padding: 9px 14px 12px; border-radius: 20px; }
-.steppers.slide .stp input { text-align: right; font-size: 30px; }
-.steppers.slide .ruler { grid-column: 1 / -1; height: 40px; margin-top: 0; border-radius: 13px; }
-.steppers.slide .ruler::after { top: 4px; bottom: 4px; width: 3px; margin-left: -1.5px; }
+.steppers.slide .stp { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; padding: 8px 14px 4px; border-radius: 20px; }
+.steppers.slide .stp input:not(.rng), .steppers.slide .stp output { text-align: right; font-size: 28px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.steppers.slide .stp output.free { font-size: 17px; color: var(--dim); font-weight: 600; letter-spacing: 0; }
+.rng { grid-column: 1 / -1; -webkit-appearance: none; appearance: none; width: 100%; height: 44px; margin: 0; padding: 0; background: transparent; --p: 0%; }
+.rng:focus { outline: none; }
+.rng::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--g1), var(--g2)) 0 0 / var(--p) 100% no-repeat, var(--fill-2); }
+.rng::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; margin-top: -11px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.12); }
+.rng::-moz-range-track { height: 8px; border-radius: 4px; background: var(--fill-2); }
+.rng::-moz-range-progress { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--g1), var(--g2)); }
+.rng::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28); }
+/* In slide mode the number of sets is a slider too, so the picker in the header goes */
+.ex[data-mode="slide"] .ex-acts .sel { display: none; }
 .ex .wide { margin-top: 10px; }
 
 /* rest */
-.restpill { position: fixed; z-index: 19; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(env(safe-area-inset-bottom, 0px) + 66px - var(--gap)); border-radius: 999px; padding: 5px 5px 5px 16px; display: flex; align-items: center; gap: 9px; transition: transform .35s var(--ease), opacity .25s; }
+.restpill { position: fixed; z-index: 19; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 66px); border-radius: 999px; padding: 5px 5px 5px 16px; display: flex; align-items: center; gap: 9px; transition: transform .35s var(--ease), opacity .25s; }
 .restpill .rl { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; font-size: 10.5px; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .restpill .rl span { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11.5px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .restpill .t { font-size: 21px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; padding: 1px 8px; border-radius: 999px; line-height: 1.2; }
@@ -882,7 +880,8 @@ function applyLook(){
   root.style.setProperty('--z', {S:.92, M:1, L:1.1}[st.text] || 1);
 }
 function fixGap(){
-  // Standalone iPhone apps sometimes get a viewport that stops short of the bottom edge. Measure it and extend into it.
+  // Standalone iPhone apps sometimes get a viewport that stops short of the bottom edge. Measure it: the background reaches
+  // into it where iOS paints it, and the tab bar, rest timer and toasts stay above it so they are never cut off.
   let gap = 0;
   try{
     if(standalone() && /iPhone|iPod/.test(navigator.userAgent) && innerHeight > innerWidth){
@@ -1295,7 +1294,8 @@ function ensureCards(s){
 }
 function stp(k, f, label, mode){
   const id = 'in-' + k + '-' + f;
-  if(mode === 'slide') return '<div class="stp scrub"><label for="' + id + '">' + label + '</label><input id="' + id + '" data-f="' + f + '" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" placeholder="0" enterkeyhint="done" readonly><div class="ruler" aria-hidden="true"></div></div>';
+  if(mode === 'slide') return '<div class="stp"><label for="' + id + '">' + label + '</label><input id="' + id + '" data-f="' + f + '" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" placeholder="0" enterkeyhint="done">' +
+    '<input type="range" class="rng" data-k="' + k + '" data-rf="' + f + '" min="0" max="' + (f === 'w' ? 60 : f === 'r' ? 30 : 15) + '" step="' + (f === 'w' ? ST().step : 1) + '" value="0" aria-label="' + label + '"></div>';
   return '<div class="stp"><label for="' + id + '">' + label + '</label><input id="' + id + '" data-f="' + f + '" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" placeholder="0" enterkeyhint="done">' +
     '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
 }
@@ -1305,7 +1305,9 @@ function buildCard(ex, mode){
   el.className = 'glass card ex'; el.dataset.key = cardKey(ex); el.dataset.k = ex.k; el.dataset.mode = mode;
   el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-ex-sets="' + ex.k + '" data-r="sets" aria-label="Sets for ' + esc(ex.name) + '"></select><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button></div></div>' +
     '<div class="target" data-r="target" hidden></div><button class="last" data-a="exhist" data-n="' + esc(ex.name) + '" data-r="last"></button><span class="badge" data-r="tag" hidden></span><div class="logged" data-r="logged"></div>' +
-    '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : '') + '">' + stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + stp(ex.k, 'p', 'partials', mode) + '</div>' +
+    '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : '') + '">' +
+    (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
+    stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + stp(ex.k, 'p', 'partials', mode) + '</div>' +
     '<button class="btn-primary wide" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button></div>' +
     '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>';
   return el;
@@ -1330,7 +1332,10 @@ function fillCard(el, ex, s){
   r('entry').hidden = done; r('more').hidden = !done;
   r('logbtn').textContent = 'Log set ' + (today.length + 1) + (ex.planned && today.length < ex.planned ? ' of ' + ex.planned : '');
   const pf = prefill(ex.name, s.id);
-  el.querySelectorAll('.stp input').forEach(inp => { if(!inp.dataset.touched && inp.value === '' && document.activeElement !== inp){ const v = pf[inp.dataset.f]; if(v != null) inp.value = fmt(v); } });
+  el.querySelectorAll('.stp input:not(.rng)').forEach(inp => { if(!inp.dataset.touched && inp.value === '' && document.activeElement !== inp){ const v = pf[inp.dataset.f]; if(v != null) inp.value = fmt(v); } });
+  el.querySelectorAll('.rng[data-rf]').forEach(rg => { if(rg !== S.ui.sliding) syncRange(rg); });
+  const sr = el.querySelector('.rng[data-sets]');
+  if(sr && sr !== S.ui.sliding){ sr.value = ex.planned || 0; paintRange(sr); setsLabel(r('setsv'), ex.planned || 0); }
 }
 function startSession(id){
   if(activeSession()){ toast('Finish the current workout first'); selectTab(1); return; }
@@ -1971,37 +1976,33 @@ function disarmAct(){ clearTimeout(S.ui.armTimer); S.ui.armedAct = null; }
 function armAct(key, onRender){ disarmAct(); S.ui.armedAct = key; S.ui.armTimer = setTimeout(() => { S.ui.armedAct = null; onRender && onRender(); }, 4000); onRender && onRender(); }
 function armButton(id, key, idle, armedTxt){ armAct(key, () => { const b = $('#' + id); if(b){ const on = S.ui.armedAct === key; b.classList.toggle('armed', on); b.textContent = on ? armedTxt : idle; } }); }
 
-/* ---------- slide to adjust ---------- */
-let scrub = null, scrubMoved = false;
-document.addEventListener('pointerdown', e => {
-  const t = e.target.closest('.stp.scrub'); if(!t || t.classList.contains('typing')) return;
-  const inp = t.querySelector('input');
-  scrub = {t, inp, x: e.clientX, y: e.clientY, start: num(inp.value) || 0, steps: 0, moved: false, id: e.pointerId, step: inp.dataset.f === 'w' ? ST().step : 1};
-  scrubMoved = false;
-});
-document.addEventListener('pointermove', e => {
-  if(!scrub || e.pointerId !== scrub.id) return;
-  const dx = e.clientX - scrub.x, dy = e.clientY - scrub.y;
-  if(!scrub.moved){
-    if(Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-    if(Math.abs(dy) > Math.abs(dx)){ scrub = null; return; }
-    scrub.moved = scrubMoved = true; scrub.t.classList.add('dragging');
-    try{ scrub.t.setPointerCapture(e.pointerId); }catch(x){}
+/* ---------- sliders ----------
+   Plain range inputs. The weight slider gets a fixed top when the card first fills (one and a half times the starting
+   weight, at least 60 kg) so the thumb never jumps while you use it; typing a heavier weight raises it. */
+const paintRange = rg => rg.style.setProperty('--p', ((+rg.value - +rg.min) / ((+rg.max - +rg.min) || 1) * 100) + '%');
+const setsLabel = (o, n) => { if(!o) return; o.textContent = n ? String(n) : 'Free'; o.classList.toggle('free', !n); };
+function syncRange(rg){
+  const inp = $('#in-' + rg.dataset.k + '-' + rg.dataset.rf); if(!inp) return;
+  const v = Math.max(0, num(inp.value) || 0);
+  if(rg.dataset.rf === 'w' && !rg.dataset.top){ rg.dataset.top = '1'; rg.max = Math.max(60, Math.ceil((v * 1.5) / 10) * 10); }
+  if(v > +rg.max) rg.max = rg.dataset.rf === 'w' ? Math.ceil((v * 1.25) / 10) * 10 : Math.ceil(v);
+  rg.value = v; paintRange(rg);
+}
+document.addEventListener('pointerdown', e => { if(e.target.classList && e.target.classList.contains('rng')) S.ui.sliding = e.target; }, true);
+const endSlide = () => { S.ui.sliding = null; };
+document.addEventListener('pointerup', endSlide); document.addEventListener('pointercancel', endSlide);
+document.addEventListener('input', e => {
+  const t = e.target; if(!t.classList) return;
+  if(t.classList.contains('rng') && t.dataset.rf){
+    const inp = $('#in-' + t.dataset.k + '-' + t.dataset.rf), v = fmt(+t.value);
+    if(inp && inp.value !== String(v)){ inp.value = v; inp.dataset.touched = '1'; haptic(); }
+    paintRange(t);
+  } else if(t.classList.contains('rng') && t.dataset.sets){
+    setsLabel($('#sets-' + t.dataset.sets), +t.value); paintRange(t);
+  } else if(t.matches('.steppers.slide input[data-f]')){
+    const rg = t.parentElement.querySelector('.rng'); if(rg) syncRange(rg);
   }
-  scrub.t.style.setProperty('--off', dx + 'px');
-  const steps = Math.round(dx / 14);
-  if(steps !== scrub.steps){
-    scrub.steps = steps;
-    const v = Math.max(0, Math.round((scrub.start + steps * scrub.step) * 100) / 100);
-    if(String(fmt(v)) !== scrub.inp.value){ scrub.inp.value = fmt(v); scrub.inp.dataset.touched = '1'; haptic(); }
-  }
 });
-const endScrub = () => { if(!scrub) return; const s = scrub; scrub = null; s.t.classList.remove('dragging'); s.t.style.setProperty('--off', '0px'); };
-document.addEventListener('pointerup', endScrub); document.addEventListener('pointercancel', endScrub);
-document.addEventListener('click', e => {
-  const t = e.target.closest('.stp.scrub'); if(!t || scrubMoved){ scrubMoved = false; return; }
-  const inp = t.querySelector('input'); t.classList.add('typing'); inp.readOnly = false; inp.focus(); try{ inp.select(); }catch(x){}
-}, true);
 
 /* ---------- events ---------- */
 document.addEventListener('click', e => {
@@ -2121,6 +2122,7 @@ document.addEventListener('change', e => {
   if(t.id === 's-knee' || t.id === 's-rpe'){ const s = activeSession(); if(s) updateSession(s.id, t.id === 's-knee' ? {knee: t.value || null} : {rpe: num(t.value)}); return; }
   if(t.id === 'c-act'){ const was = S.ui.c && S.ui.c.activity, now = t.value; if(S.ui.c) S.ui.c.activity = now; $('#c-unit').textContent = now === 'Row' ? 'm' : 'km';
     const di = $('#c-dist'), dv = num(di.value); if(dv != null && (was === 'Row') !== (now === 'Row')) di.value = now === 'Row' ? String(Math.round(dv * 1000)) : fmt(dv / 1000); return; }
+  if(t.dataset && t.dataset.sets != null && t.classList.contains('rng')){ S.ui.sliding = null; const s = activeSession(), k = t.dataset.sets; if(s){ S.ui.expanded.delete(k); updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {planned: +t.value}) : e)}); } return; }
   if(t.dataset && t.dataset.exSets != null){ const s = activeSession(), k = t.dataset.exSets; if(s){ S.ui.expanded.delete(k); updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {planned: +t.value}) : e)}); } return; }
   if(t.dataset && t.dataset.rdSets != null && S.ui.rd){ S.ui.rd.items[+t.dataset.rdSets].sets = +t.value; return; }
   if(t.id === 'rd-rot' && S.ui.rd){ S.ui.rd.rotation = t.value === '1'; return; }
@@ -2134,18 +2136,17 @@ document.addEventListener('input', e => {
 });
 /* iOS pans the whole page up when the keyboard opens and sometimes leaves it there, which shows up as a dark strip at the bottom. Put it back. */
 let kbT = null;
-const typingField = el => !!(el && el.matches && el.matches('input:not([type=date]):not([readonly]), textarea'));
+const typingField = el => !!(el && el.matches && el.matches('input:not([type=date]):not([type=range]):not([readonly]), textarea'));
 function resetScroll(){ if(window.scrollY || document.documentElement.scrollTop || document.body.scrollTop){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
 document.addEventListener('focusin', e => {
   const t = e.target;
   if(typingField(t)){ clearTimeout(kbT); document.body.classList.add('kb'); }
-  if(t.matches && t.matches('.stp:not(.scrub) input')) setTimeout(() => { try{ t.select(); }catch(x){} }, 0);
+  if(t.matches && t.matches('.stp input:not(.rng)')) setTimeout(() => { try{ t.select(); }catch(x){} }, 0);
 });
 document.addEventListener('focusout', e => {
   const t = e.target;
   clearTimeout(kbT);
   kbT = setTimeout(() => { if(!typingField(document.activeElement)){ document.body.classList.remove('kb'); resetScroll(); } }, 120);
-  if(t.matches && t.matches('.stp.scrub input')){ t.readOnly = true; t.closest('.stp').classList.remove('typing'); }
 });
 if(window.visualViewport) visualViewport.addEventListener('resize', () => { if(visualViewport.height > innerHeight * .85){ if(!typingField(document.activeElement)) document.body.classList.remove('kb'); resetScroll(); fixGap(); } });
 addEventListener('scroll', () => { if(!typingField(document.activeElement)) resetScroll(); }, {passive:true});
