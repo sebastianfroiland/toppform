@@ -1,9 +1,9 @@
-"""Bygger Toppform-appen for GitHub Pages.
+"""Builds the Toppform app for GitHub Pages.
 
-Kilden er app.html (sideinnholdet, samme fil som kan publiseres som artifact i Claude).
-Skriptet pakker den inn i et fullt HTML-dokument med manifest og service worker, og lager ikonene.
+The source is app.html (the page body, the same file that can be published as an artifact in Claude).
+This script wraps it in a full HTML document with a manifest and service worker, and draws the icons.
 
-Kjør fra repoets rot: python3 src/build.py   (skriver index.html, sw.js, manifest og ikoner til rota, som GitHub Pages publiserer)
+Run from the repo root: python3 src/build.py   (writes index.html, sw.js, the manifest and icons to the root, which GitHub Pages serves)
 """
 import json, re, shutil
 from pathlib import Path
@@ -11,20 +11,20 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "3.0.1"
+VERSION = "4.0.0"
 
 HEAD = """<!doctype html>
-<html lang="no">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#f2f3f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07081a" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Toppform">
-<meta name="description" content="Treningslogg med Claude som trener">
+<meta name="description" content="Training log with Claude as your coach">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
@@ -34,7 +34,7 @@ HEAD = """<!doctype html>
 """
 TAIL = "\n</body>\n</html>\n"
 
-SW = """// Toppform service worker: appen åpner uten nett. GitHub-API-et går alltid rett på nett.
+SW = """// Toppform service worker: the app opens offline. The GitHub API always goes straight to the network.
 const CACHE = 'toppform-__VERSION__';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -53,8 +53,8 @@ self.addEventListener('fetch', e => {
 MANIFEST = {
     "name": "Toppform",
     "short_name": "Toppform",
-    "description": "Treningslogg med Claude som trener",
-    "lang": "no",
+    "description": "Training log with Claude as your coach",
+    "lang": "en",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
@@ -69,7 +69,7 @@ MANIFEST = {
 
 
 def icon(size, inset=0.0):
-    """Mørk bakgrunn med de samme fargelysene som appen, og en hvit manual i midten."""
+    """Dark background with the same coloured lights as the app, and a white dumbbell in the middle."""
     S = 1024
     img = Image.new("RGB", (S, S), "#07081a")
     grad = Image.new("RGB", (S, S), "#07081a")
@@ -86,13 +86,13 @@ def icon(size, inset=0.0):
     g.ellipse([180, 700, 760, 1220], fill=(255, 95, 168, 150))
     glow = glow.filter(ImageFilter.GaussianBlur(130))
     img = Image.alpha_composite(img.convert("RGBA"), glow)
-    # glassflate
+    # glass plate
     pad = int(S * (0.2 + inset))
     glass = Image.new("RGBA", (S, S), (0, 0, 0, 0))
     gl = ImageDraw.Draw(glass)
     gl.rounded_rectangle([pad, pad, S - pad, S - pad], radius=int((S - 2 * pad) * 0.28), fill=(255, 255, 255, 38), outline=(255, 255, 255, 120), width=6)
     img = Image.alpha_composite(img, glass)
-    # manual
+    # dumbbell
     d = ImageDraw.Draw(img)
     cx, cy = S / 2, S / 2
     k = (S - 2 * pad) / 620
@@ -119,7 +119,7 @@ def build():
     icon(512).save(DIST / "icons" / "icon-512.png")
     icon(512, inset=0.08).save(DIST / "icons" / "icon-maskable-512.png")
     icon(180).save(DIST / "icons" / "apple-touch-icon.png")
-    print("Bygget", VERSION, "til", DIST)
+    print("Built", VERSION, "to", DIST)
 
 
 if __name__ == "__main__":

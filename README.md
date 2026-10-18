@@ -1,27 +1,27 @@
 # Toppform
 
-En treningsapp for mobilen med Claude som trener. Logg sett med ett trykk, lag dine egne økter eller tren fritt, ta en kort morgensjekk, og se rekordene dine fra 1RM til lengste løpetur. Hver kveld leser Claude loggen, skriver en kort tilbakemelding og legger inn anbefalt vekt og reps til neste økt.
+A training app for your phone with Claude as your coach. Log a set with one tap, build your own workouts and keep them in folders or just train freely, do a quick morning check-in, and see your records from 1RM to your longest run. Every evening Claude reads the log, writes a short review and sets a recommended weight and rep target for your next workout.
 
-**Appen:** https://sebastianfroiland.github.io/toppform/
+**The app:** https://sebastianfroiland.github.io/toppform/
 
-## Slik tar du den i bruk
+## Getting started
 
-1. Åpne lenken over i Safari på iPhone (eller Chrome på Android), trykk Del og velg «Legg til på Hjem-skjerm».
-2. Åpne appen fra hjemskjermen.
-3. Lag et **privat** repo på GitHub til dataene dine, for eksempel `toppform-data`, med en README så det ikke er tomt.
-4. Lag en tilgangsnøkkel på github.com/settings/personal-access-tokens/new: velg bare det private repoet og gi Contents tilgangen Read and write.
-5. Fyll inn brukernavn, repo og nøkkel i appen. Nøkkelen lagres bare på telefonen din.
+1. Open the link above in Safari on iPhone (or Chrome on Android), tap Share and choose Add to Home Screen.
+2. Open the app from your home screen.
+3. Create a **private** repo on GitHub for your data, for example `toppform-data`, with a README so it isn't empty.
+4. Create an access token at github.com/settings/personal-access-tokens/new: select only that private repo and give Contents Read and write access.
+5. Enter your username, repo and token in the app. The token is stored only on your phone.
 
-Koden i dette repoet er offentlig, men inneholder ingen data. Alt du logger havner i ditt eget private repo.
+The code in this repo is public but holds no data. Everything you log ends up in your own private repo.
 
-## Hvordan den er bygget
+## How it's built
 
-All kode ligger i `src/app.html`: liquid glass-design, fem faner du kan sveipe mellom, ark som glir opp, og en lagringskø som tåler dårlig dekning. `src/build.py` pakker den inn som en installerbar app (manifest, service worker og ikoner) og skriver resultatet til rota, som GitHub Pages publiserer.
+All the code is in `src/app.html`: the liquid glass design, five pages you can swipe between, sheets that slide up, and a save queue that copes with bad reception. `src/build.py` wraps it as an installable app (manifest, service worker and icons) and writes the result to the root, which GitHub Pages serves.
 
 ```
 python3 src/build.py
 ```
 
-Appen snakker direkte med GitHub sitt GraphQL-API. Hver endring blir en commit i datarepoet. Hvis noen andre har skrevet i repoet i mellomtiden (for eksempel Claude sin kveldsgjennomgang), henter appen siste versjon og prøver igjen.
+The app talks directly to GitHub's GraphQL API. Every change becomes a commit in the data repo. If something else has written to the repo in the meantime (for example Claude's evening review), the app fetches the latest version and tries again.
 
-Datamodellen er beskrevet i README-en i datarepoet.
+The data model is described in the README of the data repo.

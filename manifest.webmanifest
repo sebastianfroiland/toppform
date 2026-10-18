@@ -1,8 +1,8 @@
 {
   "name": "Toppform",
   "short_name": "Toppform",
-  "description": "Treningslogg med Claude som trener",
-  "lang": "no",
+  "description": "Training log with Claude as your coach",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
