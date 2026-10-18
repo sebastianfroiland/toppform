@@ -363,20 +363,39 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .pm button { height: 40px; border-radius: 999px; border: 0; background: var(--fill-2); font-size: 21px; font-weight: 500; line-height: 1; transition: transform .3s var(--spring); }
 .pm button:active { transform: scale(.92); }
 /* Slide mode: one plain slider per value, full width. Tap the number to type it instead. */
-.steppers.slide { grid-template-columns: 1fr; gap: 8px; }
-.steppers.slide .stp { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; padding: 8px 14px 4px; border-radius: 20px; }
-.steppers.slide .stp input:not(.rng), .steppers.slide .stp output { text-align: right; font-size: 28px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.steppers.slide .stp output.free { font-size: 17px; color: var(--dim); font-weight: 600; letter-spacing: 0; }
-.rng { grid-column: 1 / -1; -webkit-appearance: none; appearance: none; width: 100%; height: 44px; margin: 0; padding: 0; background: transparent; --p: 0%; }
+.steppers.slide { grid-template-columns: 1fr; gap: 6px; }
+.steppers.slide .stp { display: grid; grid-template-columns: 64px 1fr 56px; grid-template-areas: "l r v"; align-items: center; column-gap: 8px; padding: 2px 12px; min-height: 50px; border-radius: 16px; }
+.steppers.slide .stp label { grid-area: l; }
+.steppers.slide .stp input:not(.rng), .steppers.slide .stp output { grid-area: v; text-align: right; font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.steppers.slide .stp output.free { font-size: 14px; color: var(--dim); font-weight: 600; letter-spacing: 0; }
+/* touch-action pan-y: a sideways drag anywhere on the strip moves the slider, an up or down swipe still scrolls the page */
+.rng { grid-area: r; -webkit-appearance: none; appearance: none; width: 100%; height: 44px; margin: 0; padding: 0; background: transparent; touch-action: pan-y; --p: 0%; }
 .rng:focus { outline: none; }
 .rng::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--g1), var(--g2)) 0 0 / var(--p) 100% no-repeat, var(--fill-2); }
-.rng::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; margin-top: -11px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.12); }
+.rng::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; margin-top: -9px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.12); }
 .rng::-moz-range-track { height: 8px; border-radius: 4px; background: var(--fill-2); }
 .rng::-moz-range-progress { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--g1), var(--g2)); }
-.rng::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28); }
+.rng::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28); }
 /* In slide mode the number of sets is a slider too, so the picker in the header goes */
 .ex[data-mode="slide"] .ex-acts .sel { display: none; }
 .ex .wide { margin-top: 10px; }
+/* exercise notes: earlier notes you can swipe through, and a small field for today's */
+.nprev { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; margin: 10px -18px 0; padding: 0 18px; }
+.nprev::-webkit-scrollbar { display: none; }
+.npi { flex: 0 0 auto; max-width: 80%; scroll-snap-align: start; padding: 7px 12px; border-radius: 14px; background: var(--fill); border: 1px solid var(--line); font-size: 13.5px; line-height: 1.35; }
+.npi small { display: block; color: var(--dim); font-size: 11.5px; font-weight: 600; }
+textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top: 10px; padding: 9px 13px; border-radius: 13px; resize: none; overflow: hidden; }
+/* 1RM test: the ladder from warm-up to PR attempt */
+.ladder { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 10px -18px 0; padding: 0 18px; }
+.ladder::-webkit-scrollbar { display: none; }
+.lst { flex: 0 0 auto; padding: 7px 11px; border-radius: 14px; background: var(--fill); border: 1px solid var(--line); }
+.lst small { display: block; font-size: 11px; color: var(--dim); font-weight: 600; }
+.lst b { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lst.done { opacity: .5; }
+.lst.done b::after { content: " ✓"; color: var(--up); }
+.lst.cur { background: color-mix(in srgb, var(--g1) 18%, var(--fill)); border-color: color-mix(in srgb, var(--g1) 55%, var(--line)); }
+.rmlist { margin-top: 10px; }
+.rmlist .li { cursor: default; }
 
 /* rest */
 .restpill { position: fixed; z-index: 19; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 66px); border-radius: 999px; padding: 5px 5px 5px 16px; display: flex; align-items: center; gap: 9px; transition: transform .35s var(--ease), opacity .25s; }
@@ -513,6 +532,7 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 
   <section class="view" id="v-records" aria-label="Records"><div class="vin">
     <header class="top"><h1>Records</h1></header>
+    <article class="glass card" id="rm-card"></article>
     <div id="prs-top"></div>
     <article class="glass card">
       <h2>Strength</h2>
@@ -1307,6 +1327,7 @@ function buildCard(ex, mode){
   const wl = info.bw === 'bw' ? '+kg' : info.bw === 'assist' ? 'assist' : 'kg';
   el.className = 'glass card ex'; el.dataset.key = cardKey(ex); el.dataset.k = ex.k; el.dataset.mode = mode;
   el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-ex-sets="' + ex.k + '" data-r="sets" aria-label="Sets for ' + esc(ex.name) + '"></select><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button></div></div>' +
+    '<div class="ladder" data-r="ladder" hidden></div><div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + ex.k + '" rows="1" placeholder="Note, like rope or seat height" aria-label="Note for ' + esc(ex.name) + '"></textarea>' +
     '<div class="target" data-r="target" hidden></div><button class="last" data-a="exhist" data-n="' + esc(ex.name) + '" data-r="last"></button><span class="badge" data-r="tag" hidden></span><div class="logged" data-r="logged"></div>' +
     '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : '') + '">' +
     (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
@@ -1334,6 +1355,17 @@ function fillCard(el, ex, s){
   el.classList.toggle('done', done);
   r('entry').hidden = done; r('more').hidden = !done;
   r('logbtn').textContent = 'Log set ' + (today.length + 1) + (ex.planned && today.length < ex.planned ? ' of ' + ex.planned : '');
+  const nt = el.querySelector('.exn');
+  if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
+  const prev = prevNotes(ex.name, s.id), np = r('nprev');
+  np.hidden = !prev.length;
+  if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
+  const lad = r('ladder');
+  if(ex.rm){
+    const steps = rmLadder(ex.rm), i = today.length; lad.hidden = false;
+    setHTML(lad, steps.map((x, j) => '<div class="lst' + (j < i ? ' done' : j === i ? ' cur' : '') + '"><small>' + x.l + '</small><b>' + fmt(x.w) + ' × ' + x.r + '</b></div>').join(''));
+    if(i < steps.length) [['w', steps[i].w], ['r', steps[i].r], ['p', 0]].forEach(([f, v]) => { const inp = el.querySelector('#in-' + ex.k + '-' + f); if(inp && !inp.dataset.touched && document.activeElement !== inp) inp.value = fmt(v); });
+  } else lad.hidden = true;
   const pf = prefill(ex.name, s.id);
   el.querySelectorAll('.stp input:not(.rng)').forEach(inp => { if(!inp.dataset.touched && inp.value === '' && document.activeElement !== inp){ const v = pf[inp.dataset.f]; if(v != null) inp.value = fmt(v); } });
   el.querySelectorAll('.rng[data-rf]').forEach(rg => { if(rg !== S.ui.sliding) syncRange(rg); });
@@ -1525,6 +1557,7 @@ function cardioPRs(){
   return out.sort((a,b) => b.n - a.n);
 }
 function renderRecords(){
+  renderRmCard();
   const ev = prEvents(30);
   setHTML($('#prs-top'), ev.length ? '<article class="glass card"><h2>Recent PRs</h2><div style="margin-top:6px">' + ev.slice(0, 6).map(x => '<div class="prnew"><b style="font-weight:600">' + esc(x.exercise) + ' · ' + esc(setText(x, infoOf(x.exercise))) + '</b><span>' + esc(dShort(x.date)) + '</span></div>').join('') + '</div></article>' : '');
   const prs = strengthPRs();
@@ -1615,7 +1648,8 @@ function buildSummary(r){
       const xs = setsOf(s.id); if(!xs.length) continue;
       const by = {}; xs.slice().sort((a,b) => a.ts - b.ts).forEach(x => { (by[x.exercise] = by[x.exercise] || []).push(setText(x, infoOf(x.exercise))); });
       const swaps = (s.exercises || []).filter(e => e.from).map(e => e.from + ' -> ' + e.name);
-      lines.push(s.date + ' ' + sessionTitle(s) + ': ' + Object.keys(by).map(k => k + ' ' + by[k].join(', ')).join('; ') + (s.knee ? ' | knee/foot ' + s.knee : '') + (s.rpe ? ' | effort ' + s.rpe : '') + (swaps.length ? ' | swapped ' + swaps.join(', ') : '') + (s.note ? ' | note: ' + s.note.replace(/\s+/g, ' ').slice(0, 200) : ''));
+      const exNotes = (s.exercises || []).filter(e => e.note && e.note.trim()).map(e => e.name + ': ' + e.note.replace(/\s+/g, ' ').slice(0, 120));
+      lines.push(s.date + ' ' + sessionTitle(s) + ': ' + Object.keys(by).map(k => k + ' ' + by[k].join(', ')).join('; ') + (s.knee ? ' | knee/foot ' + s.knee : '') + (s.rpe ? ' | effort ' + s.rpe : '') + (swaps.length ? ' | swapped ' + swaps.join(', ') : '') + (exNotes.length ? ' | exercise notes: ' + exNotes.join('; ') : '') + (s.note ? ' | note: ' + s.note.replace(/\s+/g, ' ').slice(0, 200) : ''));
     } else lines.push(s.date + ' ' + s.activity + ': ' + sessionMeta(s) + (s.knee ? ' | knee/foot ' + s.knee : '') + (s.note ? ' | note: ' + s.note.replace(/\s+/g, ' ').slice(0, 160) : ''));
   }
   const cis = [...D.checkins.values()].filter(c => c && c.date >= r.from && c.date <= r.to).sort((a,b) => a.date < b.date ? -1 : 1);
@@ -1849,7 +1883,7 @@ function openDetail(id){
   const sets = setsOf(id), order = (s.exercises || []).map(e => e.name);
   sets.forEach(x => { if(!order.includes(x.exercise)) order.push(x.exercise); });
   const rows = order.map(name => { const xs = sets.filter(x => x.exercise === name).sort((a, b) => a.n - b.n); if(!xs.length) return ''; const info = infoOf(name), ex = (s.exercises || []).find(e => e.name === name);
-    return '<div class="exr"><b>' + esc(name) + '</b>' + (ex && ex.from ? ' <small class="sub">(swapped from ' + esc(ex.from) + ')</small>' : '') + '<div class="logged" style="margin-top:8px">' + xs.map(x => '<span class="setchip"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</span>').join('') + '</div></div>'; }).join('');
+    return '<div class="exr"><b>' + esc(name) + '</b>' + (ex && ex.from ? ' <small class="sub">(swapped from ' + esc(ex.from) + ')</small>' : '') + (ex && ex.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.note) + '</p>' : '') + '<div class="logged" style="margin-top:8px">' + xs.map(x => '<span class="setchip"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</span>').join('') + '</div></div>'; }).join('');
   let body = rows ? '<div style="display:flex;flex-direction:column;gap:12px">' + rows + '</div>' : '<p class="sub">No sets logged</p>';
   if(s.knee) body += '<p class="sub" style="display:flex;align-items:center;gap:8px"><span class="dot ' + esc(s.knee) + '"></span>Knee and foot: ' + esc(KNEE[s.knee] || s.knee) + '</p>';
   if(s.note) body += '<p class="note">' + esc(s.note) + '</p>';
@@ -1991,9 +2025,90 @@ function syncRange(rg){
   if(v > +rg.max) rg.max = rg.dataset.rf === 'w' ? Math.ceil((v * 1.25) / 10) * 10 : Math.ceil(v);
   rg.value = v; paintRange(rg);
 }
-document.addEventListener('pointerdown', e => { if(e.target.classList && e.target.classList.contains('rng')) S.ui.sliding = e.target; }, true);
-const endSlide = () => { S.ui.sliding = null; };
-document.addEventListener('pointerup', endSlide); document.addEventListener('pointercancel', endSlide);
+// iPhone only moves a slider when you hit the thumb itself. Here the whole strip works: drag sideways from anywhere,
+// or tap a spot to jump there. An up or down swipe is left to the page, so scrolling never changes a value.
+function rangeFromX(rg, x){
+  const b = rg.getBoundingClientRect(), th = 26, f = Math.min(1, Math.max(0, (x - b.left - th / 2) / Math.max(1, b.width - th)));
+  const min = +rg.min, max = +rg.max, st = +rg.step || 1, v = Math.min(max, Math.max(min, Math.round((min + f * (max - min)) / st) * st));
+  if(+rg.value !== v){ rg.value = v; rg.dispatchEvent(new Event('input', {bubbles: true})); }
+}
+let rgDrag = null;
+document.addEventListener('pointerdown', e => {
+  const rg = e.target.closest && e.target.closest('.rng'); if(!rg) return;
+  S.ui.sliding = rg; rgDrag = {rg, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false};
+});
+document.addEventListener('pointermove', e => {
+  const d = rgDrag; if(!d || e.pointerId !== d.id) return;
+  if(!d.moved){ const dx = Math.abs(e.clientX - d.x), dy = Math.abs(e.clientY - d.y); if(dx < 4 || dx < dy) return; d.moved = true; try{ d.rg.setPointerCapture(e.pointerId); }catch(x){} }
+  rangeFromX(d.rg, e.clientX);
+});
+document.addEventListener('pointerup', e => {
+  const d = rgDrag; rgDrag = null; S.ui.sliding = null; if(!d) return;
+  if(!d.moved) rangeFromX(d.rg, e.clientX);
+  d.rg.dispatchEvent(new Event('change', {bubbles: true}));
+});
+document.addEventListener('pointercancel', () => { rgDrag = null; S.ui.sliding = null; });
+
+/* ---------- exercise notes ---------- */
+// Earlier notes on the same exercise, newest first, so you see "use the rope" before you start
+function prevNotes(name, sid){
+  const out = [];
+  for(const x of D.sessions){ if(x.id === sid || !x.exercises) continue; const e = x.exercises.find(y => y.name === name && y.note && y.note.trim()); if(e) out.push({date: x.date, note: e.note.trim()}); }
+  return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
+}
+const growNote = t => { t.style.height = 'auto'; t.style.height = Math.max(40, t.scrollHeight + 2) + 'px'; };
+const noteTimers = {};
+function saveExNote(k, val){
+  clearTimeout(noteTimers[k]); delete noteTimers[k];
+  const s = activeSession(); if(!s) return;
+  const ex = s.exercises.find(e => e.k === k); if(!ex || (ex.note || '') === val) return;
+  updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {note: val}) : e)});
+}
+document.addEventListener('input', e => { const t = e.target; if(t.dataset && t.dataset.exnote){ growNote(t); clearTimeout(noteTimers[t.dataset.exnote]); noteTimers[t.dataset.exnote] = setTimeout(() => saveExNote(t.dataset.exnote, t.value.trim()), 700); } });
+document.addEventListener('focusout', e => { const t = e.target; if(t.dataset && t.dataset.exnote) saveExNote(t.dataset.exnote, t.value.trim()); });
+
+/* ---------- 1RM test ----------
+   Pick a lift and a goal. The test is a workout of its own: a ladder of warm-ups, an opener, a second attempt
+   and a PR attempt. Each step fills in its weight and reps, and the best single lands on Records like any other set. */
+const RM_STEPS = [[.5, 5, 'Warm-up'], [.7, 3, 'Warm-up'], [.82, 1, 'Warm-up'], [.9, 1, 'Opener'], [.975, 1, 'Second'], [1.025, 1, 'PR attempt']];
+const rmLadder = goal => { const st = ST().step || 2.5; return RM_STEPS.map(([f, r, l]) => ({w: Math.max(0, Math.round(goal * f / st) * st), r, l})); };
+function rmEstimate(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc / (ST().step || 2.5)) * (ST().step || 2.5) : 0; }
+function renderRmCard(){
+  const tests = D.sessions.filter(x => x.template === 'T' && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 4);
+  const rows = tests.map(x => { const name = (x.exercises && x.exercises[0] || {}).name; const best = setsOf(x.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0];
+    return name ? '<div class="li"><span>' + esc(name) + '<br><small style="text-align:left">' + esc(dShort(x.date)) + '</small></span><b>' + (best ? fmt(best.weight) + ' kg' : !x.endedAt ? 'Running' : 'No single') + '</b></div>' : ''; }).join('');
+  setHTML($('#rm-card'), '<div class="hd"><h2>1RM test</h2></div>' + (rows ? '<div class="rmlist">' + rows + '</div>' : '') + '<button class="btn-primary wide" data-a="rm-open" style="margin-top:12px">Test a lift</button>');
+}
+function openRm(){
+  const prs = strengthPRs().filter(p => !p.info.bw).sort((a, b) => b.e1.sc - a.e1.sc);
+  const names = prs.map(p => p.name), extra = D.lib.filter(x => x.kind === 'b' && !x.bw && !names.includes(x.name)).map(x => x.name);
+  const all = names.concat(extra), first = all[0] || 'Bench Press';
+  S.ui.rm = {name: first, goal: rmEstimate(first) || 60};
+  openSheet('rm', shTop('1RM test'), '<label class="lab" for="rm-ex">Lift</label><select class="sel block" id="rm-ex">' + opts(all.map(n => [n, n]), first) + '</select>' +
+    '<div class="steppers slide" style="margin-top:12px"><div class="stp"><label for="rm-goal">goal kg</label><output id="rm-goal-v"></output><input type="range" class="rng" id="rm-goal" min="20" max="300" step="' + (ST().step || 2.5) + '" value="60" aria-label="Goal"></div></div>' +
+    '<div class="ladder" id="rm-ladder" style="margin-left:0;margin-right:0;padding:0;flex-wrap:wrap"></div>' +
+    '<button class="btn-primary wide" data-a="rm-start" style="margin-top:16px">Start test</button>', false);
+  rmSync();
+}
+function rmSync(){
+  const R = S.ui.rm; if(!R) return;
+  const g = $('#rm-goal'); if(!g) return;
+  if(+g.max < R.goal) g.max = Math.ceil(R.goal * 1.3 / 10) * 10;
+  g.value = R.goal; paintRange(g); $('#rm-goal-v').textContent = fmt(R.goal);
+  $('#rm-ladder').innerHTML = rmLadder(R.goal).map(x => '<div class="lst"><small>' + x.l + '</small><b>' + fmt(x.w) + ' × ' + x.r + '</b></div>').join('');
+}
+document.addEventListener('input', e => { if(e.target.id === 'rm-goal' && S.ui.rm){ S.ui.rm.goal = +e.target.value; rmSync(); } });
+document.addEventListener('change', e => { if(e.target.id === 'rm-ex' && S.ui.rm){ S.ui.rm.name = e.target.value; S.ui.rm.goal = rmEstimate(e.target.value) || S.ui.rm.goal; rmSync(); } });
+function startRm(){
+  const R = S.ui.rm; if(!R) return;
+  if(activeSession()){ toast('Finish the current workout first'); return; }
+  const now = Date.now(), sid = newId();
+  const s = {id:sid, kind:'styrke', template:'T', title:'1RM · ' + R.name, date:todayISO(), startedAt:now, endedAt:null, knee:null, rpe:null, note:'',
+    exercises:[{k:newId(), name:R.name, planned:RM_STEPS.length, hint:'', rm:R.goal}], updatedAt:now};
+  S.activeId = sid; ls.set('tl.active', sid); S.ui.expanded.clear(); S.ui.deckI = 0; S.ui.overview = false; S.ui.rm = null;
+  queue('set', 'sessions', sid, s);
+  closeSheet(); selectTab(1);
+}
 document.addEventListener('input', e => {
   const t = e.target; if(!t.classList) return;
   if(t.classList.contains('rng') && t.dataset.rf){
@@ -2033,6 +2148,8 @@ document.addEventListener('click', e => {
     case 'swap': openLib('swap', b.dataset.k); break;
     case 'add-ex': openLib('add', null); break;
     case 'more': S.ui.expanded.add(b.dataset.k); renderWorkout(); break;
+    case 'rm-open': openRm(); break;
+    case 'rm-start': startRm(); break;
     case 'deck-go': { const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
     case 'deck-ov': S.ui.overview = !S.ui.overview; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
     case 'exhist': openExHistory(b.dataset.n); break;
