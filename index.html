@@ -194,8 +194,27 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit .grow { flex: 1 1 auto; min-height: min-content; display: flex; flex-direction: column; }
 .vin.fit > :last-child, .vin.fit .grow > :last-child { margin-bottom: 0; }
 .goal-add { margin-top: 12px; }
-.vin.fit .goal-add { margin-top: auto; }
-.vin.fit #goals-card > :nth-last-child(2) { margin-bottom: 12px; }
+#v-records .card { padding: 16px; }
+#v-records .goal b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#v-records .goal-add { min-height: 44px; }
+/* the lift picker looks like the tab bar: a pill with a drop that slides to the lift you pick */
+.lc-bar { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 3px; border-radius: 999px; background: var(--fill); border: 1px solid var(--line); }
+.lc-bar::before { content: ''; position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n, 1)); border-radius: 999px; background: var(--drop); box-shadow: var(--drop-shadow); transform: translateX(calc(var(--i, 0) * 100%)); transition: transform .55s var(--spring); }
+.lc-bar button { position: relative; z-index: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0 4px; border: 0; background: none; color: var(--dim); font-size: 10px; font-weight: 600; line-height: 1.1; transition: color .25s; }
+.lc-bar button.on { color: var(--text); }
+.lc-bar svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.lc-bar span { max-width: 100%; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lc-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-top: 12px; }
+.lc-name { min-width: 0; display: flex; flex-direction: column; padding: 0; border: 0; background: none; text-align: left; }
+.lc-name b { font-weight: 600; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lc-name small, .lc-num small { color: var(--dim); font-size: 12px; }
+.lc-num { flex: none; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; font-variant-numeric: tabular-nums; color: var(--dim); font-size: 13px; }
+.lc-num strong { color: var(--text); font-size: 24px; font-weight: 650; letter-spacing: -.02em; }
+.lc-num small.up { color: var(--up); }
+.lc-chart { height: 160px; }
+.lc-chart .curve { margin-top: 4px; }
+.vin.fit .lc-chart { flex: 1 1 auto; height: auto; min-height: 90px; }
+#lc-foot .two { margin-top: 12px; }
 .vin.fit .scrolly { flex: 1 1 auto; min-height: 48px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 body.resting .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
 
@@ -885,8 +904,8 @@ button.day:active { transform: scale(.94); }
 
   <section class="view" id="v-records" aria-label="Records"><div class="vin">
     <header class="top"><h1>Records</h1><small><span class="status" data-s="busy"></span></small></header>
-    <article class="glass card grow" id="goals-card"></article>
-    <article class="glass card" id="rm-card"></article>
+    <article class="glass card" id="goals-card"></article>
+    <article class="glass card grow" id="lc-card"><div id="lc-bar"></div><div id="lc-head"></div><div id="lc-chart" class="lc-chart"></div><div id="lc-foot"></div></article>
   </div></section>
 </div>
 
@@ -1566,6 +1585,7 @@ function syncFit(){
     let bottom = 0; for(const c of vin.children){ if(c.offsetParent !== null) bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); }
     if(v.scrollHeight > v.clientHeight + 1 || bottom > bar - top - 4) vin.classList.remove('fit');
   }
+  drawLiftChart();
 }
 addEventListener('resize', () => { if(D) syncFit(); });
 function refresh(){
@@ -2428,7 +2448,7 @@ function renderGoals(){
   setHTML($('#goals-card'), '<div class="hd"><h2>Goals</h2><small>' + gs.length + ' of 3</small></div>' +
     (gs.length < 3 ? '<p class="hint">Write what you want to reach in your own words. Claude makes it short and clear tonight and plans your training around it.</p>' : '') +
     (rows ? '<div style="margin-top:6px">' + rows + '</div>' : '') +
-    (gs.length ? '' : '<p class="sub" style="margin-top:8px">No goals yet. What do you want to reach?</p>') +
+    (gs.length ? '' : '<p class="sub" style="margin-top:6px">No goals yet. What do you want to reach?</p>') +
     (gs.length < 3 ? '<button class="btn-glass wide goal-add" data-a="goal-new">+ Goal</button>' : ''));
 }
 function openGoal(id){
@@ -2480,12 +2500,12 @@ function strengthIndex(){
   }
   return out;
 }
-function keyLifts(){
+function keyLifts(n){
   const count = new Map();
   for(const x of D.sets){ if(!count.has(x.exercise)) count.set(x.exercise, new Set()); count.get(x.exercise).add(x.sessionId); }
   const prs = strengthPRs(), gl = goals().map(g => g.lift).filter(Boolean);
   const rank = p => (gl.includes(p.name) ? 1e6 : 0) + (p.info.kind === 'b' ? 1e4 : 0) + count.get(p.name).size * 100 + Math.min(99, p.e1.sc / 4);
-  return prs.slice().sort((a, b) => rank(b) - rank(a)).slice(0, Math.max(4, gl.length));
+  return prs.slice().sort((a, b) => rank(b) - rank(a)).slice(0, n || Math.max(4, gl.length));
 }
 function renderLifts(){
   const lifts = keyLifts(), ev = prEvents(14).slice(0, 2), view = S.ui.liftView || 'lift';
@@ -2524,8 +2544,71 @@ function renderBodyPage(){
 /* Records: your goals, your best lifts with their curves, cardio bests and the 1RM test */
 function renderRecords(){
   renderGoals();
-  renderRmCard();
+  renderLiftCard();
   renderBestLifts();
+}
+/* The lift card on Records: a picker shaped like the tab bar with your most used lifts (a small drawing and a short
+   name each), the estimated max with how far it has come, a clean curve that fills the space, and the 1RM test. */
+const LIFT_IC = {
+  bench: '<path d="M3 17.5h18M6 17.5V20M18 17.5V20M9.5 15h8M11.5 15V8.5M4 8h16M5.5 6v4M18.5 6v4"/><circle cx="7.4" cy="14.6" r="1.6"/>',
+  pull: '<path d="M3 3.5h18M8 3.5l2 7M16 3.5l-2 7M10 10.5h4M12 10.5V16M12 16l-1.8 5M12 16l1.8 5"/><circle cx="12" cy="7.8" r="1.6"/>',
+  squat: '<path d="M4 7.5h16M5.5 5.5v4M18.5 5.5v4M12 7.5l-1.5 6M10.5 13.5l4.5 1M15 14.5l-1 5.5M14 20h2.5"/><circle cx="12.6" cy="4.9" r="1.5"/>',
+  hinge: '<path d="M9.2 7.6 15 11M15 11v9M11.2 9l.6 6.5M6 15.5h12M7.5 13.5v4M16.5 13.5v4"/><circle cx="7.9" cy="6.6" r="1.5"/>',
+  press: '<path d="M4 4h16M5.5 2.5v3M18.5 2.5v3M8.5 4l2 6.5M15.5 4l-2 6.5M10.5 10.5h3M12 10.5V16M12 16l-1.8 5M12 16l1.8 5"/><circle cx="12" cy="8.2" r="1.5"/>',
+  raise: '<path d="M5 9.5h14M4 8v3M20 8v3M12 7v8.5M12 15.5l-1.8 5M12 15.5l1.8 5"/><circle cx="12" cy="5.2" r="1.6"/>',
+  row: '<path d="M4 19h7M7.5 19v-8.5M7.5 12h6M13.5 12l6.5 2.5M7.5 19l7.5-2M15 17v2.5"/><circle cx="7.5" cy="8.2" r="1.6"/>',
+  hip: '<path d="M2.5 14.5h5M5 14.5V20M6.5 12.5h8.5l2.5 4.5V20M11 9.5v6"/><circle cx="4.6" cy="11.6" r="1.5"/>',
+  bell: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>'
+};
+const SLOT_IC = {cpress: 'bench', cfly: 'bench', vert: 'pull', row: 'row', rear: 'row', quad: 'squat', ham: 'hinge', hip: 'hip', spress: 'press', lat: 'raise'};
+const liftIcon = slot => '<svg viewBox="0 0 24 24" aria-hidden="true">' + LIFT_IC[SLOT_IC[slot] || 'bell'] + '</svg>';
+const SHORT = {'Bench Press': 'Bench', 'Incline Bench Press': 'Incline', 'Incline Dumbbell Press (30°)': 'Incline DB', 'Flat Dumbbell Press': 'DB press', 'Machine Chest Press': 'Chest press', 'Smith Incline Press': 'Incline', 'Lat Pulldown': 'Pulldown', 'Pull-Up': 'Pull-ups', 'Chin-Up': 'Chin-ups', 'Assisted Pull-Up': 'Pull-ups', 'Hack Squat': 'Hack squat', 'Back Squat': 'Squat', 'Leg Press': 'Leg press', 'Pendulum Squat': 'Pendulum', 'Romanian Deadlift': 'RDL', 'Overhead Press': 'OHP', 'Seated Dumbbell Press': 'DB press', 'Seated Machine Shoulder Press': 'Shoulders', 'Barbell Row': 'Row', 'Seated Cable Row': 'Cable row', 'Chest-Supported T-Bar Row': 'T-bar row', 'Chest-Supported Machine Row': 'Row', 'Seated Leg Curl': 'Leg curl', 'Lying Leg Curl': 'Leg curl', 'Dumbbell Lateral Raise': 'Laterals', 'Machine Lateral Raise': 'Laterals', 'Triceps Pushdown': 'Pushdown', 'Hip Thrust Machine': 'Hip thrust', 'Barbell Hip Thrust': 'Hip thrust', 'Leg Extension': 'Leg ext'};
+const shortName = n => SHORT[n] || (n.split(' ')[0].length <= 10 ? n.split(' ')[0] : n.slice(0, 9));
+function lcState(){
+  const favs = keyLifts(5), saved = S.ui.lcLift || ls.get('tl.lcLift');
+  const i = Math.max(0, favs.findIndex(p => p.name === saved));
+  return {favs, i, p: favs[i] || null};
+}
+const lcBarHtml = (favs, i) => favs.length ? '<div class="lc-bar" style="--n:' + favs.length + ';--i:' + i + '">' + favs.map((p, j) => '<button class="' + (j === i ? 'on' : '') + '" data-a="lc-pick" data-i="' + j + '" data-n="' + esc(p.name) + '">' + liftIcon(p.info.slot) + '<span>' + esc(shortName(p.name)) + '</span></button>').join('') + '</div>' : '';
+function renderLiftCard(){
+  if(!$('#lc-card')) return;
+  const {favs, i, p} = lcState();
+  setHTML($('#lc-bar'), lcBarHtml(favs, i));
+  renderLiftHead(p);
+  drawLiftChart();
+}
+function renderLiftHead(p){
+  let head, foot;
+  if(!p){
+    head = '<div class="lc-head"><div class="lc-name"><b>Your lifts</b><small>Log a few workouts and your lifts show up here</small></div></div>';
+    foot = '<div class="two"><button class="btn-primary" data-a="rm-open">Test 1RM</button><button class="btn-glass" data-a="best-lifts">Best lifts</button></div>';
+  } else {
+    const sr = liftSeries(p.name), val = sr.reps ? p.maxReps.reps : Math.round(p.e1.sc * 2) / 2, unit = sr.reps ? 'reps' : 'kg';
+    const pts = sr.e1, diff = pts.length > 1 ? Math.round((pts[pts.length - 1].y - pts[0].y) * 2) / 2 : 0;
+    const test = D.sessions.filter(x => x.template === 'T' && x.exercises && x.exercises[0] && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
+    const best = test ? setsOf(test.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0] : null;
+    head = '<div class="lc-head"><button class="lc-name" data-a="exhist" data-n="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + (best ? 'Tested ' + fmt(best.weight) + ' kg · ' + esc(dDay(test.date)) : sr.reps ? 'Most reps in one set' : 'Estimated max for one rep') + '</small></button>' +
+      '<div class="lc-num"><span><strong>' + fmt(val) + '</strong> ' + unit + '</span>' + (diff ? '<small class="' + (diff > 0 ? 'up' : 'dn') + '">' + (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) + ' ' + unit + ' since ' + esc(dDay(pts[0].x)) + '</small>' : '') + '</div></div>';
+    foot = '<div class="two"><button class="btn-primary" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button><button class="btn-glass" data-a="best-lifts">Best lifts</button></div>';
+  }
+  setHTML($('#lc-head'), head); setHTML($('#lc-foot'), foot);
+}
+// The curve is drawn to the height the card has left, so it always fills the box
+function drawLiftChart(){
+  const box = $('#lc-chart'); if(!box) return;
+  const {p} = lcState(), H = Math.max(64, Math.round(box.clientHeight || 160) - 30);
+  const key = (p ? p.name : '') + '|' + H + '|' + D.sets.length;
+  if(box._key === key) return; box._key = key;
+  if(!p){ box.innerHTML = ''; return; }
+  const sr = liftSeries(p.name);
+  box.innerHTML = curveHtml(sr.e1, {h: H, unit: sr.reps ? ' reps' : ' kg', label: p.name + ' over time', empty: 'Do it twice and the curve shows up'});
+}
+function pickLift(b){
+  const {favs} = lcState(), i = +b.dataset.i, p = favs[i]; if(!p) return;
+  S.ui.lcLift = p.name; ls.set('tl.lcLift', p.name);
+  const bar = b.parentElement; bar.style.setProperty('--i', i); [...bar.children].forEach((x, j) => x.classList.toggle('on', j === i));
+  $('#lc-bar')._html = lcBarHtml(favs, i);
+  renderLiftHead(p); drawLiftChart(); haptic();
 }
 /* Best lifts and cardio bests live in their own sheet, from the sidebar or the 1RM card, so Records fits the screen */
 function openBestLifts(){ openSheet('bestlifts', shTop('Best lifts', 'Records'), '<div id="lifts-card"></div><div id="prs-more" style="display:flex;flex-direction:column;gap:12px"></div>', true); renderBestLifts(); }
@@ -3084,6 +3167,7 @@ function renderFeedbackPanel(){
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.9.3', date: '2026-10-19', items: [['liftcard', 'A lift card on Records with a picker like the tab bar, small drawings for each lift and a curve that fills the box'], ['rm', '1RM test joined into the lift card, set to the lift you are looking at']]},
   {v: '4.9.2', date: '2026-10-19', items: [['records', 'Records is goals and the 1RM test and fits the screen'], ['best', 'Best lifts and cardio bests in their own window, from the sidebar or the 1RM card']]},
   {v: '4.9.1', date: '2026-10-19', items: [['top', 'Titles centred in the top bar, no date line'], ['cards', 'Flashcards fit the screen, Skip next to Log set'], ['jiggle', 'Hold an exercise in Overview to move or remove it'], ['checkin', 'Check-in on one line in Log'], ['fit', 'Log and Body fit the home screen app']]},
   {v: '4.9.0', date: '2026-10-19', items: [['side', 'Sidebar like the Claude app, from the menu button top left'], ['tier', 'Membership at the bottom of the sidebar that grows with your workouts'], ['fit', 'Workout, Log and Body fit the screen without scrolling'], ['figure', 'A new body figure in 3D: drag to turn it, top muscles beside it'], ['curve', 'Charts without the shade under the line'], ['gear', 'Plain white settings gear'], ['numbers', 'Fewer numbers on Body']]},
@@ -3270,10 +3354,10 @@ function renderRmCard(){
   setHTML($('#rm-card'), '<div class="hd"><h2>1RM test</h2></div>' + (rows ? '<div class="rmlist">' + rows + '</div>' : '<p class="sub" style="margin-top:4px">Find your max for one rep, step by step.</p>') +
     '<div class="two" style="margin-top:12px"><button class="btn-primary" data-a="rm-open">Test a lift</button><button class="btn-glass" data-a="best-lifts">Best lifts</button></div>');
 }
-function openRm(){
+function openRm(pre){
   const prs = strengthPRs().filter(p => !p.info.bw).sort((a, b) => b.e1.sc - a.e1.sc);
   const names = prs.map(p => p.name), extra = D.lib.filter(x => x.kind === 'b' && !x.bw && !names.includes(x.name)).map(x => x.name);
-  const all = names.concat(extra), first = all[0] || 'Bench Press';
+  const all = names.concat(extra), first = pre && all.includes(pre) ? pre : all[0] || 'Bench Press';
   S.ui.rm = {name: first, goal: rmEstimate(first) || 60};
   openSheet('rm', shTop('1RM test'), '<label class="lab" for="rm-ex">Lift</label><select class="sel block" id="rm-ex">' + opts(all.map(n => [n, n]), first) + '</select>' +
     '<div class="steppers slide" style="margin-top:12px"><div class="stp"><label for="rm-goal">goal kg</label><output id="rm-goal-v"></output><input type="range" class="rng" id="rm-goal" min="20" max="300" step="' + (ST().step || 2.5) + '" value="60" aria-label="Goal"></div></div>' +
@@ -3353,6 +3437,7 @@ document.addEventListener('click', e => {
     case 'lift-view': S.ui.liftView = b.dataset.v; renderLifts(); break;
     case 'all-lifts': openAllLifts(); break;
     case 'best-lifts': openBestLifts(); break;
+    case 'lc-pick': pickLift(b); break;
     case 'goal-new': openGoal(null); if(b.dataset.lift) setTimeout(() => { const l = $('#g-lift'); if(l) l.value = b.dataset.lift; }, 0); break;
     case 'goal-edit': openGoal(b.dataset.id); break;
     case 'goal-save': saveGoal(b.dataset.id || null); break;
@@ -3377,7 +3462,7 @@ document.addEventListener('click', e => {
     case 'skip-why': { const on = b.getAttribute('aria-pressed') !== 'true'; b.parentElement.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b && on))); if(S.ui.skip) S.ui.skip.reason = on ? b.dataset.v : ''; break; }
     case 'skip-save': saveSkip(); break;
     case 'unskip': setSkip(b.dataset.k, null); break;
-    case 'rm-open': openRm(); break;
+    case 'rm-open': openRm(b.dataset.n); break;
     case 'msg-send': sendMsg(b.dataset.re); break;
     case 'msg-unphoto': { const l = S.ui.drafts[b.dataset.re] || []; l.splice(+b.dataset.i, 1); rerenderThreads(); break; }
     case 'rm-start': startRm(); break;
