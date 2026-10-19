@@ -143,8 +143,8 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .pick { display: flex; gap: 10px; }
 .pick input { width: 46px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: none; }
 :root[data-font="rounded"] { --font: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif; }
-:root[data-glass="clear"] .glass:not(.tabbar):not(.restpill):not(.toast) { background: color-mix(in srgb, var(--glass) 45%, transparent); }
-:root[data-glass="frost"] .glass:not(.tabbar):not(.restpill):not(.toast) { background: color-mix(in srgb, var(--glass) 50%, var(--bg)); }
+:root[data-glass="clear"]:not([data-style="paper"]) .glass:not(.tabbar):not(.restpill):not(.toast) { background: color-mix(in srgb, var(--glass) 45%, transparent); }
+:root[data-glass="frost"]:not([data-style="paper"]) .glass:not(.tabbar):not(.restpill):not(.toast) { background: color-mix(in srgb, var(--glass) 50%, var(--bg)); }
 .noglow .blob { display: none; }
 
 /* ---------- glass ---------- */
@@ -552,7 +552,7 @@ body.on-prog .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .msg small { display: block; margin-top: 3px; font-size: 11px; color: var(--dim); }
 .msg .ph { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .ph img, .cmp-p img { width: 84px; height: 84px; object-fit: cover; border-radius: 11px; background: var(--fill-2); display: block; }
-.waiting { align-self: flex-end; font-size: 11.5px; color: var(--dim); margin-top: -3px; }
+.waiting { align-self: flex-end; font-size: 11.5px; color: var(--dim); margin-bottom: -3px; }
 .cmp { margin-top: 12px; }
 .cmp-row { display: flex; gap: 8px; align-items: flex-end; }
 .cmp textarea.field { flex: 1; min-height: 44px; height: 44px; padding: 11px 15px; border-radius: 22px; resize: none; overflow: hidden; }
@@ -1901,12 +1901,11 @@ const msgsFor = re => [...vmap('messages').values()].filter(m => m && m.re === r
 const fClock = new Intl.DateTimeFormat('en-GB', {hour: '2-digit', minute: '2-digit'});
 function photoTag(ph){ const src = ph.startsWith('data:') ? ph : photoCache[ph]; return '<img alt="Photo" ' + (src ? 'src="' + esc(src) + '"' : 'data-ph="' + esc(ph) + '"') + '>'; }
 function threadHtml(re, noComposer){
-  const ms = msgsFor(re);
-  let h = ms.map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
+  const ms = msgsFor(re), last = ms[ms.length - 1];
+  // newest first, so the latest message and Claude's latest answer sit at the top
+  let h = (last && last.from !== 'claude' ? '<div class="waiting">Claude answers tonight</div>' : '') + ms.slice().reverse().map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
     (m.photos && m.photos.length ? '<div class="ph">' + m.photos.map(photoTag).join('') + '</div>' : '') +
     '<small>' + (m.from === 'claude' ? 'Claude · ' : '') + esc(dShort(m.date)) + ' ' + fClock.format(new Date(m.createdAt || Date.now())) + '</small></div>').join('');
-  const last = ms[ms.length - 1];
-  if(last && last.from !== 'claude') h += '<div class="waiting">Claude answers tonight</div>';
   return (h ? '<div class="thread">' + h + '</div>' : '') + (noComposer ? '' : composerHtml(re));
 }
 function composerHtml(re){
@@ -2267,16 +2266,17 @@ function renderSettings(){
     srow('Keep screen on', 'While a workout runs', sw('awake', st.awake !== false)) +
     srow('Vibration', 'On taps and saved sets', sw('haptics', st.haptics !== false)) +
     srow('Suggest next workout', 'From workouts in rotation', sw('rotation', st.rotation));
+  const paperOn = st.style === 'paper', shownAccent = paperOn && (!st.accent || st.accent === 'aurora') ? 'clay' : st.accent;
   p.look = srow('Style', '', seg('style', [['glass','Liquid glass'],['paper','Paper']], st.style)) +
     srow('Theme', '', seg('theme', [['system','Auto'],['light','Light'],['dark','Dark']], st.theme)) +
     srow('Text size', '', seg('text', [['S','Small'],['M','Medium'],['L','Large']], st.text)) +
     srow('Font', '', seg('font', [['system','Plain'],['rounded','Round'],['serif','Serif'],['mono','Mono']], st.font)) +
-    srow('Accent', '', '<div class="swatches">' + Object.entries(ACCENTS).map(([k, c]) => '<button data-a="set-accent" data-v="' + k + '" class="' + (st.accent === k ? 'on' : '') + '" style="background:linear-gradient(135deg,' + c[0] + ',' + c[1] + ')" aria-label="' + k + '"></button>').join('') +
+    srow('Accent', '', '<div class="swatches">' + Object.entries(ACCENTS).map(([k, c]) => '<button data-a="set-accent" data-v="' + k + '" class="' + (shownAccent === k ? 'on' : '') + '" style="background:linear-gradient(135deg,' + c[0] + ',' + c[1] + ')" aria-label="' + k + '"></button>').join('') +
       '<button data-a="set-accent" data-v="custom" class="custom' + (st.accent === 'custom' ? ' on' : '') + '" aria-label="Your own colors"></button></div>') +
     (st.accent === 'custom' ? srow('Your colors', '', '<div class="pick"><input type="color" data-set="c1" value="' + esc(st.c1 || DEF.c1) + '" aria-label="First color"><input type="color" data-set="c2" value="' + esc(st.c2 || DEF.c2) + '" aria-label="Second color"></div>') : '') +
-    srow('Background colors', '', seg('tint', [['aurora','Aurora'],['ocean','Ocean'],['ember','Ember'],['mono','Mono']], st.tint)) +
+    (paperOn ? '' : srow('Background colors', '', seg('tint', [['aurora','Aurora'],['ocean','Ocean'],['ember','Ember'],['mono','Mono']], st.tint)) +
     srow('Background', '', seg('bg', [['move','Moving'],['still','Still'],['off','Off']], (D.meta.settings || {}).bg || (st.glow === false ? 'off' : 'move'))) +
-    srow('Glass', '', seg('glass', [['clear','Clear'],['normal','Normal'],['frost','Frosted']], st.glass)) +
+    srow('Glass', '', seg('glass', [['clear','Clear'],['normal','Normal'],['frost','Frosted']], st.glass))) +
     srow('Corners', '', seg('corners', [['round','Round'],['soft','Soft']], st.corners)) +
     srow('Spacing', '', seg('density', [['comfy','Roomy'],['compact','Compact']], st.density)) +
     srow('Tab labels', '', sw('labels', st.labels !== false));
@@ -2577,7 +2577,7 @@ document.addEventListener('click', e => {
     case 'settings': openSettings(); break;
     case 'settings-close': closeSettings(); break;
     case 'set-switch': { const k = b.dataset.k, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); saveSettings({[k]: v}); if(k === 'sound' && v){ ensureAudio(); beep(); } break; }
-    case 'set-seg': { const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); saveSettings({[b.dataset.k]: b.dataset.v}); break; }
+    case 'set-seg': { const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); saveSettings({[b.dataset.k]: b.dataset.v}); if(b.dataset.k === 'style') renderSettings(); break; }
     case 'set-accent': [...b.parentElement.children].forEach(x => x.classList.toggle('on', x === b)); saveSettings({accent: b.dataset.v}); renderSettings(); break;
     case 'gh-connect': ghConnect(b); break;
     case 'gh-skip': S.ui.skipConnect = true; renderToday(); break;
