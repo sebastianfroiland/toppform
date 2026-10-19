@@ -103,6 +103,33 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .lite .blob, .calm .blob { animation-play-state: paused; will-change: auto; }
 /* looks from settings: glass amount, corners and font */
 :root[data-corners="soft"] { --r: 16px; }
+/* clay: flat buttons in one solid colour, no glow */
+.flatbtn .btn-primary { background: var(--g1); box-shadow: none; }
+.flatbtn .switch[aria-checked="true"], .flatbtn .woacts .chip.fin, .flatbtn .chip[aria-pressed="true"] { background: var(--g1); }
+/* Paper: flat warm surfaces instead of liquid glass, serif headings, clay accent */
+:root[data-style="paper"] {
+  --bg: #f5f4ee; --bg-grad: #f5f4ee; --text: #1f1e1d; --dim: rgba(31,30,29,.6); --accent: #c96442; --up: #2f7d4f; --down: #b8433a;
+  --glass: #fbfaf6; --edge: #e6e3d8; --glass-shadow: 0 1px 2px rgba(31,30,29,.05); --hl: transparent;
+  --fill: rgba(31,30,29,.04); --fill-2: rgba(31,30,29,.075); --line: rgba(31,30,29,.09);
+  --drop: #ebe8dd; --drop-shadow: none; --float: #fbfaf6; --scrim: rgba(31,30,29,.22); --lens: rgba(31,30,29,.04); --shine: transparent; --knob: #fff;
+}
+:root[data-style="paper"][data-theme="dark"] {
+  --bg: #262624; --bg-grad: #262624; --text: #f2f0e8; --dim: rgba(242,240,232,.6); --accent: #e08a6b; --up: #7cc79a; --down: #e8857a;
+  --glass: #30302e; --edge: #3d3d3a; --glass-shadow: none; --fill: rgba(255,255,255,.05); --fill-2: rgba(255,255,255,.09); --line: rgba(255,255,255,.09);
+  --drop: #3d3d3a; --float: #30302e; --scrim: rgba(0,0,0,.45); --lens: rgba(255,255,255,.05); --knob: #f2f0e8;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="paper"]:not([data-theme="light"]) {
+    --bg: #262624; --bg-grad: #262624; --text: #f2f0e8; --dim: rgba(242,240,232,.6); --accent: #e08a6b; --up: #7cc79a; --down: #e8857a;
+    --glass: #30302e; --edge: #3d3d3a; --glass-shadow: none; --fill: rgba(255,255,255,.05); --fill-2: rgba(255,255,255,.09); --line: rgba(255,255,255,.09);
+    --drop: #3d3d3a; --float: #30302e; --scrim: rgba(0,0,0,.45); --lens: rgba(255,255,255,.05); --knob: #f2f0e8;
+  }
+}
+:root[data-style="paper"] .glass, :root[data-style="paper"] .btn-glass { backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-style="paper"] .glass::before { display: none; }
+:root[data-style="paper"] .mscrim, :root[data-style="paper"] .scrim, :root[data-style="paper"] .edge { backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-style="paper"] .top h1, :root[data-style="paper"] .card h2, :root[data-style="paper"] .sh-top h2, :root[data-style="paper"] .set-head h2, :root[data-style="paper"] .report h3 { font-family: ui-serif, "New York", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
+:root[data-style="paper"] .claude i { border-radius: 7px; }
 :root[data-font="serif"] { --font: ui-serif, "New York", Georgia, serif; }
 :root[data-font="mono"] { --font: ui-monospace, "SF Mono", Menlo, monospace; }
 :root[data-tint="ocean"] .b1 { --c: #2f6bff; } :root[data-tint="ocean"] .b2 { --c: #00c6e0; } :root[data-tint="ocean"] .b3 { --c: #3a8dff; } :root[data-tint="ocean"] .b4 { --c: #00e0b0; }
@@ -795,8 +822,8 @@ const ACTS = ['Run','Row','Walk','Bike','Elliptical','Swim','Padel','Bouldering'
 const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
-const ACCENTS = {aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a'], grape:['#9a5dff','#ff5fa8'], gold:['#f5a524','#ff6a3d'], mint:['#00b89c','#5ac8fa'], cherry:['#ff3b5c','#a33bff']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c'};
+const ACCENTS = {clay:['#d97757','#d97757'], aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a'], grape:['#9a5dff','#ff5fa8'], gold:['#f5a524','#ff6a3d'], mint:['#00b89c','#5ac8fa'], cherry:['#ff3b5c','#a33bff']};
+const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'glass'};
 const WARM_ACTS = ['Row','Bike','Elliptical','Run','Walk','Mobility','Other'];
 const RMS = [1, 3, 5, 8, 10];
 const MINE = 'mine';
@@ -962,10 +989,15 @@ function applyLook(){
   const st = ST(), root = document.documentElement;
   if(st.theme === 'light' || st.theme === 'dark') root.dataset.theme = st.theme; else if(!inClaude()) delete root.dataset.theme;
   const bg = (D.meta.settings || {}).bg || (st.glow === false ? 'off' : 'move');
-  root.classList.toggle('noglow', bg === 'off'); root.classList.toggle('calm', bg === 'still');
+  const paper = st.style === 'paper';
+  if(paper) root.dataset.style = 'paper'; else delete root.dataset.style;
+  root.classList.toggle('noglow', bg === 'off' || paper); root.classList.toggle('calm', bg === 'still');
   for(const k of ['glass', 'corners', 'font', 'tint', 'density']){ const v = st[k], def = DEF[k]; if(v && v !== def) root.dataset[k] = v; else delete root.dataset[k]; }
   root.classList.toggle('nolabels', st.labels === false);
-  const a = st.accent === 'custom' ? [st.c1 || DEF.c1, st.c2 || DEF.c2] : ACCENTS[st.accent] || ACCENTS.aurora;
+  // Paper takes the clay accent unless you picked another one yourself
+  const acc = paper && (!st.accent || st.accent === 'aurora') ? 'clay' : st.accent;
+  const a = acc === 'custom' ? [st.c1 || DEF.c1, st.c2 || DEF.c2] : ACCENTS[acc] || ACCENTS.aurora;
+  root.classList.toggle('flatbtn', acc === 'clay' || paper);
   root.style.setProperty('--g1', a[0]); root.style.setProperty('--g2', a[1]);
   root.style.setProperty('--z', {S:.92, M:1, L:1.1}[st.text] || 1);
   LG.quiet = st.haptics === false;
@@ -2235,7 +2267,8 @@ function renderSettings(){
     srow('Keep screen on', 'While a workout runs', sw('awake', st.awake !== false)) +
     srow('Vibration', 'On taps and saved sets', sw('haptics', st.haptics !== false)) +
     srow('Suggest next workout', 'From workouts in rotation', sw('rotation', st.rotation));
-  p.look = srow('Theme', '', seg('theme', [['system','Auto'],['light','Light'],['dark','Dark']], st.theme)) +
+  p.look = srow('Style', '', seg('style', [['glass','Liquid glass'],['paper','Paper']], st.style)) +
+    srow('Theme', '', seg('theme', [['system','Auto'],['light','Light'],['dark','Dark']], st.theme)) +
     srow('Text size', '', seg('text', [['S','Small'],['M','Medium'],['L','Large']], st.text)) +
     srow('Font', '', seg('font', [['system','Plain'],['rounded','Round'],['serif','Serif'],['mono','Mono']], st.font)) +
     srow('Accent', '', '<div class="swatches">' + Object.entries(ACCENTS).map(([k, c]) => '<button data-a="set-accent" data-v="' + k + '" class="' + (st.accent === k ? 'on' : '') + '" style="background:linear-gradient(135deg,' + c[0] + ',' + c[1] + ')" aria-label="' + k + '"></button>').join('') +
