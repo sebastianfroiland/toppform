@@ -4,7 +4,7 @@ Installable web app on GitHub Pages: https://sebastianfroiland.github.io/toppfor
 
 - Edit only `src/app.html`. Then run `python3 src/build.py` from the repo root, which writes `index.html`, `sw.js`, `manifest.webmanifest` and `icons/`. Commit both the source and the built output.
 - Bump `VERSION` in `src/build.py` on every change so the service worker picks up the new version.
-- The design is Sebastian's liquid glass kit (tokens, `.glass`, spring physics tab bar, sheets). Stick to the tokens at the top of the stylesheet.
+- The design is built on Sebastian's liquid glass kit (tokens, `.glass`, spring physics tab bar, sheets), but the app always shows the calm Claude look (the Paper tokens: warm surfaces, serif headings, clay accent). Sebastian asked to drop the liquid glass options, so do not bring them back. Stick to the tokens at the top of the stylesheet.
 - No dependencies and no build tools beyond Python with Pillow (for the icons).
 - The data lives in the private repo `sebastianfroiland/toppform-data`. The data model is in the README there. If you change the format, update it too.
 - App text is English, short, with no dashes in sentences. Avoid explanatory blurbs under headings; the UI should speak for itself.
