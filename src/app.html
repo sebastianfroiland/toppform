@@ -177,7 +177,7 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit > * { flex: none; }
 .vin.fit .grow { flex: 1 1 auto; min-height: min-content; display: flex; flex-direction: column; }
 .vin.fit > :last-child, .vin.fit .grow > :last-child { margin-bottom: 0; }
-.vin.fit .scrolly { flex: 1 1 auto; min-height: 84px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.vin.fit .scrolly { flex: 1 1 auto; min-height: 48px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 body.resting .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
 
 /* ---------- tab bar ---------- */
@@ -337,9 +337,13 @@ input.field[type=date]::-webkit-date-and-time-value { text-align: left; margin: 
 body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 130px); }
 
 /* ---------- page parts ---------- */
-.top { margin: 2px 56px 16px 56px; }
-.top small { color: var(--dim); font-size: 13px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.top h1 { margin: 0; font-size: 30px; letter-spacing: -.03em; line-height: 1.1; }
+/* the top bar: the page title centred between the menu button and the gear, like the Claude app. A small line under
+   it shows the save status or the sets in a running workout, and only when there is something to say. */
+.top { height: 42px; margin: -2px 56px 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.top h1 { margin: 0; max-width: 100%; font-size: 25px; letter-spacing: -.02em; line-height: 1.12; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top small { display: none; color: var(--dim); font-size: 11.5px; align-items: center; justify-content: center; gap: 6px; line-height: 1.2; white-space: nowrap; }
+.top small:has(> span:not(:empty)) { display: flex; }
+.top small .status::before { width: 6px; height: 6px; }
 .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--dim); white-space: nowrap; }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
 .status[data-s="ok"]::before { background: var(--up); }
@@ -367,6 +371,8 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .ci { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .ci > div { min-width: 0; }
 .ci-sum { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.ci-line { margin: 6px 0 0; font-size: 13.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.ci-line b { color: var(--text); font-weight: 600; }
 .pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--fill-2); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pill i { font-style: normal; color: var(--dim); font-weight: 500; }
 .folder { margin-top: 14px; }
@@ -426,15 +432,41 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .ovt .ovbar i { display: block; height: 100%; background: var(--accent-grad); border-radius: inherit; }
 .ovt.done .ovbar i { background: var(--up); }
 .ovt.done small::after { content: "  ✓"; color: var(--up); }
+.ovw { position: relative; }
+.ovhint { grid-column: 1 / -1; margin: 0 0 2px; }
+.ovw.editing .ovt { overflow: visible; touch-action: none; animation: jiggle .24s ease-in-out infinite alternate; animation-delay: calc(var(--j, 0) * -60ms); }
+.ovw.editing .ovt:nth-child(even) { animation-direction: alternate-reverse; }
+@keyframes jiggle { from { transform: rotate(-1.3deg); } to { transform: rotate(1.3deg); } }
+.ovw .ovt.lift { animation: none !important; z-index: 5; transition: none; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+.ovt .ovdel { display: none; position: absolute; top: -8px; left: -8px; z-index: 3; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 999px; background: var(--text); color: var(--bg); font-style: normal; font-weight: 700; font-size: 17px; line-height: 26px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.ovw.editing .ovt .ovdel { display: block; }
+.ovt .ovdel.armed { font-size: 12px; }
 .ovt.cur { box-shadow: var(--glass-shadow), 0 0 0 2px color-mix(in srgb, var(--g1) 65%, transparent); }
 @keyframes ovIn { from { opacity: 0; transform: translateY(10px) scale(.94); } }
 .ex-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 10px; }
 .ex-head > div { min-width: 0; }
-.ex-head > div:first-child { flex: 1 1 130px; }
+.ex-head > div:first-child { flex: 1 1 96px; }
 .ex-acts { display: flex; gap: 6px; align-items: center; flex: none; margin-left: auto; }
 .ex-acts .sel { min-height: 34px; padding-left: 12px; padding-right: 28px; background-position: right 10px center; font-weight: 600; }
 .ex h2 { font-size: 19px; }
 .woacts { display: flex; gap: 8px; margin: -6px 0 14px; }
+.woacts #add-top { margin-left: auto; }
+#wo-live.decking > .two { display: none; }
+.logrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; }
+.logrow button { min-height: 50px; font-size: 16px; }
+.logrow .btn-glass { padding: 0 20px; }
+/* flashcards fill the space down to the tab bar; a card that is still too tall scrolls inside itself */
+.vin.fit #wo-live { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.vin.fit #wo-live > * { flex: none; }
+.vin.fit #wo-live > #cards.deck-on { flex: 1 1 auto; min-height: 0; align-items: stretch; padding-bottom: 4px; margin-bottom: 0; }
+.vin.fit #wo-live > #overview { flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; overscroll-behavior: contain; padding: 12px 10px 6px; margin: -6px -10px 0; }
+.vin.fit #wo-live > #wo-end:empty { display: none; }
+.vin.fit .cards.deck-on .ex { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.cards.deck-on .feel small { display: none; }
+.cards.deck-on .feel { margin-top: 10px; }
+.cards.deck-on .stp { padding: 5px 5px 4px; }
+.cards.deck-on .stp input { font-size: 28px; }
+.cards.deck-on .pm button { height: 36px; }
 .woacts .chip.fin { background: var(--accent-grad); color: var(--on-grad); border-color: transparent; }
 .ex.done h2::after { content: "  ✓"; color: var(--up); }
 .ex.skipped h2, .ex.skipped .sub { opacity: .5; }
@@ -526,7 +558,7 @@ textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top:
 .calnav { display: flex; gap: 4px; }
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
 .cal .wd { text-align: center; font-size: 11px; color: var(--dim); font-weight: 600; padding-bottom: 2px; }
-.cd { aspect-ratio: 1 / .92; min-width: 0; border: 0; border-radius: 13px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6px; gap: 3px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; position: relative; }
+.cd { aspect-ratio: 1 / .8; min-width: 0; border: 0; border-radius: 12px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 0; gap: 2px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; position: relative; }
 .cd.out { opacity: .3; }
 .cd.today { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, var(--line)); }
 .cd.sel { background: var(--accent-grad); color: var(--on-grad); }
@@ -658,7 +690,7 @@ button.day:active { transform: scale(.94); }
 
 /* body map: one figure seen from the front and the back, muscles shaded by how much work they got */
 .bodymap { display: flex; align-items: stretch; gap: 14px; margin-top: 8px; height: 250px; }
-.vin.fit .bodymap { flex: 1 1 auto; height: auto; min-height: 200px; max-height: 340px; }
+.vin.fit .bodymap { flex: 1 1 auto; height: auto; min-height: 165px; max-height: 340px; }
 .fig3d { flex: 0 0 46%; min-width: 0; display: flex; perspective: 900px; touch-action: pan-y; cursor: grab; }
 .flip { position: relative; flex: 1; transform-style: preserve-3d; transition: transform .9s var(--spring); }
 .flip.back { transform: rotateY(180deg); }
@@ -668,10 +700,10 @@ button.day:active { transform: scale(.94); }
 .face { position: absolute; inset: 0; display: flex; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .face.b { transform: rotateY(180deg); }
 .face svg { display: block; height: 100%; width: auto; max-width: 100%; overflow: visible; }
-.mside { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+.mside { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
 .mside .sg { width: 100%; display: grid; }
 .mlist { display: flex; flex-direction: column; gap: 2px; min-height: 0; overflow: hidden; }
-.mrow { display: block; width: 100%; padding: 6px 2px; border: 0; background: none; text-align: left; border-radius: 10px; }
+.mrow { display: block; width: 100%; padding: 4px 2px; border: 0; background: none; text-align: left; border-radius: 10px; }
 .mrow:active { background: var(--fill); }
 .mrow span { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
 .mrow b { font-weight: 600; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -767,7 +799,7 @@ button.day:active { transform: scale(.94); }
 .stars button.on { color: var(--g1); }
 .stars button:active { transform: scale(.85); }
 
-@media (prefers-reduced-motion: reduce) { .blob, .cards.deck-on .ex, .ovt, .bodymap .mu.hot { animation: none; } .par, .sheet, .settings, .tabbar { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .blob, .cards.deck-on .ex, .ovt, .ovw.editing .ovt, .bodymap .mu.hot { animation: none; } .par, .sheet, .settings, .tabbar { transition: none; } }
 @media (prefers-reduced-transparency: reduce) { :root { --glass: color-mix(in srgb, var(--bg) 92%, transparent); } }
 @media (max-width: 360px) { .stp input { font-size: 27px; } .tabbar { width: calc(100% - 24px); } .tabbar a { font-size: 9px; } }
 </style>
@@ -786,7 +818,7 @@ button.day:active { transform: scale(.94); }
 
 <div class="pager" id="pager">
   <section class="view" id="v-today" aria-label="Today"><div class="vin">
-    <header class="top"><small><span id="today-sub"></span><span class="status" data-s="busy"></span></small><h1 id="today-title">Today</h1></header>
+    <header class="top"><h1 id="today-title">Today</h1><small><span class="status" data-s="busy"></span></small></header>
     <article class="glass card notice" id="notice" hidden></article>
     <article class="glass card" id="connect" hidden></article>
     <article class="glass card coach" id="coach"></article>
@@ -794,8 +826,8 @@ button.day:active { transform: scale(.94); }
   </div></section>
 
   <section class="view" id="v-workout" aria-label="Workout"><div class="vin">
-    <header class="top"><small><span id="wo-sub"></span><span class="status" data-s="busy"></span></small><h1 id="wo-title">Workout</h1></header>
-    <div class="woacts" id="wo-acts" hidden><button class="chip fin" data-a="goto-finish">Finish</button><button class="chip danger" data-a="cancel-session" id="cancel-top">Discard</button></div>
+    <header class="top"><h1 id="wo-title">Workout</h1><small><span id="wo-sub"></span><span class="status" data-s="busy"></span></small></header>
+    <div class="woacts" id="wo-acts" hidden><button class="chip fin" data-a="goto-finish">Finish</button><button class="chip danger" data-a="cancel-session" id="cancel-top">Discard</button><button class="chip" data-a="add-ex" id="add-top" hidden>+ Exercise</button></div>
     <div id="wo-idle" class="grow"><article class="glass card grow" id="start-card"></article><article class="glass card" id="week"></article></div>
     <div id="wo-live" hidden>
       <div class="deck" id="deck" hidden></div>
@@ -816,21 +848,21 @@ button.day:active { transform: scale(.94); }
   </div></section>
 
   <section class="view" id="v-log" aria-label="Log"><div class="vin">
-    <header class="top"><h1>Log</h1></header>
+    <header class="top"><h1>Log</h1><small><span class="status" data-s="busy"></span></small></header>
     <article class="glass card" id="checkin-card"></article>
     <article class="glass card" id="calendar"></article>
     <div id="dayview" class="grow"></div>
   </div></section>
 
   <section class="view" id="v-body" aria-label="Body"><div class="vin">
-    <header class="top"><h1>Body</h1></header>
+    <header class="top"><h1>Body</h1><small><span class="status" data-s="busy"></span></small></header>
     <div class="filters"><select class="sel" id="period" aria-label="Period"><option value="last">Last workout</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="all">All time</option></select></div>
     <article class="glass card grow" id="body-card"></article>
     <div id="bw-card"></div>
   </div></section>
 
   <section class="view" id="v-records" aria-label="Records"><div class="vin">
-    <header class="top"><h1>Records</h1></header>
+    <header class="top"><h1>Records</h1><small><span class="status" data-s="busy"></span></small></header>
     <article class="glass card" id="goals-card"></article>
     <article class="glass card" id="lifts-card"></article>
     <div id="prs-more"></div>
@@ -1437,6 +1469,7 @@ function setView(i){
   if(i === 3) setTimeout(helloFig, 450);
   if(D) PAGES[i]();
   VIEWS.forEach((id, j) => $('#' + id).setAttribute('aria-hidden', String(i !== j)));
+  if(D) syncFit();
   dockVis(i === 0 ? 1 : 0);
   const w = pager.clientWidth;
   if(Math.abs(pager.scrollLeft - i * w) > 2) pager.scrollTo({left: i * w, behavior: reduceMotion() ? 'auto' : 'smooth'});
@@ -1502,10 +1535,15 @@ function renderLater(){
 /* Workout (while no workout runs), Log and Body fit the screen. Try the fitted layout and keep it only when nothing
    spills over; on a small phone with large text the page simply scrolls instead. */
 function syncFit(){
+  const act = activeSession(), bar = $('#tabbar').getBoundingClientRect().top;
   for(const id of ['v-workout', 'v-log', 'v-body']){
-    const vin = $('#' + id + ' .vin'), want = id !== 'v-workout' || !activeSession();
+    const vin = $('#' + id + ' .vin'), want = id !== 'v-workout' || !act || (ST().view === 'cards' && act.exercises.length > 0);
     vin.classList.toggle('fit', want);
-    if(want && vin.parentElement.scrollHeight > vin.parentElement.clientHeight + 1) vin.classList.remove('fit');
+    if(!want) continue;
+    // the page must not scroll and nothing may end up behind the tab bar; otherwise it scrolls as usual
+    const v = vin.parentElement, top = v.getBoundingClientRect().top;
+    let bottom = 0; for(const c of vin.children){ if(c.offsetParent !== null) bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); }
+    if(v.scrollHeight > v.clientHeight + 1 || bottom > bar - top - 4) vin.classList.remove('fit');
   }
 }
 addEventListener('resize', () => { if(D) syncFit(); });
@@ -1548,10 +1586,7 @@ function checkinStreak(){
   return n;
 }
 function renderToday(){
-  const t = todayISO(), st = ST(), w = weekNo(t);
-  let sub = dLong(t);
-  if(st.start){ if(w === 0){ const dd = dayDiff(st.start, t); sub += ' · Starts ' + (dd === 1 ? 'tomorrow' : 'in ' + dd + ' days'); } else if(!st.weeks || w <= st.weeks) sub += ' · Week ' + w + (st.weeks ? ' of ' + st.weeks : ''); else sub += ' · Done'; }
-  $('#today-sub').textContent = sub;
+  const st = ST();
   $('#today-title').textContent = st.name ? 'Hi, ' + st.name : 'Today';
   renderConnect();
   renderCoach();
@@ -1561,11 +1596,11 @@ function renderCheckinCard(){
   let html;
   if(c){
     const p = [];
-    if(c.kg) p.push('<span class="pill">' + fmt(c.kg) + ' <i>kg</i></span>');
-    if(c.sleep) p.push('<span class="pill">' + fmt(c.sleep) + ' <i>h sleep</i></span>');
-    if(c.energy) p.push('<span class="pill"><i>energy</i> ' + esc(ENERGY[c.energy] || c.energy) + '</span>');
-    if(c.knee) p.push('<span class="pill"><span class="dot ' + esc(c.knee) + '"></span>' + esc(KNEE[c.knee] || c.knee) + '</span>');
-    html = '<div class="ci"><div><h2>Check-in ✓</h2>' + (p.length ? '<div class="ci-sum">' + p.join('') + '</div>' : '') + '</div><button class="chip" data-a="checkin">Edit</button></div>';
+    if(c.kg) p.push('<b>' + fmt(c.kg) + '</b> kg');
+    if(c.sleep) p.push('<b>' + fmt(c.sleep) + '</b> h sleep');
+    if(c.energy) p.push('energy <b>' + esc((ENERGY[c.energy] || c.energy).toLowerCase()) + '</b>');
+    if(c.knee) p.push('knee <b>' + esc((KNEE[c.knee] || c.knee).toLowerCase()) + '</b>');
+    html = '<div class="ci"><h2>Check-in ✓</h2><button class="chip" data-a="checkin">Edit</button></div>' + (p.length ? '<p class="ci-line">' + p.join(' · ') + '</p>' : '');
   } else {
     html = '<div class="ci"><div><h2>Morning check-in</h2><p class="sub" style="margin-top:2px">' + (streak ? plural(streak, 'day') + ' in a row' : 'Weight, sleep and energy') + '</p></div><button class="btn-primary btn-small" data-a="checkin">Check in</button></div>';
   }
@@ -1631,7 +1666,7 @@ function renderWorkout(){
   $('#live-dot').hidden = !s;
   $('#wo-idle').hidden = !!s; $('#wo-live').hidden = !s; $('#wo-acts').hidden = !s;
   if(!s){
-    $('#wo-sub').textContent = dLong(todayISO()); $('#wo-title').textContent = 'Workout';
+    $('#wo-sub').textContent = ''; $('#wo-title').textContent = 'Workout';
     renderNext(); renderWeek(); renderStart();
     placeFinish(false);
     const w = $('#cards'); if(w.children.length) w.innerHTML = '';
@@ -1639,10 +1674,12 @@ function renderWorkout(){
     return;
   }
   const total = s.exercises.reduce((a, e) => a + (e.skip || e.warm ? 0 : e.planned || 0), 0), done = setsOf(s.id).length;
-  $('#wo-sub').textContent = dShort(s.date) + ' · ' + done + (total ? ' of ' + total : '') + ' sets';
+  $('#wo-sub').textContent = (s.date !== todayISO() ? dShort(s.date) + ' · ' : '') + done + (total ? ' of ' + total : '') + ' sets';
   $('#wo-title').textContent = sessionTitle(s);
   ensureCards(s);
   renderDeck(s);
+  const decking = ST().view === 'cards' && s.exercises.length > 0;
+  $('#add-top').hidden = !decking; $('#wo-live').classList.toggle('decking', decking);
   $('#add-warm').hidden = s.exercises.some(e => e.warm);
   syncWake(true);
   if(S.ui.noteFor !== s.id){ S.ui.noteFor = s.id; $('#s-note').value = s.note || ''; }
@@ -1686,7 +1723,7 @@ const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 1
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
 const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span>RIR</span></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
   [0, 1, 2, 3, 4, 5].map(n => '<button data-a="rir" data-k="' + k + '" data-v="' + n + '" aria-pressed="false">' + rirTxt(n) + '</button>').join('') + '</div>' +
-  '<p class="hint">How many more clean reps you had left in you. <b>0</b> means you could not do one more, <b>2</b> means two left in the tank. Most sets should end at 0 to 2.</p></div>';
+  '<p class="hint">Reps you had left in you. <b>0</b> means none, <b>2</b> means two more. Aim for 0 to 2.</p></div>';
 function buildCard(ex, mode){
   const info = infoOf(ex.name), el = document.createElement('article');
   const wl = info.bw === 'bw' ? '+kg' : info.bw === 'assist' ? 'assist' : 'kg';
@@ -1697,7 +1734,7 @@ function buildCard(ex, mode){
     '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : ' two-up') + '">' +
     (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
     stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + '</div>' + (ex.rm ? '' : rirRow(ex.k)) +
-    '<button class="btn-primary wide" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button><button class="btn-quiet" data-a="skip" data-k="' + ex.k + '" style="margin-top:4px">Skip exercise</button></div><div data-r="skipped" hidden></div>' +
+    '<div class="logrow"><button class="btn-primary" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button><button class="btn-glass" data-a="skip" data-k="' + ex.k + '">Skip</button></div></div><div data-r="skipped" hidden></div>' +
     '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>' +
     '<div class="feel" data-r="feel"><small>How was it?</small>' + FEEL.map(([v, l]) => '<button class="chip" data-a="feel" data-k="' + ex.k + '" data-v="' + v + '" aria-pressed="false">' + l + '</button>').join('') + '</div>' +
     '<div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + ex.k + '" rows="1" placeholder="How it felt" aria-label="Note for ' + esc(ex.name) + '"></textarea>';
@@ -1918,11 +1955,45 @@ function renderDeck(s){
   const prog = s.exercises.map(ex => { const d = ex.warm ? (ex.log ? 1 : 0) : todaySets(ex.name, s.id).length, pl = ex.warm ? 1 : ex.planned || 0; return {d, pl, pct: pl ? Math.min(100, d / pl * 100) : (d ? 100 : 0), done: !ex.skip && pl > 0 && d >= pl, skip: !!ex.skip}; });
   setHTML(deck, '<span class="dk-n">' + (showOv ? prog.filter(x => x.done || x.skip).length + ' / ' + n : atFin ? 'End' : (i + 1) + ' / ' + n) + '</span>' +
     '<div class="dk-dots">' + prog.map((x, j) => '<button class="dk' + (j === i && !showOv ? ' on' : '') + (x.done ? ' done' : '') + (x.skip ? ' skip' : '') + '" data-a="deck-go" data-i="' + j + '" aria-label="' + esc(s.exercises[j].name) + '"><span><i style="width:' + x.pct + '%"></i></span></button>').join('') + '<button class="dk fin' + (atFin ? ' on' : '') + '" data-a="deck-go" data-i="' + n + '" aria-label="Finish"><span></span></button></div>' +
-    '<button class="chip" data-a="deck-ov">' + (showOv ? 'Cards' : 'Overview') + '</button>');
-  if(showOv) setHTML(ov, s.exercises.map((ex, j) => { const x = prog[j];
-    return '<button class="glass ovt' + (x.done ? ' done' : '') + (x.skip ? ' skip' : '') + (j === i ? ' cur' : '') + '" style="--j:' + j + '" data-a="deck-go" data-i="' + j + '"><small>' + (j + 1) + '</small><b>' + esc(ex.name) + '</b>' +
+    (showOv && S.ui.ovEdit ? '<button class="chip fin" data-a="ov-done">Done</button>' : '<button class="chip" data-a="deck-ov">' + (showOv ? 'Cards' : 'Overview') + '</button>'));
+  if(!showOv) S.ui.ovEdit = false;
+  ov.classList.toggle('editing', !!S.ui.ovEdit);
+  if(showOv) setHTML(ov, (S.ui.ovEdit ? '' : '<p class="hint ovhint">Hold an exercise to move it or take it out.</p>') + s.exercises.map((ex, j) => { const x = prog[j], armed = S.ui.armedAct === 'ovdel:' + ex.k;
+    return '<button class="glass ovt' + (x.done ? ' done' : '') + (x.skip ? ' skip' : '') + (j === i ? ' cur' : '') + '" style="--j:' + j + '" data-a="deck-go" data-i="' + j + '" data-k="' + ex.k + '"><i class="ovdel' + (armed ? ' armed' : '') + '" data-a="ov-del" data-k="' + ex.k + '" aria-label="Remove ' + esc(ex.name) + '">' + (armed ? 'Remove?' : '−') + '</i><small>' + (j + 1) + '</small><b>' + esc(ex.name) + '</b>' +
       '<span class="ovs">' + (x.skip ? 'Skipped' : s.exercises[j].warm ? (x.done ? 'Warm-up done' : 'Warm-up') : x.pl ? x.d + ' of ' + plural(x.pl, 'set') : plural(x.d, 'set')) + '</span><span class="ovbar"><i style="width:' + x.pct + '%"></i></span></button>'; }).join(''));
 }
+/* Overview works like the iPhone home screen: hold an exercise until they all jiggle, then drag one to a new place
+   or tap its minus to take it out. Done, or leaving the overview, ends it. */
+let ovPress = null;
+document.addEventListener('pointerdown', e => {
+  const t = e.target.closest && e.target.closest('#overview .ovt'); if(!t || e.target.closest('.ovdel')) return;
+  ovPress = {t, id: e.pointerId, x: e.clientX, y: e.clientY, drag: false};
+  if(!S.ui.ovEdit) ovPress.timer = setTimeout(() => { S.ui.ovEdit = true; S.ui.ovPressAt = Date.now(); haptic(); renderWorkout(); ovPress = null; }, 450);
+});
+document.addEventListener('pointermove', e => {
+  const d = ovPress; if(!d || d.id !== e.pointerId) return;
+  const dist = Math.hypot(e.clientX - d.x, e.clientY - d.y);
+  if(!S.ui.ovEdit){ if(dist > 8){ clearTimeout(d.timer); ovPress = null; } return; }
+  const grid = $('#overview'), t = d.t;
+  if(!t.isConnected){ ovPress = null; return; }
+  if(!d.drag){ if(dist < 6) return; const r = t.getBoundingClientRect(); d.drag = true; d.offX = e.clientX - r.left; d.offY = e.clientY - r.top; t.classList.add('lift'); try{ t.setPointerCapture(e.pointerId); }catch(x){} }
+  const over = [...grid.querySelectorAll('.ovt')].find(x => { if(x === t) return false; const r = x.getBoundingClientRect(); return e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom; });
+  if(over){ const tiles = [...grid.querySelectorAll('.ovt')], i = tiles.indexOf(t), j = tiles.indexOf(over); grid.insertBefore(t, i < j ? over.nextSibling : over); haptic(); }
+  const g = grid.getBoundingClientRect();
+  t.style.transform = 'translate(' + (e.clientX - g.left - d.offX - t.offsetLeft) + 'px,' + (e.clientY - g.top + grid.scrollTop - d.offY - t.offsetTop) + 'px) scale(1.06)';
+});
+function endOvPress(){
+  const d = ovPress; ovPress = null; if(!d) return;
+  clearTimeout(d.timer);
+  if(!d.drag) return;
+  S.ui.ovPressAt = Date.now();
+  d.t.classList.remove('lift'); d.t.style.transform = '';
+  const s = activeSession(); if(!s) return;
+  const order = [...$('#overview').querySelectorAll('.ovt')].map(x => x.dataset.k);
+  if(order.join() !== s.exercises.map(e => e.k).join()) updateSession(s.id, {exercises: order.map(k => s.exercises.find(e => e.k === k)).filter(Boolean)});
+}
+document.addEventListener('pointerup', endOvPress);
+document.addEventListener('pointercancel', endOvPress);
 function deckGo(i, smooth){
   const wrap = $('#cards'), el = wrap.querySelectorAll('.ex')[i]; if(!el) return;
   S.ui.deckI = i;
@@ -2423,7 +2494,7 @@ function renderBodyPage(){
   let bw = '';
   if(ws.length){
     const pts = ws.filter(x => x.date >= r.from && x.date <= r.to), use = pts.length >= 2 ? pts : ws;
-    bw = '<article class="glass card"><div class="hd"><h2>Body weight</h2><small>' + fmt(ws[ws.length - 1].kg) + ' kg</small></div>' + curveHtml(use.map(x => ({x: x.date, y: x.kg})), {unit: ' kg', h: 92, label: 'Body weight', empty: 'Weigh yourself in the morning check-in to see the trend'}) + '</article>';
+    bw = '<article class="glass card"><div class="hd"><h2>Body weight</h2><small>' + fmt(ws[ws.length - 1].kg) + ' kg</small></div>' + curveHtml(use.map(x => ({x: x.date, y: x.kg})), {unit: ' kg', h: 72, label: 'Body weight', empty: 'Weigh yourself in the morning check-in to see the trend'}) + '</article>';
   }
   setHTML($('#bw-card'), bw);
 }
@@ -2983,6 +3054,7 @@ function renderFeedbackPanel(){
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.9.1', date: '2026-10-19', items: [['top', 'Titles centred in the top bar, no date line'], ['cards', 'Flashcards fit the screen, Skip next to Log set'], ['jiggle', 'Hold an exercise in Overview to move or remove it'], ['checkin', 'Check-in on one line in Log'], ['fit', 'Log and Body fit the home screen app']]},
   {v: '4.9.0', date: '2026-10-19', items: [['side', 'Sidebar like the Claude app, from the menu button top left'], ['tier', 'Membership at the bottom of the sidebar that grows with your workouts'], ['fit', 'Workout, Log and Body fit the screen without scrolling'], ['figure', 'A new body figure in 3D: drag to turn it, top muscles beside it'], ['curve', 'Charts without the shade under the line'], ['gear', 'Plain white settings gear'], ['numbers', 'Fewer numbers on Body']]},
   {v: '4.8.0', date: '2026-10-19', items: [['today', 'Today is just the chat with Coach Claude, always open'], ['plan', 'Today\'s plan from Claude as a message with a start button'], ['split', 'Progress split into Body and Records'], ['simple', 'Simpler words and fewer numbers'], ['next', 'Next workout on Workout shows the planned weights and starts right away'], ['week', 'This week shows your goal, tap a day to open it in Log'], ['checkin', 'Morning check-in moved to Log']]},
   {v: '4.7.0', date: '2026-10-19', items: [['coach', 'Coach Claude first on Today, folds to one line once read'], ['badge', 'Red count for new messages from Claude'], ['progress', 'Progress and Records on one page'], ['body', 'Body map, front and back, with guidance'], ['lifts', 'Fewer records, each opens into a smooth chart'], ['goals', 'Up to three goals that Claude words and plans around'], ['rir', 'Reps in reserve instead of partials'], ['del', 'Remove an exercise next to Swap'], ['slide', 'Smoother sliders, drag down for finer steps'], ['notify', 'Notification when rest is over'], ['level', 'Beginner or Experienced level'], ['chat', 'Cleaner message box without the orange ring'], ['claude', 'One calm Claude look, liquid glass removed'], ['flash', 'No flash of another look when the app opens'], ['gear', 'New settings gear'], ['box', 'Settings sections open in the same size box'], ['fbup', 'Feedback and Updates in Settings']]},
@@ -3124,7 +3196,7 @@ document.addEventListener('pointerup', e => {
 });
 document.addEventListener('pointercancel', endRange);
 // once a slide has started, the page and the swipe between tabs stay still until you let go
-document.addEventListener('touchmove', e => { if((rgDrag && rgDrag.moved) || (curveDrag && curveDrag.on) || (figDrag && figDrag.on)) e.preventDefault(); }, {passive: false});
+document.addEventListener('touchmove', e => { if((rgDrag && rgDrag.moved) || (curveDrag && curveDrag.on) || (figDrag && figDrag.on) || (ovPress && ovPress.drag)) e.preventDefault(); }, {passive: false});
 
 /* ---------- exercise notes ---------- */
 // Earlier notes on the same exercise, newest first, so you see "use the rope" before you start
@@ -3276,8 +3348,10 @@ document.addEventListener('click', e => {
     case 'msg-send': sendMsg(b.dataset.re); break;
     case 'msg-unphoto': { const l = S.ui.drafts[b.dataset.re] || []; l.splice(+b.dataset.i, 1); rerenderThreads(); break; }
     case 'rm-start': startRm(); break;
-    case 'deck-go': { const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
-    case 'deck-ov': S.ui.overview = !S.ui.overview; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
+    case 'ov-done': S.ui.ovEdit = false; disarmAct(); renderWorkout(); break;
+    case 'ov-del': { const k = b.dataset.k; if(S.ui.armedAct === 'ovdel:' + k){ disarmAct(); removeExercise(k); } else { armAct('ovdel:' + k, renderWorkout); haptic(); } break; }
+    case 'deck-go': { if(S.ui.ovEdit || Date.now() - (S.ui.ovPressAt || 0) < 500) break; const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
+    case 'deck-ov': S.ui.overview = !S.ui.overview; S.ui.ovEdit = false; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
     case 'exhist': openExHistory(b.dataset.n); break;
     case 'set': {
       const id = b.dataset.id;
