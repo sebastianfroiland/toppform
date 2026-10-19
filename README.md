@@ -1,4 +1,4 @@
-# Toppform
+# Plates
 
 A training app for your phone with Claude as your coach. Log a set with one tap, build your own workouts and keep them in folders or just train freely, do a quick morning check-in, and see your records from 1RM to your longest run. Every evening Claude reads the log, writes a short review and sets a recommended weight and rep target for your next workout.
 

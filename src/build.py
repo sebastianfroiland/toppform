@@ -1,17 +1,17 @@
-"""Builds the Toppform app for GitHub Pages.
+"""Builds the Plates app (formerly Toppform) for GitHub Pages.
 
 The source is app.html (the page body, the same file that can be published as an artifact in Claude).
 This script wraps it in a full HTML document with a manifest and service worker, and draws the icons.
 
 Run from the repo root: python3 src/build.py   (writes index.html, sw.js, the manifest and icons to the root, which GitHub Pages serves)
 """
-import json, re, shutil
+import json, random, re, shutil
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.4.0"
+VERSION = "4.5.0"
 
 HEAD = """<!doctype html>
 <html lang="en">
@@ -23,18 +23,18 @@ HEAD = """<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Toppform">
+<meta name="apple-mobile-web-app-title" content="Plates">
 <meta name="description" content="Training log with Claude as your coach">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<title>Toppform</title>
+<title>Plates</title>
 </head>
 <body>
 """
 TAIL = "\n</body>\n</html>\n"
 
-SW = """// Toppform service worker: the app opens offline. The GitHub API always goes straight to the network.
+SW = """// Plates service worker: the app opens offline. The GitHub API always goes straight to the network.
 const CACHE = 'toppform-__VERSION__';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -51,8 +51,8 @@ self.addEventListener('fetch', e => {
 """
 
 MANIFEST = {
-    "name": "Toppform",
-    "short_name": "Toppform",
+    "name": "Plates",
+    "short_name": "Plates",
     "description": "Training log with Claude as your coach",
     "lang": "en",
     "start_url": "./",
@@ -69,40 +69,38 @@ MANIFEST = {
 
 
 def icon(size, inset=0.0):
-    """Dark background with the same coloured lights as the app, and a white dumbbell in the middle."""
+    """Plates: three weight plates screen printed on terracotta. Flat colour, an ink layer printed a little off
+    register under the cream layer, and nothing glossy, so it looks made by hand rather than generated."""
     S = 1024
-    img = Image.new("RGB", (S, S), "#07081a")
-    grad = Image.new("RGB", (S, S), "#07081a")
-    gd = ImageDraw.Draw(grad)
-    for r in range(S, 0, -8):
-        t = r / S
-        c = tuple(int(a * (1 - t) + b * t) for a, b in zip((0x1b, 0x14, 0x46), (0x07, 0x08, 0x1a)))
-        gd.ellipse([S / 2 - r, -r * 0.6, S / 2 + r, r * 1.0], fill=c)
-    img.paste(grad)
-    glow = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    g = ImageDraw.Draw(glow)
-    g.ellipse([-150, -150, 520, 520], fill=(107, 107, 255, 200))
-    g.ellipse([560, 300, 1180, 920], fill=(0, 201, 173, 170))
-    g.ellipse([180, 700, 760, 1220], fill=(255, 95, 168, 150))
-    glow = glow.filter(ImageFilter.GaussianBlur(130))
-    img = Image.alpha_composite(img.convert("RGBA"), glow)
-    # glass plate
-    pad = int(S * (0.2 + inset))
-    glass = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    gl = ImageDraw.Draw(glass)
-    gl.rounded_rectangle([pad, pad, S - pad, S - pad], radius=int((S - 2 * pad) * 0.28), fill=(255, 255, 255, 38), outline=(255, 255, 255, 120), width=6)
-    img = Image.alpha_composite(img, glass)
-    # dumbbell
+    terracotta, ink, cream = (198, 91, 59), (31, 27, 22), (243, 233, 214)
+    img = Image.new("RGB", (S, S), terracotta)
     d = ImageDraw.Draw(img)
-    cx, cy = S / 2, S / 2
-    k = (S - 2 * pad) / 620
-    w = (255, 255, 255, 255)
-    d.rounded_rectangle([cx - 200 * k, cy - 22 * k, cx + 200 * k, cy + 22 * k], radius=22 * k, fill=w)
-    for sgn in (-1, 1):
-        x = cx + sgn * 150 * k
-        d.rounded_rectangle([x - 34 * k, cy - 140 * k, x + 34 * k, cy + 140 * k], radius=30 * k, fill=w)
-        x2 = cx + sgn * 222 * k
-        d.rounded_rectangle([x2 - 26 * k, cy - 92 * k, x2 + 26 * k, cy + 92 * k], radius=24 * k, fill=w)
+    k = S / 120 * (1 - inset * 1.6)
+    ox = oy = S / 2 - 60 * k
+    P = lambda x, y: (ox + x * k, oy + y * k)
+    plates = [(45, 62, 23), (66, 55, 23), (80, 69, 17)]
+    w = round(5 * k)
+    def ring(cx, cy, r, colour):
+        x, y = P(cx, cy)
+        d.ellipse([x - r * k, y - r * k, x + r * k, y + r * k], outline=colour, width=w)
+    def disc(cx, cy, r, colour):
+        x, y = P(cx, cy)
+        d.ellipse([x - r * k, y - r * k, x + r * k, y + r * k], fill=colour)
+    # back to front, each plate covering the one behind it
+    for cx, cy, r in plates:
+        disc(cx, cy, r + 2.5, terracotta)
+        ring(cx + 1.2, cy + 1.6, r, ink)
+        ring(cx, cy, r, cream)
+        disc(cx + .8, cy + 1, 5.2, ink)
+        disc(cx, cy, 4.6, cream)
+    # a light print grain, so the flat colour is not perfectly flat
+    rnd = random.Random(7)
+    grain = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    g = ImageDraw.Draw(grain)
+    for _ in range(9000):
+        x, y = rnd.randrange(S), rnd.randrange(S)
+        g.point((x, y), fill=(255, 255, 255, rnd.randrange(10, 26)) if rnd.random() < .5 else (0, 0, 0, rnd.randrange(10, 22)))
+    img = Image.alpha_composite(img.convert("RGBA"), grain)
     return img.convert("RGB").resize((size, size), Image.LANCZOS)
 
 

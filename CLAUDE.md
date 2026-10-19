@@ -1,4 +1,4 @@
-# Toppform (the app)
+# Plates (the app, formerly Toppform)
 
 Installable web app on GitHub Pages: https://sebastianfroiland.github.io/toppform/
 
