@@ -1,6 +1,6 @@
 {
-  "name": "Toppform",
-  "short_name": "Toppform",
+  "name": "Plates",
+  "short_name": "Plates",
   "description": "Training log with Claude as your coach",
   "lang": "en",
   "start_url": "./",
