@@ -155,7 +155,7 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 :root[data-style="paper"] .glass, :root[data-style="paper"] .btn-glass { backdrop-filter: none; -webkit-backdrop-filter: none; }
 :root[data-style="paper"] .glass::before { display: none; }
 :root[data-style="paper"] .mscrim, :root[data-style="paper"] .scrim, :root[data-style="paper"] .edge { backdrop-filter: none; -webkit-backdrop-filter: none; }
-:root[data-style="paper"] .top h1, :root[data-style="paper"] .card h2, :root[data-style="paper"] .sh-top h2, :root[data-style="paper"] .set-head h2, :root[data-style="paper"] .report h3 { font-family: ui-serif, "New York", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
+:root[data-style="paper"] .top h1, :root[data-style="paper"] .card h2, :root[data-style="paper"] .sheet-body .hd h2, :root[data-style="paper"] .sh-top h2, :root[data-style="paper"] .set-head h2, :root[data-style="paper"] .report h3 { font-family: ui-serif, "New York", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
 :root[data-style="paper"] .claude i { border-radius: 7px; }
 :root[data-font="serif"] { --font: ui-serif, "New York", Georgia, serif; }
 :root[data-font="mono"] { --font: ui-monospace, "SF Mono", Menlo, monospace; }
@@ -193,6 +193,9 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit > * { flex: none; }
 .vin.fit .grow { flex: 1 1 auto; min-height: min-content; display: flex; flex-direction: column; }
 .vin.fit > :last-child, .vin.fit .grow > :last-child { margin-bottom: 0; }
+.goal-add { margin-top: 12px; }
+.vin.fit .goal-add { margin-top: auto; }
+.vin.fit #goals-card > :nth-last-child(2) { margin-bottom: 12px; }
 .vin.fit .scrolly { flex: 1 1 auto; min-height: 48px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 body.resting .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
 
@@ -554,6 +557,9 @@ textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top:
 .lst.cur { background: color-mix(in srgb, var(--g1) 18%, var(--fill)); border-color: color-mix(in srgb, var(--g1) 55%, var(--line)); }
 .rmlist { margin-top: 10px; }
 .rmlist .li { cursor: default; }
+.rmlist .rmrow { min-height: 40px; padding: 6px 2px; }
+.rmlist .rmrow small { margin-left: 6px; }
+.goal { padding: 10px 0; }
 
 /* rest */
 .restpill { position: fixed; z-index: 19; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 66px); border-radius: 999px; padding: 5px 5px 5px 16px; display: flex; align-items: center; gap: 9px; transition: transform .35s var(--ease), opacity .25s; }
@@ -879,9 +885,7 @@ button.day:active { transform: scale(.94); }
 
   <section class="view" id="v-records" aria-label="Records"><div class="vin">
     <header class="top"><h1>Records</h1><small><span class="status" data-s="busy"></span></small></header>
-    <article class="glass card" id="goals-card"></article>
-    <article class="glass card" id="lifts-card"></article>
-    <div id="prs-more"></div>
+    <article class="glass card grow" id="goals-card"></article>
     <article class="glass card" id="rm-card"></article>
   </div></section>
 </div>
@@ -1547,12 +1551,13 @@ function renderLater(){
   syncFit();
   if($('#setModal').classList.contains('open') && S.ui.setPanel === 'feedback') renderFeedbackPanel();
   if(sheetMode === 'reviews') renderReviews();
+  if(sheetMode === 'bestlifts') renderBestLifts();
 }
 /* Workout (while no workout runs), Log and Body fit the screen. Try the fitted layout and keep it only when nothing
    spills over; on a small phone with large text the page simply scrolls instead. */
 function syncFit(){
   const act = activeSession(), bar = $('#tabbar').getBoundingClientRect().top;
-  for(const id of ['v-workout', 'v-log', 'v-body']){
+  for(const id of ['v-workout', 'v-log', 'v-body', 'v-records']){
     const vin = $('#' + id + ' .vin'), want = id !== 'v-workout' || !act || (ST().view === 'cards' && act.exercises.length > 0);
     vin.classList.toggle('fit', want);
     if(!want) continue;
@@ -2421,9 +2426,10 @@ function renderGoals(){
     return '<button class="goal" data-a="goal-edit" data-id="' + esc(g.id) + '"><i class="gn">' + (i + 1) + '</i><span><b>' + esc(g.formal || g.text) + '</b>' + (st ? '<small>' + esc(st) + '</small>' : '') + bar + '</span></button>';
   }).join('');
   setHTML($('#goals-card'), '<div class="hd"><h2>Goals</h2><small>' + gs.length + ' of 3</small></div>' +
-    '<p class="hint">Write what you want to reach in your own words. Claude makes it short and clear tonight and plans your training around it.</p>' +
+    (gs.length < 3 ? '<p class="hint">Write what you want to reach in your own words. Claude makes it short and clear tonight and plans your training around it.</p>' : '') +
     (rows ? '<div style="margin-top:6px">' + rows + '</div>' : '') +
-    (gs.length < 3 ? '<button class="btn-glass wide" data-a="goal-new" style="margin-top:12px">+ Goal</button>' : ''));
+    (gs.length ? '' : '<p class="sub" style="margin-top:8px">No goals yet. What do you want to reach?</p>') +
+    (gs.length < 3 ? '<button class="btn-glass wide goal-add" data-a="goal-new">+ Goal</button>' : ''));
 }
 function openGoal(id){
   const g = id ? goals().find(x => x.id === id) : null;
@@ -2496,7 +2502,8 @@ function renderLifts(){
     return '<div class="lift' + (open ? ' open' : '') + '"><button data-a="lift-open" data-n="' + esc(p.name) + '" aria-expanded="' + open + '"><span><b>' + esc(p.name) + '</b><small>' + esc('Best ' + wTxt(best.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + best.reps + ' · ' + dDay(best.date)) + '</small></span>' + sparkHtml(sr.e1) +
       '<span class="lnum"><strong>' + (sr.reps ? p.maxReps.reps : fmt(Math.round(p.e1.sc * 2) / 2)) + '</strong><small>' + (sr.reps ? 'reps' : 'kg max') + '</small></span><span class="chev2">›</span></button>' + body + '</div>';
   }).join('');
-  setHTML($('#lifts-card'), '<div class="hd"><h2>Best lifts</h2>' + (D.sets.length ? '<button class="chip" data-a="all-lifts">All lifts</button>' : '') + '</div>' +
+  if(!$('#lifts-card')) return;
+  setHTML($('#lifts-card'), '<div class="hd"><h2>Your main lifts</h2>' + (D.sets.length ? '<button class="chip" data-a="all-lifts">All lifts</button>' : '') + '</div>' +
     (ev.length ? '<p class="prline">New PR ' + ev.map(x => '<b>' + esc(x.exercise + ' ' + wTxt(x.weight || 0, infoOf(x.exercise)) + ' × ' + x.reps) + '</b> ' + esc(dDay(x.date))).join(', ') + '</p>' : '') +
     '<p class="hint">Your main lifts. The big number is your estimated max for one rep. Tap a lift to see your progress.</p>' +
     (rows ? '<div style="margin-top:4px">' + rows + '</div>' : '<p class="sub" style="margin-top:8px">Log your first sets and your key lifts show up here.</p>'));
@@ -2517,10 +2524,16 @@ function renderBodyPage(){
 /* Records: your goals, your best lifts with their curves, cardio bests and the 1RM test */
 function renderRecords(){
   renderGoals();
-  renderLifts();
   renderRmCard();
+  renderBestLifts();
+}
+/* Best lifts and cardio bests live in their own sheet, from the sidebar or the 1RM card, so Records fits the screen */
+function openBestLifts(){ openSheet('bestlifts', shTop('Best lifts', 'Records'), '<div id="lifts-card"></div><div id="prs-more" style="display:flex;flex-direction:column;gap:12px"></div>', true); renderBestLifts(); }
+function renderBestLifts(){
+  if(sheetMode !== 'bestlifts' || !$('#lifts-card')) return;
+  renderLifts();
   let more = '';
-  for(const c of cardioPRs()) more += '<article class="glass card"><div class="hd"><h2>' + esc(c.act) + '</h2><small>' + plural(c.n, 'session') + '</small></div><div class="grid2">' + c.tiles.map(([a, b, d]) => '<div class="tile"><small>' + esc(a) + '</small><b>' + esc(b) + '</b><em>' + esc(dShort(d)) + '</em></div>').join('') + '</div></article>';
+  for(const c of cardioPRs()) more += '<article class="glass card" style="margin:0"><div class="hd"><h2>' + esc(c.act) + '</h2><small>' + plural(c.n, 'session') + '</small></div><div class="grid2">' + c.tiles.map(([a, b, d]) => '<div class="tile"><small>' + esc(a) + '</small><b>' + esc(b) + '</b><em>' + esc(dShort(d)) + '</em></div>').join('') + '</div></article>';
   setHTML($('#prs-more'), more);
 }
 function reportHtml(t){
@@ -2970,6 +2983,7 @@ const IC = {
   bar: '<svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>',
   body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="4.6" r="2.2"/><path d="M4.5 8.6h15M12 8.6v5.6M12 14.2l-3.2 6.6M12 14.2l3.2 6.6"/></svg>',
   trophy: '<svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>',
+  chart: '<svg viewBox="0 0 24 24"><path d="M3.5 19.5h17M5 15.5l4.5-4.5 3.5 3 6-6.5"/><path d="M15 7.5h4v4"/></svg>',
   spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>'
 };
 const sl = (a, icon, label, extra, attrs) => '<button class="sl" data-a="' + a + '"' + (attrs || '') + '>' + icon + '<span>' + esc(label) + '</span>' + (extra || '') + '</button>';
@@ -2983,7 +2997,7 @@ function renderSide(){
     sl('log-past', IC.past, 'Log a past day', '', ' data-d="' + addDays(t, -1) + '"');
   h += '<p class="side-lab">Coach</p>' + sl('side-tab', IC.chat, 'Chat with Claude', unread ? '<span class="nb2">' + unread + '</span>' : '', ' data-i="0"') +
     (D.feedback.length ? sl('reviews', IC.stack, 'Earlier reviews', '<small>' + D.feedback.length + '</small>') : '');
-  h += '<p class="side-lab">Progress</p>' + sl('side-tab', IC.body, 'Body', '', ' data-i="3"') + sl('side-tab', IC.trophy, 'Records', goals().length ? '<small>' + plural(goals().length, 'goal') + '</small>' : '', ' data-i="4"');
+  h += '<p class="side-lab">Progress</p>' + sl('side-tab', IC.body, 'Body', '', ' data-i="3"') + sl('side-tab', IC.trophy, 'Records', goals().length ? '<small>' + plural(goals().length, 'goal') + '</small>' : '', ' data-i="4"') + (D.sets.length ? sl('best-lifts', IC.chart, 'Best lifts', S.ui.prNew ? '<span class="sdot"></span>' : '') : '');
   if(D.routines.length){
     const sid = suggested();
     h += '<p class="side-lab">Your workouts</p>' + D.routines.slice(0, 5).map(r => sl('routine-open', IC.bar, r.name, r.id === sid ? '<small>Next</small>' : '', ' data-id="' + esc(r.id) + '"')).join('') +
@@ -3070,6 +3084,7 @@ function renderFeedbackPanel(){
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.9.2', date: '2026-10-19', items: [['records', 'Records is goals and the 1RM test and fits the screen'], ['best', 'Best lifts and cardio bests in their own window, from the sidebar or the 1RM card']]},
   {v: '4.9.1', date: '2026-10-19', items: [['top', 'Titles centred in the top bar, no date line'], ['cards', 'Flashcards fit the screen, Skip next to Log set'], ['jiggle', 'Hold an exercise in Overview to move or remove it'], ['checkin', 'Check-in on one line in Log'], ['fit', 'Log and Body fit the home screen app']]},
   {v: '4.9.0', date: '2026-10-19', items: [['side', 'Sidebar like the Claude app, from the menu button top left'], ['tier', 'Membership at the bottom of the sidebar that grows with your workouts'], ['fit', 'Workout, Log and Body fit the screen without scrolling'], ['figure', 'A new body figure in 3D: drag to turn it, top muscles beside it'], ['curve', 'Charts without the shade under the line'], ['gear', 'Plain white settings gear'], ['numbers', 'Fewer numbers on Body']]},
   {v: '4.8.0', date: '2026-10-19', items: [['today', 'Today is just the chat with Coach Claude, always open'], ['plan', 'Today\'s plan from Claude as a message with a start button'], ['split', 'Progress split into Body and Records'], ['simple', 'Simpler words and fewer numbers'], ['next', 'Next workout on Workout shows the planned weights and starts right away'], ['week', 'This week shows your goal, tap a day to open it in Log'], ['checkin', 'Morning check-in moved to Log']]},
@@ -3249,10 +3264,11 @@ const RM_STEPS = [[.5, 5, 'Warm-up'], [.7, 3, 'Warm-up'], [.82, 1, 'Warm-up'], [
 const rmLadder = goal => { const st = ST().step || 2.5; return RM_STEPS.map(([f, r, l]) => ({w: Math.max(0, Math.round(goal * f / st) * st), r, l})); };
 function rmEstimate(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc / (ST().step || 2.5)) * (ST().step || 2.5) : 0; }
 function renderRmCard(){
-  const tests = D.sessions.filter(x => x.template === 'T' && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 4);
+  const tests = D.sessions.filter(x => x.template === 'T' && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 2);
   const rows = tests.map(x => { const name = (x.exercises && x.exercises[0] || {}).name; const best = setsOf(x.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0];
-    return name ? '<div class="li"><span>' + esc(name) + '<br><small style="text-align:left">' + esc(dShort(x.date)) + '</small></span><b>' + (best ? fmt(best.weight) + ' kg' : !x.endedAt ? 'Running' : 'No single') + '</b></div>' : ''; }).join('');
-  setHTML($('#rm-card'), '<div class="hd"><h2>1RM test</h2></div>' + (rows ? '<div class="rmlist">' + rows + '</div>' : '') + '<button class="btn-primary wide" data-a="rm-open" style="margin-top:12px">Test a lift</button>');
+    return name ? '<div class="li rmrow"><span>' + esc(name) + ' <small>' + esc(dShort(x.date)) + '</small></span><b>' + (best ? fmt(best.weight) + ' kg' : !x.endedAt ? 'Running' : 'No single') + '</b></div>' : ''; }).join('');
+  setHTML($('#rm-card'), '<div class="hd"><h2>1RM test</h2></div>' + (rows ? '<div class="rmlist">' + rows + '</div>' : '<p class="sub" style="margin-top:4px">Find your max for one rep, step by step.</p>') +
+    '<div class="two" style="margin-top:12px"><button class="btn-primary" data-a="rm-open">Test a lift</button><button class="btn-glass" data-a="best-lifts">Best lifts</button></div>');
 }
 function openRm(){
   const prs = strengthPRs().filter(p => !p.info.bw).sort((a, b) => b.e1.sc - a.e1.sc);
@@ -3336,6 +3352,7 @@ document.addEventListener('click', e => {
     case 'lift-open': S.ui.liftOpen = S.ui.liftOpen === b.dataset.n ? null : b.dataset.n; renderLifts(); break;
     case 'lift-view': S.ui.liftView = b.dataset.v; renderLifts(); break;
     case 'all-lifts': openAllLifts(); break;
+    case 'best-lifts': openBestLifts(); break;
     case 'goal-new': openGoal(null); if(b.dataset.lift) setTimeout(() => { const l = $('#g-lift'); if(l) l.value = b.dataset.lift; }, 0); break;
     case 'goal-edit': openGoal(b.dataset.id); break;
     case 'goal-save': saveGoal(b.dataset.id || null); break;
