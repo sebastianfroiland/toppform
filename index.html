@@ -144,6 +144,8 @@ body.resting .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(
 .drop { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 0; width: 0; border-radius: 999px; background: var(--drop); box-shadow: var(--drop-shadow); will-change: transform, width; transition: background .25s, box-shadow .25s; }
 .tabbar.dragging .drop { background: var(--lens); box-shadow: inset 0 1px 1px rgba(255,255,255,.95), inset 0 -1px 1px rgba(255,255,255,.35), inset 0 0 14px rgba(255,255,255,.28), 0 8px 22px rgba(20,24,60,.18); backdrop-filter: brightness(1.08) saturate(1.5); -webkit-backdrop-filter: brightness(1.08) saturate(1.5); }
 body.kb .tabbar, body.kb .restpill { transform: translateY(160%); opacity: 0; pointer-events: none; }
+/* room under the page while the keyboard is up, so the field you type in can scroll above it (--kb is measured in JS) */
+body.kb .vin, body.kb .sheet-body, body.kb .set-panels { padding-bottom: calc(var(--kb, 0px) + 24px); }
 .edge { position: fixed; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top, 0px) + 34px); z-index: 15; pointer-events: none; opacity: 0; transition: opacity .35s; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 92%, transparent), color-mix(in srgb, var(--bg) 55%, transparent) 55%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); mask-image: linear-gradient(to bottom, #000 45%, transparent); -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent); }
 body.scrolled .edge { opacity: 1; }
 .tabbar.glass, .restpill.glass, .toast.glass { background: var(--float); }
@@ -343,6 +345,16 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .ex-acts .sel { min-height: 34px; padding-left: 12px; padding-right: 28px; background-position: right 10px center; font-weight: 600; }
 .ex h2 { font-size: 19px; }
 .ex.done h2::after { content: "  ✓"; color: var(--up); }
+.ex.skipped h2, .ex.skipped .sub { opacity: .5; }
+.skipbox { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; padding: 9px 9px 9px 13px; border-radius: 15px; background: var(--fill); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+.skipbox > span { min-width: 0; }
+.skipbox small { display: block; color: var(--dim); font-weight: 400; font-size: 12.5px; overflow-wrap: anywhere; }
+.chip[aria-pressed="true"] { background: var(--accent-grad); color: var(--on-grad); border-color: transparent; }
+.ovt.skip { opacity: .55; }
+.steppers.duo { grid-template-columns: 1fr 1fr; }
+.two:has(> #add-warm[hidden]) { grid-template-columns: 1fr; }
+.restpill .rl em { font-style: normal; }
+.dk.skip span { opacity: .4; }
 .last { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; margin-top: 8px; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; line-height: 1.45; }
 .last b { color: var(--text); font-weight: 600; }
 .target { margin-top: 10px; padding: 9px 12px; border-radius: 15px; background: color-mix(in srgb, var(--g1) 11%, var(--fill)); border: 1px solid color-mix(in srgb, var(--g1) 30%, var(--line)); font-size: 13.5px; }
@@ -525,12 +537,12 @@ textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top:
 
   <section class="view" id="v-workout" aria-label="Workout"><div class="vin">
     <header class="top"><small><span id="wo-sub"></span><span class="status" data-s="busy"></span></small><h1 id="wo-title">Workout</h1></header>
-    <article class="glass card empty" id="wo-idle"></article>
+    <article class="glass card" id="wo-idle"></article>
     <div id="wo-live" hidden>
       <div class="deck" id="deck" hidden></div>
       <div class="ovw" id="overview" hidden></div>
       <div class="cards" id="cards"></div>
-      <button class="btn-glass wide" data-a="add-ex" style="margin-bottom:12px">+ Add exercise</button>
+      <div class="two" style="margin-bottom:12px"><button class="btn-glass" data-a="add-ex">+ Exercise</button><button class="btn-glass" data-a="add-warm" id="add-warm">+ Warm-up</button></div>
       <article class="glass card">
         <div class="two">
           <div><label class="lab" for="s-knee">Knee and foot</label><select class="sel block" id="s-knee"><option value="">Not set</option><option value="good">Good</option><option value="some">Noticeable</option><option value="pain">Painful</option></select></div>
@@ -570,7 +582,7 @@ textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top:
 </div>
 
 <div class="glass restpill" id="rest" hidden>
-  <div class="rl">Rest<span id="rest-n"></span></div>
+  <div class="rl"><em id="rest-l">Rest</em><span id="rest-n"></span></div>
   <div class="t" id="rest-t">0:00</div>
   <div class="g" id="rest-g">/ 2:30</div>
   <div class="bar"><i id="rest-bar"></i></div>
@@ -616,7 +628,7 @@ textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top:
    and the tab bar has track(f) so the drop follows your finger while you swipe between pages. */
 (function () {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const haptic = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+  const haptic = () => { if (window.LiquidGlass && window.LiquidGlass.quiet) return; try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
   function spring(x, k = 300, zeta = .75) { return { x, v: 0, t: x, k, zeta }; }
   function stepSpring(s, dt) { const a = s.k * (s.t - s.x) - 2 * Math.sqrt(s.k) * s.zeta * s.v; s.v += a * dt; s.x += s.v * dt; return Math.abs(s.t - s.x) > .05 || Math.abs(s.v) > .05; }
   function runLoop(springs, render) {
@@ -753,7 +765,8 @@ const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
 const ACCENTS = {aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora'};
+const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true};
+const WARM_ACTS = ['Row','Bike','Elliptical','Run','Walk','Mobility','Other'];
 const RMS = [1, 3, 5, 8, 10];
 const MINE = 'mine';
 
@@ -921,6 +934,7 @@ function applyLook(){
   const a = ACCENTS[st.accent] || ACCENTS.aurora;
   root.style.setProperty('--g1', a[0]); root.style.setProperty('--g2', a[1]);
   root.style.setProperty('--z', {S:.92, M:1, L:1.1}[st.text] || 1);
+  LG.quiet = st.haptics === false;
 }
 function fixGap(){
   // Standalone iPhone apps sometimes get a viewport that stops short of the bottom edge. Measure it: the background reaches
@@ -1240,7 +1254,7 @@ function renderToday(){
   $('#today-title').textContent = st.name ? 'Hi, ' + st.name : 'Today';
   renderConnect();
   renderCheckinCard();
-  renderStart();
+  renderGo();
   renderWeek();
 }
 function renderCheckinCard(){
@@ -1263,24 +1277,29 @@ function folderList(){
   if(D.routines.some(r => !r.folder || !folders.some(f => f.id === r.folder))) folders.push({id: MINE, name: 'My Workouts', order: 9999});
   return folders;
 }
-function renderStart(){
-  const act = activeSession(), plan = todaysPlan(), sug = suggested();
-  let html = '<div class="hd"><h2>' + (act ? 'Workout running' : 'Start a workout') + '</h2></div>';
+/* Today only says what is next and has one button; the workouts and folders live on the Workout page */
+function renderGo(){
+  const act = activeSession(), plan = todaysPlan(), sug = act ? null : routineById(suggested());
+  const title = act ? 'Workout running' : sug ? sug.name : plan && plan.suggest === 'rest' ? 'Rest day' : plan && plan.suggest === 'cardio' ? 'Cardio day' : 'Workout';
+  let html = '<div class="hd"><h2>' + esc(title) + '</h2>' + (sug ? '<small>Next</small>' : '') + '</div>';
   if(plan && plan.message) html += '<div class="claude"><i>C</i><p>' + esc(plan.message) + '</p></div>';
-  if(act){
-    html += '<button class="btn-primary wide" data-a="resume" style="margin-top:14px">Continue ' + esc(sessionTitle(act)) + ' · ' + plural(setsOf(act.id).length, 'set') + '</button>';
-  } else {
-    html += '<div class="two" style="margin-top:14px"><button class="btn-primary" data-a="quick">Quick start</button><button class="btn-glass" data-a="cardio">Log cardio</button></div>';
-  }
+  html += act ? '<button class="btn-primary wide" data-a="resume" style="margin-top:14px">Continue · ' + plural(setsOf(act.id).length, 'set') + '</button>'
+    : '<button class="btn-primary wide" data-a="goto-workout" style="margin-top:14px">Go</button>';
+  setHTML($('#start-card'), html);
+}
+function renderStart(){
+  const sug = suggested();
+  let html = '<div class="hd"><h2>Start a workout</h2></div>' +
+    '<div class="two" style="margin-top:14px"><button class="btn-primary" data-a="quick">Quick start</button><button class="btn-glass" data-a="cardio">Log cardio</button></div>';
   for(const f of folderList()){
     const rows = D.routines.filter(r => (r.folder && D.folders.some(x => x.id === r.folder) ? r.folder : MINE) === f.id);
     const open = !S.ui.closed.has(f.id);
     html += '<div class="folder' + (open ? ' open' : '') + '"><div class="fhead"><button class="ftog" data-a="folder-toggle" data-id="' + esc(f.id) + '" aria-expanded="' + open + '"><span class="chev">›</span>' + esc(f.name) + ' <small>' + rows.length + '</small></button>' +
       (f.id !== MINE ? '<button class="iconbtn" data-a="folder-edit" data-id="' + esc(f.id) + '" aria-label="Edit folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>' : '') + '</div>' +
-      '<div class="frows">' + (rows.map(r => '<button class="wrow" data-a="routine-open" data-id="' + esc(r.id) + '"><span><b>' + esc(r.name) + '</b><small>' + esc((r.items || []).map(x => x.name).join(', ') || 'No exercises') + '</small></span>' + (r.id === sug && !act ? '<span class="tag">Next</span>' : '') + '</button>').join('') || '<p class="sub" style="padding:8px 2px">Empty</p>') + '</div></div>';
+      '<div class="frows">' + (rows.map(r => '<button class="wrow" data-a="routine-open" data-id="' + esc(r.id) + '"><span><b>' + esc(r.name) + '</b><small>' + esc((r.items || []).map(x => x.name).join(', ') || 'No exercises') + '</small></span>' + (r.id === sug ? '<span class="tag">Next</span>' : '') + '</button>').join('') || '<p class="sub" style="padding:8px 2px">Empty</p>') + '</div></div>';
   }
   html += '<div class="row" style="margin-top:14px"><button class="chip" data-a="routine-new">+ Workout</button><button class="chip" data-a="folder-new">+ Folder</button></div>';
-  setHTML($('#start-card'), html);
+  setHTML($('#wo-idle'), html);
 }
 function renderWeek(){
   const t = todayISO(), mon = mondayOf(t), days = [0,1,2,3,4,5,6].map(i => addDays(mon, i)), L = ['M','T','W','T','F','S','S'], st = ST();
@@ -1306,15 +1325,18 @@ function renderWorkout(){
   $('#wo-idle').hidden = !!s; $('#wo-live').hidden = !s;
   if(!s){
     $('#wo-sub').textContent = dLong(todayISO()); $('#wo-title').textContent = 'Workout';
-    setHTML($('#wo-idle'), '<h2>No workout running</h2><div class="row" style="margin-top:16px"><button class="btn-primary" data-a="quick">Quick start</button><button class="btn-glass" data-a="goto-today">Choose a workout</button></div>');
+    renderStart();
     const w = $('#cards'); if(w.children.length) w.innerHTML = '';
+    syncWake(false);
     return;
   }
-  const total = s.exercises.reduce((a, e) => a + (e.planned || 0), 0), done = setsOf(s.id).length;
+  const total = s.exercises.reduce((a, e) => a + (e.skip || e.warm ? 0 : e.planned || 0), 0), done = setsOf(s.id).length;
   $('#wo-sub').textContent = dShort(s.date) + ' · ' + done + (total ? ' of ' + total : '') + ' sets';
   $('#wo-title').textContent = sessionTitle(s);
   ensureCards(s);
   renderDeck(s);
+  $('#add-warm').hidden = s.exercises.some(e => e.warm);
+  syncWake(true);
   if(S.ui.noteFor !== s.id){ S.ui.noteFor = s.id; $('#s-note').value = s.note || ''; }
   if(document.activeElement !== $('#s-knee')) $('#s-knee').value = s.knee || '';
   if(document.activeElement !== $('#s-rpe')) $('#s-rpe').value = s.rpe || '';
@@ -1330,10 +1352,10 @@ function ensureCards(s){
   let prev = null;
   for(const ex of s.exercises){
     let el = existing.get(cardKey(ex));
-    if(!el || !el.isConnected) el = buildCard(ex, mode);
+    if(!el || !el.isConnected) el = ex.warm ? buildWarm(ex, mode) : buildCard(ex, mode);
     const ref = prev ? prev.nextSibling : wrap.firstChild;
     if(el !== ref) wrap.insertBefore(el, ref);
-    fillCard(el, ex, s);
+    if(ex.warm) fillWarm(el, ex, s); else fillCard(el, ex, s);
     prev = el;
   }
   if(!s.exercises.length && !wrap.querySelector('[data-key="empty"]')) wrap.innerHTML = '<article class="glass card empty" data-key="empty"><h2>What are we doing today?</h2><div class="row" style="margin-top:14px"><button class="btn-primary" data-a="add-ex">Add exercise</button></div></article>';
@@ -1355,7 +1377,7 @@ function buildCard(ex, mode){
     '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : '') + '">' +
     (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
     stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + stp(ex.k, 'p', 'partials', mode) + '</div>' +
-    '<button class="btn-primary wide" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button></div>' +
+    '<button class="btn-primary wide" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button><button class="btn-quiet" data-a="skip" data-k="' + ex.k + '" style="margin-top:4px">Skip exercise</button></div><div data-r="skipped" hidden></div>' +
     '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>';
   return el;
 }
@@ -1374,9 +1396,11 @@ function fillCard(el, ex, s){
   if(!tg && today.length === 0 && ready(last)){ tag.hidden = false; tag.textContent = info.bw === 'assist' ? '↓ Less assistance today' : '↑ Add weight today'; }
   else tag.hidden = true;
   r('logged').innerHTML = today.map(x => { const a = S.ui.armed === x.id; return '<button class="setchip' + (a ? ' armed' : '') + '" data-a="set" data-id="' + esc(x.id) + '"' + (a ? ' aria-label="Tap again to delete"' : '') + '><i>' + x.n + '</i>' + (a ? 'Delete?' : esc(setText(x, info))) + '</button>'; }).join('');
-  const done = ex.planned > 0 && today.length >= ex.planned && !S.ui.expanded.has(ex.k);
-  el.classList.toggle('done', done);
-  r('entry').hidden = done; r('more').hidden = !done;
+  const sk = ex.skip, done = !sk && ex.planned > 0 && today.length >= ex.planned && !S.ui.expanded.has(ex.k);
+  el.classList.toggle('done', done); el.classList.toggle('skipped', !!sk);
+  r('entry').hidden = done || !!sk; r('more').hidden = !done;
+  const skb = r('skipped'); skb.hidden = !sk;
+  if(sk) setHTML(skb, '<div class="skipbox"><span>Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '') + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
   r('logbtn').textContent = 'Log set ' + (today.length + 1) + (ex.planned && today.length < ex.planned ? ' of ' + ex.planned : '');
   const nt = el.querySelector('.exn');
   if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
@@ -1400,10 +1424,11 @@ function startSession(id){
   const r = id ? routineById(id) : null, now = Date.now(), sid = newId();
   const s = {id:sid, kind:'styrke', template: r ? r.id : 'F', title: r ? r.name : 'Quick Workout', date:todayISO(), startedAt:now, endedAt:null, knee:null, rpe:null, note:'',
     exercises: r ? (r.items || []).map(x => ({k:newId(), name:x.name, planned:x.sets || 1, hint:x.hint || ''})) : [], updatedAt:now};
+  if(ST().warm) s.exercises.unshift(warmEx(ST().warm));
   S.activeId = sid; ls.set('tl.active', sid); S.ui.expanded.clear(); S.ui.deckI = 0; S.ui.overview = false;
   queue('set', 'sessions', sid, s);
   closeSheet(); selectTab(1);
-  if(!r) setTimeout(() => openLib('add', null), 420);
+  if(!r && !ST().warm) setTimeout(() => openLib('add', null), 420);
 }
 function updateSession(id, patch){
   const s = vmap('sessions').get(id); if(!s) return;
@@ -1421,21 +1446,115 @@ function logSet(k){
   ensureAudio();
   ['w','r','p'].forEach(f => { delete g(f).dataset.touched; g(f).blur(); });
   queue('set', 'sets', set.id, set);
-  try{ navigator.vibrate && navigator.vibrate(20); }catch(e){}
+  if(ST().haptics !== false) try{ navigator.vibrate && navigator.vibrate(20); }catch(e){}
   startRest(s.template === 'T' ? 180 : info.kind === 'b' ? ST().restB : ST().restI, ex.name);
   if(prevScores.length && score(w, reps, info) > Math.max.apply(null, prevScores) + 1e-9) toast('New record');
   else toast('Set ' + set.n + ' saved');
   if(ex.planned && set.n >= ex.planned){ S.ui.expanded.delete(k); refresh(); scrollNext(k); }
+
 }
 function scrollNext(k){
+  if(ST().autoNext === false) return;
   const cards = [...document.querySelectorAll('#cards .ex')];
   const i = cards.findIndex(c => c.dataset.k === k);
-  const nxt = cards.slice(i + 1).find(c => !c.classList.contains('done'));
+  const nxt = cards.slice(i + 1).find(c => !c.classList.contains('done') && !c.classList.contains('skipped'));
   if(!nxt) return;
   // In the cards view the finished card stays a moment so you see the tick, then the next one slides in
   if($('#cards').classList.contains('deck-on')) setTimeout(() => deckGo(cards.indexOf(nxt), true), 650);
   else setTimeout(() => nxt.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block:'start'}), 80);
 }
+
+/* Skipping an exercise: pick a reason (or type one) and the card folds away. Claude reads the reason in the evening review. */
+const SKIP_WHY = ['Sore muscle', 'Pain', 'Machine taken', 'No time', 'Low energy'];
+function openSkip(k){
+  const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
+  S.ui.skip = {k, reason: ''};
+  openSheet('skip', shTop(ex.name, 'Skip exercise'), '<div class="row" style="margin-top:0">' + SKIP_WHY.map(w => '<button class="chip" data-a="skip-why" data-v="' + esc(w) + '" aria-pressed="false">' + esc(w) + '</button>').join('') + '</div>' +
+    '<textarea id="skip-note" class="field" rows="2" placeholder="Anything else" aria-label="Why you skip it"></textarea>' +
+    '<button class="btn-primary wide" data-a="skip-save">Skip</button>');
+}
+function setSkip(k, skip){
+  const s = activeSession(); if(!s) return;
+  updateSession(s.id, {exercises: s.exercises.map(e => { if(e.k !== k) return e; const c = Object.assign({}, e); if(skip) c.skip = skip; else delete c.skip; return c; })});
+}
+function saveSkip(){
+  const sk = S.ui.skip; if(!sk) return;
+  const n = $('#skip-note'), note = n ? n.value.trim() : '';
+  setSkip(sk.k, Object.assign({reason: sk.reason}, note ? {note} : {}));
+  S.ui.skip = null; closeSheet(); toast('Skipped'); scrollNext(sk.k);
+}
+
+/* Warm-up: a cardio card first in the workout (row, bike and so on) with the same note, skip and progress as the
+   exercises. It logs time and distance on the workout itself, so it never counts as a set or a record. */
+const warmEx = name => ({k: newId(), name, warm: true, planned: 1, min: ST().warmMin || 5, hint: ''});
+const warmUnit = name => name === 'Row' ? 'm' : 'km';
+const warmText = ex => { const l = ex.log || {}; return [l.sec ? fmtDur(l.sec) : '', l.distM ? (ex.name === 'Row' ? l.distM + ' m' : fmt(l.distM / 1000) + ' km') : ''].filter(Boolean).join(' · ') || 'Done'; };
+function addWarm(){
+  const s = activeSession(); if(!s || s.exercises.some(e => e.warm)) return;
+  updateSession(s.id, {exercises: [warmEx(ST().warm || ls.get('tl.lastWarm') || 'Row')].concat(s.exercises)});
+  S.ui.deckI = 0; requestAnimationFrame(() => { if($('#cards').classList.contains('deck-on')) deckGo(0, true); });
+}
+function buildWarm(ex, mode){
+  const el = document.createElement('article'), k = ex.k, row = ex.name === 'Row';
+  el.className = 'glass card ex warm'; el.dataset.key = cardKey(ex); el.dataset.k = k; el.dataset.mode = mode;
+  const box = (f, label, st, ph) => '<div class="stp"><label for="in-' + k + '-' + f + '">' + label + '</label><input id="in-' + k + '-' + f + '" data-f="' + f + '" inputmode="decimal" autocomplete="off" placeholder="' + ph + '" enterkeyhint="done">' +
+    '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
+  el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="Warm-up activity">' + opts(WARM_ACTS.map(a => [a, a]), ex.name) + '</select></div></div>' +
+    '<div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + k + '" rows="1" placeholder="Note, like damper or level" aria-label="Note for the warm-up"></textarea>' +
+    '<div class="logged" data-r="logged"></div>' +
+    '<div data-r="entry"><div class="steppers duo">' + box('m', 'min', 1, '0') + box('d', warmUnit(ex.name), row ? 100 : .5, '0') + '</div>' +
+    '<div class="two" style="margin-top:10px"><button class="btn-glass" data-a="warm-timer" data-k="' + k + '">Timer</button><button class="btn-primary" data-a="warm-done" data-k="' + k + '">Done</button></div>' +
+    '<button class="btn-quiet" data-a="skip" data-k="' + k + '" style="margin-top:4px">Skip warm-up</button></div><div data-r="skipped" hidden></div>' +
+    '<button class="btn-quiet" data-a="more" data-k="' + k + '" data-r="more" hidden style="margin-top:4px">Edit</button>';
+  return el;
+}
+function fillWarm(el, ex, s){
+  const r = n => el.querySelector('[data-r="' + n + '"]'), sk = ex.skip, done = !sk && !!ex.log && !S.ui.expanded.has(ex.k);
+  r('meta').textContent = 'Warm-up' + (ex.min ? ' · ' + ex.min + ' min' : '');
+  const a = el.querySelector('[data-warm-act]'); if(a && document.activeElement !== a) a.value = ex.name;
+  el.classList.toggle('done', done); el.classList.toggle('skipped', !!sk);
+  r('entry').hidden = done || !!sk; r('more').hidden = !done;
+  r('logged').innerHTML = ex.log && !sk ? '<span class="setchip">' + esc(warmText(ex)) + '</span>' : '';
+  const skb = r('skipped'); skb.hidden = !sk;
+  if(sk) setHTML(skb, '<div class="skipbox"><span>Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '') + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
+  const nt = el.querySelector('.exn');
+  if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
+  const prev = prevNotes(ex.name, s.id), np = r('nprev');
+  np.hidden = !prev.length;
+  if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
+  const m = el.querySelector('#in-' + ex.k + '-m'), d = el.querySelector('#in-' + ex.k + '-d'), l = ex.log || {};
+  if(m && !m.dataset.touched && document.activeElement !== m && m.value === '') m.value = l.sec ? fmt(Math.round(l.sec / 6) / 10) : ex.min ? String(ex.min) : '';
+  if(d && !d.dataset.touched && document.activeElement !== d && d.value === '' && l.distM) d.value = ex.name === 'Row' ? String(l.distM) : fmt(l.distM / 1000);
+}
+function warmTimer(k){
+  const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
+  const min = num($('#in-' + k + '-m').value) || ex.min || 5;
+  ensureAudio(); startRest(Math.round(min * 60), ex.name, 'Warm-up');
+}
+function warmDone(k){
+  const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
+  const m = $('#in-' + k + '-m'), d = $('#in-' + k + '-d');
+  const sec = parseDur(m.value) || (ex.min || 0) * 60, dist = num(d.value);
+  const distM = dist == null || dist <= 0 ? null : ex.name === 'Row' ? Math.round(dist) : Math.round(dist * 1000);
+  [m, d].forEach(x => { delete x.dataset.touched; x.blur(); });
+  if(S.ui.rest && S.ui.rest.label === 'Warm-up') stopRest();
+  S.ui.expanded.delete(k);
+  updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {log: {sec: sec || null, distM}}) : e)});
+  toast('Warm-up done'); scrollNext(k);
+}
+/* Keep the screen on while a workout runs, so the phone does not lock between sets */
+let wake = null, wakeBusy = false;
+async function syncWake(on){
+  on = on && ST().awake !== false && document.visibilityState === 'visible' && 'wakeLock' in navigator;
+  if(wakeBusy || on === !!wake) return;
+  wakeBusy = true;
+  try{
+    if(on){ wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); }
+    else { const w = wake; wake = null; await w.release(); }
+  }catch(e){ wake = null; }
+  wakeBusy = false;
+}
+document.addEventListener('visibilitychange', () => { if(D) syncWake(!!activeSession()); });
 
 /* ---------- cards view ----------
    One exercise per card, side by side. The bar on top has a strip per exercise that fills as you log sets.
@@ -1447,13 +1566,13 @@ function renderDeck(s){
   deck.hidden = !on; ov.hidden = !showOv; wrap.hidden = showOv;
   if(!on) return;
   const n = s.exercises.length, i = Math.max(0, Math.min(S.ui.deckI || 0, n - 1));
-  const prog = s.exercises.map(ex => { const d = todaySets(ex.name, s.id).length, pl = ex.planned || 0; return {d, pl, pct: pl ? Math.min(100, d / pl * 100) : (d ? 100 : 0), done: pl > 0 && d >= pl}; });
-  setHTML(deck, '<span class="dk-n">' + (showOv ? prog.filter(x => x.done).length + ' / ' + n : (i + 1) + ' / ' + n) + '</span>' +
-    '<div class="dk-dots">' + prog.map((x, j) => '<button class="dk' + (j === i && !showOv ? ' on' : '') + (x.done ? ' done' : '') + '" data-a="deck-go" data-i="' + j + '" aria-label="' + esc(s.exercises[j].name) + '"><span><i style="width:' + x.pct + '%"></i></span></button>').join('') + '</div>' +
+  const prog = s.exercises.map(ex => { const d = ex.warm ? (ex.log ? 1 : 0) : todaySets(ex.name, s.id).length, pl = ex.warm ? 1 : ex.planned || 0; return {d, pl, pct: pl ? Math.min(100, d / pl * 100) : (d ? 100 : 0), done: !ex.skip && pl > 0 && d >= pl, skip: !!ex.skip}; });
+  setHTML(deck, '<span class="dk-n">' + (showOv ? prog.filter(x => x.done || x.skip).length + ' / ' + n : (i + 1) + ' / ' + n) + '</span>' +
+    '<div class="dk-dots">' + prog.map((x, j) => '<button class="dk' + (j === i && !showOv ? ' on' : '') + (x.done ? ' done' : '') + (x.skip ? ' skip' : '') + '" data-a="deck-go" data-i="' + j + '" aria-label="' + esc(s.exercises[j].name) + '"><span><i style="width:' + x.pct + '%"></i></span></button>').join('') + '</div>' +
     '<button class="chip" data-a="deck-ov">' + (showOv ? 'Cards' : 'Overview') + '</button>');
   if(showOv) setHTML(ov, s.exercises.map((ex, j) => { const x = prog[j];
-    return '<button class="glass ovt' + (x.done ? ' done' : '') + (j === i ? ' cur' : '') + '" style="--j:' + j + '" data-a="deck-go" data-i="' + j + '"><small>' + (j + 1) + '</small><b>' + esc(ex.name) + '</b>' +
-      '<span class="ovs">' + (x.pl ? x.d + ' of ' + plural(x.pl, 'set') : plural(x.d, 'set')) + '</span><span class="ovbar"><i style="width:' + x.pct + '%"></i></span></button>'; }).join(''));
+    return '<button class="glass ovt' + (x.done ? ' done' : '') + (x.skip ? ' skip' : '') + (j === i ? ' cur' : '') + '" style="--j:' + j + '" data-a="deck-go" data-i="' + j + '"><small>' + (j + 1) + '</small><b>' + esc(ex.name) + '</b>' +
+      '<span class="ovs">' + (x.skip ? 'Skipped' : s.exercises[j].warm ? (x.done ? 'Warm-up done' : 'Warm-up') : x.pl ? x.d + ' of ' + plural(x.pl, 'set') : plural(x.d, 'set')) + '</span><span class="ovbar"><i style="width:' + x.pct + '%"></i></span></button>'; }).join(''));
 }
 function deckGo(i, smooth){
   const wrap = $('#cards'), el = wrap.querySelectorAll('.ex')[i]; if(!el) return;
@@ -1480,7 +1599,7 @@ function finish(){
   saveNote();
   const s = activeSession(); if(!s){ selectTab(0); return; }
   const n = setsOf(s.id).length, cur = vmap('sessions').get(s.id);
-  if(!n && !cur.note && !cur.knee){ queue('delete', 'sessions', s.id); toast('Empty workout removed'); }
+  if(!n && !cur.note && !cur.knee && !(cur.exercises || []).some(e => e.log)){ queue('delete', 'sessions', s.id); toast('Empty workout removed'); }
   else { updateSession(s.id, {endedAt:Date.now()}); toast('Workout saved · ' + plural(n, 'set')); }
   S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.expanded.clear(); S.ui.noteFor = null;
   selectTab(0);
@@ -1742,7 +1861,9 @@ function buildSummary(r){
       const by = {}; xs.slice().sort((a,b) => a.ts - b.ts).forEach(x => { (by[x.exercise] = by[x.exercise] || []).push(setText(x, infoOf(x.exercise))); });
       const swaps = (s.exercises || []).filter(e => e.from).map(e => e.from + ' -> ' + e.name);
       const exNotes = (s.exercises || []).filter(e => e.note && e.note.trim()).map(e => e.name + ': ' + e.note.replace(/\s+/g, ' ').slice(0, 120));
-      lines.push(s.date + ' ' + sessionTitle(s) + ': ' + Object.keys(by).map(k => k + ' ' + by[k].join(', ')).join('; ') + (s.knee ? ' | knee/foot ' + s.knee : '') + (s.rpe ? ' | effort ' + s.rpe : '') + (swaps.length ? ' | swapped ' + swaps.join(', ') : '') + (exNotes.length ? ' | exercise notes: ' + exNotes.join('; ') : '') + (s.note ? ' | note: ' + s.note.replace(/\s+/g, ' ').slice(0, 200) : ''));
+      const warms = (s.exercises || []).filter(e => e.warm && e.log).map(e => e.name + ' ' + warmText(e));
+      const skips = (s.exercises || []).filter(e => e.skip).map(e => e.name + [e.skip.reason, e.skip.note].filter(Boolean).map(x => ' (' + x.replace(/\s+/g, ' ').slice(0, 120) + ')').join(''));
+      lines.push(s.date + ' ' + sessionTitle(s) + ': ' + Object.keys(by).map(k => k + ' ' + by[k].join(', ')).join('; ') + (s.knee ? ' | knee/foot ' + s.knee : '') + (s.rpe ? ' | effort ' + s.rpe : '') + (swaps.length ? ' | swapped ' + swaps.join(', ') : '') + (exNotes.length ? ' | exercise notes: ' + exNotes.join('; ') : '') + (warms.length ? ' | warm-up ' + warms.join(', ') : '') + (skips.length ? ' | skipped ' + skips.join(', ') : '') + (s.note ? ' | note: ' + s.note.replace(/\s+/g, ' ').slice(0, 200) : ''));
     } else lines.push(s.date + ' ' + s.activity + ': ' + sessionMeta(s) + (s.knee ? ' | knee/foot ' + s.knee : '') + (s.note ? ' | note: ' + s.note.replace(/\s+/g, ' ').slice(0, 160) : ''));
   }
   const cis = [...D.checkins.values()].filter(c => c && c.date >= r.from && c.date <= r.to).sort((a,b) => a.date < b.date ? -1 : 1);
@@ -1759,7 +1880,7 @@ function beep(){
   if(!ST().sound || !actx) return;
   try{ const t = actx.currentTime; [0, .28].forEach(off => { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = 880; g.gain.setValueAtTime(.0001, t+off); g.gain.exponentialRampToValueAtTime(.25, t+off+.02); g.gain.exponentialRampToValueAtTime(.0001, t+off+.2); o.connect(g); g.connect(actx.destination); o.start(t+off); o.stop(t+off+.22); }); }catch(e){}
 }
-function startRest(target, name){ S.ui.rest = {start:Date.now(), target, name, alerted:false}; ls.set('tl.rest', JSON.stringify(S.ui.rest)); tickRest(); }
+function startRest(target, name, label){ S.ui.rest = {start:Date.now(), target, name, label: label || '', alerted:false}; ls.set('tl.rest', JSON.stringify(S.ui.rest)); tickRest(); }
 function stopRest(){ S.ui.rest = null; ls.del('tl.rest'); tickRest(); }
 function tickRest(){
   const r = S.ui.rest, el = $('#rest');
@@ -1769,7 +1890,7 @@ function tickRest(){
   $('#sound-btn').setAttribute('aria-pressed', String(!!(D && ST().sound)));
   if(!show) return;
   const e = (Date.now() - r.start) / 1000;
-  $('#rest-t').textContent = mmss(e); $('#rest-g').textContent = '/ ' + mmss(r.target); $('#rest-n').textContent = r.name || '';
+  $('#rest-t').textContent = mmss(e); $('#rest-g').textContent = '/ ' + mmss(r.target); $('#rest-n').textContent = r.name || ''; $('#rest-l').textContent = r.label || 'Rest';
   $('#rest-bar').style.width = Math.min(100, e / r.target * 100) + '%';
   const over = e >= r.target; el.classList.toggle('over', over);
   if(over && !r.alerted){ r.alerted = true; ls.set('tl.rest', JSON.stringify(r)); try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(x){} beep(); }
@@ -1975,7 +2096,9 @@ function openDetail(id){
   if(s.kind === 'kondis'){ openCardio({id}); return; }
   const sets = setsOf(id), order = (s.exercises || []).map(e => e.name);
   sets.forEach(x => { if(!order.includes(x.exercise)) order.push(x.exercise); });
-  const rows = order.map(name => { const xs = sets.filter(x => x.exercise === name).sort((a, b) => a.n - b.n); if(!xs.length) return ''; const info = infoOf(name), ex = (s.exercises || []).find(e => e.name === name);
+  const rows = order.map(name => { const xs = sets.filter(x => x.exercise === name).sort((a, b) => a.n - b.n), info = infoOf(name), ex = (s.exercises || []).find(e => e.name === name);
+    if(!xs.length && ex && ex.warm && ex.log && !ex.skip) return '<div class="exr"><b>' + esc(name) + '</b> <small class="sub">warm-up</small>' + (ex.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.note) + '</p>' : '') + '<div class="logged" style="margin-top:8px"><span class="setchip">' + esc(warmText(ex)) + '</span></div></div>';
+    if(!xs.length) return ex && ex.skip ? '<div class="exr"><b>' + esc(name) + '</b> <small class="sub">skipped' + (ex.skip.reason ? ' · ' + esc(ex.skip.reason) : '') + '</small>' + (ex.skip.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.skip.note) + '</p>' : '') + '</div>' : '';
     return '<div class="exr"><b>' + esc(name) + '</b>' + (ex && ex.from ? ' <small class="sub">(swapped from ' + esc(ex.from) + ')</small>' : '') + (ex && ex.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.note) + '</p>' : '') + '<div class="logged" style="margin-top:8px">' + xs.map(x => '<span class="setchip"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</span>').join('') + '</div></div>'; }).join('');
   let body = rows ? '<div style="display:flex;flex-direction:column;gap:12px">' + rows + '</div>' : '<p class="sub">No sets logged</p>';
   if(s.knee) body += '<p class="sub" style="display:flex;align-items:center;gap:8px"><span class="dot ' + esc(s.knee) + '"></span>Knee and foot: ' + esc(KNEE[s.knee] || s.knee) + '</p>';
@@ -2027,6 +2150,11 @@ function renderSettings(){
     srow('Rest, compound', '', sel('restB', [[90,'1:30'],[120,'2:00'],[150,'2:30'],[180,'3:00'],[240,'4:00']], st.restB)) +
     srow('Rest, isolation', '', sel('restI', [[45,'0:45'],[60,'1:00'],[90,'1:30'],[120,'2:00']], st.restI)) +
     srow('Sound after rest', '', sw('sound', st.sound)) +
+    srow('Warm-up', 'Added first in every workout', sel('warm', [['', 'None']].concat(WARM_ACTS.map(a => [a, a])), st.warm)) +
+    (st.warm ? srow('Warm-up time', '', sel('warmMin', [[3,'3 min'],[5,'5 min'],[8,'8 min'],[10,'10 min'],[15,'15 min']], st.warmMin)) : '') +
+    srow('Jump to next exercise', 'When the last set is logged', sw('autoNext', st.autoNext !== false)) +
+    srow('Keep screen on', 'While a workout runs', sw('awake', st.awake !== false)) +
+    srow('Vibration', 'On taps and saved sets', sw('haptics', st.haptics !== false)) +
     srow('Suggest next workout', 'From workouts in rotation', sw('rotation', st.rotation));
   p.look = srow('Theme', '', seg('theme', [['system','Auto'],['light','Light'],['dark','Dark']], st.theme)) +
     srow('Text size', '', seg('text', [['S','Small'],['M','Medium'],['L','Large']], st.text)) +
@@ -2225,7 +2353,7 @@ document.addEventListener('click', e => {
     case 'quick': startSession(null); break;
     case 'start': startSession(b.dataset.id || null); break;
     case 'resume': closeSheet(); selectTab(1); break;
-    case 'goto-today': selectTab(0); break;
+    case 'goto-workout': selectTab(1); break;
     case 'cardio': openCardio({}); break;
     case 'hist': openDetail(b.dataset.id); break;
     case 'checkin-day': openCheckin(b.dataset.d); break;
@@ -2233,7 +2361,7 @@ document.addEventListener('click', e => {
     case 'cal-prev': case 'cal-next': { const d = new Date(S.ui.calMonth + '-01T12:00:00'); d.setMonth(d.getMonth() + (a === 'cal-next' ? 1 : -1)); S.ui.calMonth = isoLocal(d).slice(0, 7); renderLog(); break; }
     case 'pm': {
       const inp = $('#in-' + b.dataset.k + '-' + b.dataset.f); if(!inp) break;
-      const step = b.dataset.f === 'w' ? ST().step : 1;
+      const step = b.dataset.st ? +b.dataset.st : b.dataset.f === 'w' ? ST().step : 1;
       inp.value = fmt(Math.max(0, Math.round(((num(inp.value) || 0) + step * (+b.dataset.d)) * 100) / 100));
       inp.dataset.touched = '1'; haptic();
       break;
@@ -2242,6 +2370,13 @@ document.addEventListener('click', e => {
     case 'swap': openLib('swap', b.dataset.k); break;
     case 'add-ex': openLib('add', null); break;
     case 'more': S.ui.expanded.add(b.dataset.k); renderWorkout(); break;
+    case 'skip': openSkip(b.dataset.k); break;
+    case 'add-warm': addWarm(); break;
+    case 'warm-timer': warmTimer(b.dataset.k); break;
+    case 'warm-done': warmDone(b.dataset.k); break;
+    case 'skip-why': { const on = b.getAttribute('aria-pressed') !== 'true'; b.parentElement.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b && on))); if(S.ui.skip) S.ui.skip.reason = on ? b.dataset.v : ''; break; }
+    case 'skip-save': saveSkip(); break;
+    case 'unskip': setSkip(b.dataset.k, null); break;
     case 'rm-open': openRm(); break;
     case 'msg-send': sendMsg(b.dataset.re); break;
     case 'msg-unphoto': { const l = S.ui.drafts[b.dataset.re] || []; l.splice(+b.dataset.i, 1); rerenderThreads(); break; }
@@ -2330,7 +2465,7 @@ function saveSettings(patch){
 }
 document.addEventListener('change', e => {
   const t = e.target;
-  if(t.dataset && t.dataset.set){ const k = t.dataset.set, numeric = ['weeks','goal','step','restB','restI'].includes(k); saveSettings({[k]: numeric ? num(t.value) : t.value.trim()}); return; }
+  if(t.dataset && t.dataset.set){ const k = t.dataset.set, numeric = ['weeks','goal','step','restB','restI','warmMin'].includes(k); saveSettings({[k]: numeric ? num(t.value) : t.value.trim()}); if(k === 'warm') renderSettings(); return; }
   if(t.id === 'period'){ renderProgress(); return; }
   if(t.id === 'pr-filter'){ S.ui.prFilter = t.value; renderRecords(); return; }
   if(t.id === 'pr-sort'){ S.ui.prSort = t.value; renderRecords(); return; }
@@ -2340,6 +2475,7 @@ document.addEventListener('change', e => {
     const di = $('#c-dist'), dv = num(di.value); if(dv != null && (was === 'Row') !== (now === 'Row')) di.value = now === 'Row' ? String(Math.round(dv * 1000)) : fmt(dv / 1000); return; }
   if(t.dataset && t.dataset.sets != null && t.classList.contains('rng')){ S.ui.sliding = null; const s = activeSession(), k = t.dataset.sets; if(s){ S.ui.expanded.delete(k); updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {planned: +t.value}) : e)}); } return; }
   if(t.dataset && t.dataset.exSets != null){ const s = activeSession(), k = t.dataset.exSets; if(s){ S.ui.expanded.delete(k); updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {planned: +t.value}) : e)}); } return; }
+  if(t.dataset && t.dataset.warmAct != null){ const s = activeSession(), k = t.dataset.warmAct; ls.set('tl.lastWarm', t.value); if(s) updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {name: t.value}) : e)}); return; }
   if(t.dataset && t.dataset.rdSets != null && S.ui.rd){ S.ui.rd.items[+t.dataset.rdSets].sets = +t.value; return; }
   if(t.id === 'rd-rot' && S.ui.rd){ S.ui.rd.rotation = t.value === '1'; return; }
   if(t.id === 'rd-folder' && S.ui.rd){ S.ui.rd.folder = t.value; return; }
@@ -2354,9 +2490,24 @@ document.addEventListener('input', e => {
 let kbT = null;
 const typingField = el => !!(el && el.matches && el.matches('input:not([type=date]):not([type=range]):not([readonly]), textarea'));
 function resetScroll(){ if(window.scrollY || document.documentElement.scrollTop || document.body.scrollTop){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
+/* The keyboard covers the bottom of the page and the page itself does not shrink, so a field low on the page (like the
+   reply to Claude) ends up behind it. Measure the keyboard, give the page that much room underneath, and scroll the
+   field (the whole composer for a message) up so it sits just above the keyboard. */
+function liftField(){
+  const el = document.activeElement, v = window.visualViewport;
+  if(!typingField(el) || !v) return;
+  document.documentElement.style.setProperty('--kb', Math.max(0, Math.round(innerHeight - v.height)) + 'px');
+  const sc = el.closest('.view, .sheet-body, .settings'); if(!sc) return;
+  const box = el.closest('.cmp') || el, r = box.getBoundingClientRect();
+  const top = v.offsetTop + 70, bottom = v.offsetTop + v.height - 14;
+  const dy = r.bottom > bottom ? Math.min(r.bottom - bottom, r.top - top) : r.top < top ? r.top - top : 0;
+  if(Math.abs(dy) > 2) sc.scrollBy({top: dy, behavior: reduceMotion() ? 'auto' : 'smooth'});
+}
+let liftT = null;
+const liftSoon = ms => { clearTimeout(liftT); liftT = setTimeout(liftField, ms); };
 document.addEventListener('focusin', e => {
   const t = e.target;
-  if(typingField(t)){ clearTimeout(kbT); document.body.classList.add('kb'); }
+  if(typingField(t)){ clearTimeout(kbT); document.body.classList.add('kb'); liftSoon(320); }
   if(t.matches && t.matches('.stp input:not(.rng)')) setTimeout(() => { try{ t.select(); }catch(x){} }, 0);
 });
 document.addEventListener('focusout', e => {
@@ -2364,7 +2515,11 @@ document.addEventListener('focusout', e => {
   clearTimeout(kbT);
   kbT = setTimeout(() => { if(!typingField(document.activeElement)){ document.body.classList.remove('kb'); resetScroll(); } }, 120);
 });
-if(window.visualViewport) visualViewport.addEventListener('resize', () => { if(visualViewport.height > innerHeight * .85){ if(!typingField(document.activeElement)) document.body.classList.remove('kb'); resetScroll(); fixGap(); } });
+document.addEventListener('input', e => { if(e.target.matches && e.target.matches('textarea')) liftSoon(60); });
+if(window.visualViewport) visualViewport.addEventListener('resize', () => {
+  if(visualViewport.height > innerHeight * .85){ if(!typingField(document.activeElement)) document.body.classList.remove('kb'); resetScroll(); fixGap(); }
+  else if(document.body.classList.contains('kb')) liftSoon(60);
+});
 addEventListener('scroll', () => { if(!typingField(document.activeElement)) resetScroll(); }, {passive:true});
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && $('#setModal').classList.contains('open')) closeSettings();
