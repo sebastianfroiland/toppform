@@ -12,7 +12,7 @@
 <style>
 /* Plates (formerly Toppform). Built on the Liquid Glass kit from Sebastian's starter kit, now always in the calm Claude
    look (the Paper tokens below: warm surfaces, serif headings, clay accent). Settings window from NFA.
-   Layout: four swipeable pages (Today, Workout, Log, Progress), a compact tab bar, a gear in the top right,
+   Layout: five swipeable pages (Today is the chat with Claude, Workout, Log, Body, Records), a compact tab bar, a gear in the top right,
    and sheets that slide up from the bottom. */
 :root {
   --font: -apple-system, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
@@ -546,7 +546,7 @@ textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top:
 body.on-dock .dock { pointer-events: auto; }
 body.set-open .dock, body.set-open .dockfade, body.sheet-open .dock, body.sheet-open .dockfade { opacity: 0 !important; pointer-events: none; }
 body.kb .dockfade { opacity: 0 !important; }
-body.coach-open #v-today .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
+#v-today .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
 body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 128px); }
 
 /* progress and feedback */
@@ -584,12 +584,7 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .cmp-p .pv { position: relative; }
 .cmp-p .pv button { position: absolute; top: -7px; right: -7px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--text); color: var(--bg); font-size: 13px; line-height: 1; display: grid; place-items: center; }
 
-/* Coach Claude on Today: the whole message while it is new, one quiet line once you have read it */
-.coach { transition: padding .35s var(--ease); }
-.coach.folded { padding: 6px; }
-.coach-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 4px 8px; border: 0; background: none; text-align: left; border-radius: 20px; }
-.coach-row b { flex: 1; min-width: 0; font-weight: 600; font-size: 15px; }
-.coach-row .more { flex: none; min-width: 40px; height: 28px; border-radius: 999px; background: var(--fill-2); display: grid; place-items: center; font-weight: 700; letter-spacing: .08em; color: var(--dim); }
+/* Coach Claude on Today */
 .av { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-grad); color: var(--on-grad); display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; }
 .flatbtn .av, .flatbtn .claude i { background: var(--g1); }
 .coach-top { display: flex; align-items: center; gap: 10px; }
@@ -597,6 +592,21 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .coach-top .chip { min-height: 30px; padding: 0 11px; font-size: 13px; }
 .coach .report { margin-top: 10px; }
 .coach .fbmeta { margin: 8px 0 0; }
+.chat { display: flex; flex-direction: column; margin: 0 2px 12px; }
+.chat .thread { margin-top: 0; }
+.msg.plan { max-width: 92%; background: color-mix(in srgb, var(--g1) 10%, var(--glass)); border-color: color-mix(in srgb, var(--g1) 30%, var(--line)); margin-bottom: 8px; }
+.msg.plan b { display: block; font-size: 12px; color: var(--g1); font-weight: 700; letter-spacing: .02em; margin-bottom: 2px; }
+.msg.plan .chip { display: flex; width: max-content; margin-top: 9px; background: var(--g1); color: #fff; border-color: transparent; }
+.nx { margin-top: 8px; }
+.nxr { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.nxr:first-child { border-top: 0; }
+.nxr span { min-width: 0; }
+.nxr small { flex: none; color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+button.day { font: inherit; color: inherit; cursor: pointer; transition: transform .3s var(--spring); }
+button.day:active { transform: scale(.94); }
+#week .gbar { margin-top: 10px; height: 6px; }
+.lift .lnum { flex: none; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.lift .lnum small { font-size: 11px; color: var(--dim); }
 /* the red count on a tab and on the gear, like other apps */
 .nbadge { position: absolute; top: 1px; left: calc(50% + 4px); min-width: 17px; height: 17px; padding: 0 5px; border-radius: 999px; background: #ff3b30; color: #fff; font: 700 10.5px/17px var(--font); font-style: normal; text-align: center; box-shadow: 0 0 0 2px var(--float); }
 #setBtn .nbadge { top: -2px; left: auto; right: -2px; }
@@ -713,15 +723,13 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
     <article class="glass card notice" id="notice" hidden></article>
     <article class="glass card" id="connect" hidden></article>
     <article class="glass card coach" id="coach"></article>
-    <article class="glass card" id="checkin-card"></article>
-    <article class="glass card" id="start-card"></article>
-    <article class="glass card" id="week"></article>
+    <div class="chat" id="chat"></div>
   </div></section>
 
   <section class="view" id="v-workout" aria-label="Workout"><div class="vin">
     <header class="top"><small><span id="wo-sub"></span><span class="status" data-s="busy"></span></small><h1 id="wo-title">Workout</h1></header>
     <div class="woacts" id="wo-acts" hidden><button class="chip fin" data-a="goto-finish">Finish</button><button class="chip danger" data-a="cancel-session" id="cancel-top">Discard</button></div>
-    <article class="glass card" id="wo-idle"></article>
+    <div id="wo-idle"><article class="glass card" id="start-card"></article><article class="glass card" id="week"></article><article class="glass card" id="wo-list"></article></div>
     <div id="wo-live" hidden>
       <div class="deck" id="deck" hidden></div>
       <div class="ovw" id="overview" hidden></div>
@@ -742,17 +750,23 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 
   <section class="view" id="v-log" aria-label="Log"><div class="vin">
     <header class="top"><h1>Log</h1></header>
+    <article class="glass card" id="checkin-card"></article>
     <article class="glass card" id="calendar"></article>
     <div id="dayview"></div>
   </div></section>
 
-  <section class="view" id="v-progress" aria-label="Progress"><div class="vin">
-    <header class="top"><h1>Progress</h1></header>
-    <div class="filters"><select class="sel" id="period" aria-label="Period"><option value="last">Last workout</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="m0">This month</option><option value="m1">Last month</option><option value="all">All time</option></select></div>
+  <section class="view" id="v-body" aria-label="Body"><div class="vin">
+    <header class="top"><h1>Body</h1></header>
+    <div class="filters"><select class="sel" id="period" aria-label="Period"><option value="last">Last workout</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="all">All time</option></select></div>
     <article class="glass card" id="body-card"></article>
+    <div id="prog"></div>
+    <div id="bw-card"></div>
+  </div></section>
+
+  <section class="view" id="v-records" aria-label="Records"><div class="vin">
+    <header class="top"><h1>Records</h1></header>
     <article class="glass card" id="goals-card"></article>
     <article class="glass card" id="lifts-card"></article>
-    <div id="prog"></div>
     <div id="prs-more"></div>
     <article class="glass card" id="rm-card"></article>
   </div></section>
@@ -772,7 +786,8 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
   <a href="#today" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5"/></svg>Today<i class="nbadge" id="coach-badge" hidden></i></a>
   <a href="#workout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Workout<i class="live" id="live-dot" hidden></i></a>
   <a href="#log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Log</a>
-  <a href="#progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Progress<i class="live" id="pr-dot" hidden></i></a>
+  <a href="#body"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2.2"/><path d="M4.5 8.6h15M12 8.6v5.6M12 14.2l-3.2 6.6M12 14.2l3.2 6.6"/></svg>Body</a>
+  <a href="#records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>Records<i class="live" id="pr-dot" hidden></i></a>
 </nav>
 
 <div class="dockfade" id="dockfade" aria-hidden="true"></div>
@@ -1334,7 +1349,7 @@ function ghDisconnect(){ ls.del('tl.gh'); ls.del('tl.gh.cache'); location.reload
 function routeHash(){
   const h = (location.hash || '').replace('#','');
   if(h === 'checkin' || h === 'morgen'){ openCheckin(); return true; }
-  const idx = {today:0, workout:1, log:2, records:3, progress:3}[h];
+  const idx = {today:0, workout:1, log:2, body:3, progress:3, records:4}[h];
   if(idx != null){ selectTab(idx); return true; }
   return false;
 }
@@ -1346,15 +1361,13 @@ function maybeAutoOpen(){
 }
 function loadedCol(c){ S.loaded.add(c); if(S.loaded.has('sessions') && S.loaded.has('sets') && S.loaded.has('meta')) maybeAutoOpen(); }
 let tabsApi = null, sheetApi = null, sheetMode = null, sampleFn = null, downloadsApi = null;
-const VIEWS = ['v-today','v-workout','v-log','v-progress'];
+const VIEWS = ['v-today','v-workout','v-log','v-body','v-records'];
 const pager = $('#pager');
 function setView(i){
   S.tab = i;
   renderLater();
   if(i !== 1) saveNote();
-  if(i === 3){ S.ui.prNew = false; $('#pr-dot').hidden = true; }
-  // a message you looked at on Today counts as read once you move on, and folds to one line
-  if(i !== 0 && S.ui.coachShown){ S.ui.coachShown = false; markCoachRead(); S.ui.coachOpen = false; if(D) renderCoach(); }
+  if(i === 4){ S.ui.prNew = false; $('#pr-dot').hidden = true; }
   if(D) PAGES[i]();
   VIEWS.forEach((id, j) => $('#' + id).setAttribute('aria-hidden', String(i !== j)));
   dockVis(i === 0 ? 1 : 0);
@@ -1363,9 +1376,9 @@ function setView(i){
   document.body.classList.toggle('scrolled', $('#' + VIEWS[i]).scrollTop > 8);
   tickRest();
 }
-/* The reply box sits above the tab bar on Today while Coach Claude is open */
+/* The reply box sits above the tab bar on Today, which is the chat with Claude */
 function dockVis(v){
-  v = S.ui.coachOpen ? Math.max(0, Math.min(1, v)) : 0;
+  v = Math.max(0, Math.min(1, v));
   $('#dock').style.opacity = $('#dockfade').style.opacity = v;
   document.body.classList.toggle('on-dock', v > .5);
 }
@@ -1409,7 +1422,7 @@ function goLocal(){ S.backend = 'local'; S.mode = 'local'; refresh(); maybeAutoO
 
 /* ---------- rendering ---------- */
 /* The page you are looking at renders right away, the others a moment later, so taps stay snappy with a long history. */
-const PAGES = [() => renderToday(), () => renderWorkout(), () => renderLog(), () => renderProgress()];
+const PAGES = [() => renderToday(), () => renderWorkout(), () => renderLog(), () => renderBodyPage(), () => renderRecords()];
 let laterT = null, laterDirty = false;
 function renderLater(){
   clearTimeout(laterT); laterT = null;
@@ -1463,9 +1476,6 @@ function renderToday(){
   $('#today-title').textContent = st.name ? 'Hi, ' + st.name : 'Today';
   renderConnect();
   renderCoach();
-  renderCheckinCard();
-  renderGo();
-  renderWeek();
 }
 function renderCheckinCard(){
   const c = D.checkins.get(todayISO()), streak = checkinStreak();
@@ -1478,7 +1488,8 @@ function renderCheckinCard(){
     if(c.knee) p.push('<span class="pill"><span class="dot ' + esc(c.knee) + '"></span>' + esc(KNEE[c.knee] || c.knee) + '</span>');
     html = '<div class="ci"><div><h2>Check-in ✓</h2>' + (p.length ? '<div class="ci-sum">' + p.join('') + '</div>' : '') + '</div><button class="chip" data-a="checkin">Edit</button></div>';
   } else {
-    html = '<div class="ci"><div><h2>Morning check-in</h2>' + (streak ? '<p class="sub" style="margin-top:2px">' + plural(streak, 'day') + ' in a row</p>' : '') + '</div><button class="btn-primary btn-small" data-a="checkin">Start</button></div>';
+    html = '<div class="ci"><div><h2>Morning check-in</h2><p class="sub" style="margin-top:2px">' + (streak ? plural(streak, 'day') + ' in a row' : 'Takes ten seconds') + '</p></div><button class="btn-primary btn-small" data-a="checkin">Check in</button></div>' +
+      '<p class="hint">Weight, sleep, energy and how your knee feels. Claude uses it to plan your next workout.</p>';
   }
   setHTML($('#checkin-card'), html);
 }
@@ -1487,21 +1498,21 @@ function folderList(){
   if(D.routines.some(r => !r.folder || !folders.some(f => f.id === r.folder))) folders.push({id: MINE, name: 'My Workouts', order: 9999});
   return folders;
 }
-/* Today only says what is next and has one button; the workouts and folders live on the Workout page */
-function renderGo(){
-  const act = activeSession(), plan = todaysPlan(), sug = act ? null : routineById(suggested());
-  const title = act ? 'Workout running' : sug ? sug.name : plan && plan.suggest === 'rest' ? 'Rest day' : plan && plan.suggest === 'cardio' ? 'Cardio day' : 'Workout';
-  let html = '<div class="hd"><h2>' + esc(title) + '</h2>' + (sug ? '<small>Next</small>' : '') + '</div>';
-  if(plan && plan.message) html += '<div class="claude"><i>C</i><p>' + esc(plan.message) + '</p></div>';
-  html += act ? '<button class="btn-primary wide" data-a="resume" style="margin-top:14px">Continue · ' + plural(setsOf(act.id).length, 'set') + '</button>'
-    : '<button class="btn-primary wide" data-a="goto-workout" style="margin-top:14px">Go</button>';
+/* The next workout: what it is, the weights Claude planned for each exercise, and a button that starts it right away */
+function renderNext(){
+  const plan = todaysPlan(), sug = routineById(suggested());
+  const title = plan && plan.suggest === 'rest' ? 'Rest day' : plan && plan.suggest === 'cardio' ? 'Cardio day' : sug ? sug.name : 'Start a workout';
+  let html = '<div class="hd"><h2>' + esc(title) + '</h2>' + (sug ? '<small>Next up</small>' : '') + '</div>';
+  if(sug && (sug.items || []).length) html += '<div class="nx">' + sug.items.map(x => { const tg = targetFor(x.name), info = infoOf(x.name);
+    return '<div class="nxr"><span>' + esc(x.name) + '</span><small>' + (tg && tg.w != null ? esc(wTxt(tg.w, info) + (info.bw ? '' : ' kg') + (tg.lo ? ' × ' + tg.lo + (tg.hi && tg.hi !== tg.lo ? ' to ' + tg.hi : '') : '')) : plural(x.sets || 1, 'set')) + '</small></div>'; }).join('') + '</div>';
+  html += (sug ? '<button class="btn-primary wide" data-a="start" data-id="' + esc(sug.id) + '" style="margin-top:12px">Start ' + esc(sug.name) + '</button>' : '') +
+    '<div class="two" style="margin-top:10px"><button class="' + (sug ? 'btn-glass' : 'btn-primary') + '" data-a="quick">Quick start</button><button class="btn-glass" data-a="cardio">Log cardio</button></div>' +
+    '<p class="hint">' + (sug ? 'Start ' + esc(sug.name) + ' with the weights Claude planned, or tap Quick start for an empty workout and add exercises as you go.' : 'Quick start gives you an empty workout where you add exercises as you go. Save a workout below to reuse it.') + '</p>';
   setHTML($('#start-card'), html);
 }
 function renderStart(){
   const sug = suggested();
-  let html = '<div class="hd"><h2>Start a workout</h2></div>' +
-    '<div class="two" style="margin-top:14px"><button class="btn-primary" data-a="quick">Quick start</button><button class="btn-glass" data-a="cardio">Log cardio</button></div>' +
-    '<p class="hint">Open a saved workout below, or tap Quick start and add exercises as you go.</p>';
+  let html = '<div class="hd"><h2>Your workouts</h2></div>';
   for(const f of folderList()){
     const rows = D.routines.filter(r => (r.folder && D.folders.some(x => x.id === r.folder) ? r.folder : MINE) === f.id);
     const open = !S.ui.closed.has(f.id);
@@ -1510,7 +1521,7 @@ function renderStart(){
       '<div class="frows">' + (rows.map(r => '<button class="wrow" data-a="routine-open" data-id="' + esc(r.id) + '"><span><b>' + esc(r.name) + '</b><small>' + esc((r.items || []).map(x => x.name).join(', ') || 'No exercises') + '</small></span>' + (r.id === sug ? '<span class="tag">Next</span>' : '') + '</button>').join('') || '<p class="sub" style="padding:8px 2px">Empty</p>') + '</div></div>';
   }
   html += '<div class="row" style="margin-top:14px"><button class="chip" data-a="routine-new">+ Workout</button><button class="chip" data-a="folder-new">+ Folder</button></div>';
-  setHTML($('#wo-idle'), html);
+  setHTML($('#wo-list'), html);
 }
 function renderWeek(){
   const t = todayISO(), mon = mondayOf(t), days = [0,1,2,3,4,5,6].map(i => addDays(mon, i)), L = ['M','T','W','T','F','S','S'], st = ST();
@@ -1524,9 +1535,12 @@ function renderWeek(){
       k++; return '<span class="m k">' + esc((s.activity || '?').charAt(0)) + '</span>';
     }).join('');
     if(D.checkins.has(d)) marks += '<span class="m c"></span>';
-    return '<div class="day' + (d === t ? ' today' : '') + (d > t ? ' future' : '') + '"><small>' + L[i] + '</small><b>' + (+d.slice(8)) + '</b><div class="marks">' + marks + '</div></div>';
+    return '<button class="day' + (d === t ? ' today' : '') + (d > t ? ' future' : '') + '" data-a="week-day" data-d="' + d + '" aria-label="' + esc(dLong(d)) + '"><small>' + L[i] + '</small><b>' + (+d.slice(8)) + '</b><div class="marks">' + marks + '</div></button>';
   }).join('');
-  setHTML($('#week'), '<div class="hd"><h2>This week</h2><small>' + ns + '/' + (st.goal || 3) + ' strength · ' + plural(k, 'cardio', 'cardio') + '</small></div><div class="strip">' + cells + '</div>');
+  const goal = st.goal || 3, left = Math.max(0, goal - ns);
+  setHTML($('#week'), '<div class="hd"><h2>This week</h2><small>' + ns + ' of ' + goal + ' workouts</small></div><div class="gbar"><i style="width:' + Math.min(100, Math.round(ns / goal * 100)) + '%"></i></div>' +
+    '<p class="sub" style="margin-top:8px">' + (left ? plural(left, 'workout') + ' left to reach your goal' : 'Weekly goal reached ✓') + (k ? ' · ' + plural(k, 'cardio session') : '') + '</p><div class="strip">' + cells + '</div>' +
+    '<p class="hint">Tap a day to see it in Log. Letters are workouts, rings are cardio, small dots are check-ins.</p>');
 }
 
 /* ---------- workout ---------- */
@@ -1536,7 +1550,7 @@ function renderWorkout(){
   $('#wo-idle').hidden = !!s; $('#wo-live').hidden = !s; $('#wo-acts').hidden = !s;
   if(!s){
     $('#wo-sub').textContent = dLong(todayISO()); $('#wo-title').textContent = 'Workout';
-    renderStart();
+    renderNext(); renderWeek(); renderStart();
     placeFinish(false);
     const w = $('#cards'); if(w.children.length) w.innerHTML = '';
     syncWake(false);
@@ -1894,6 +1908,7 @@ function sessionMeta(s){
   return p.join(' · ') || 'logged';
 }
 function renderLog(){
+  renderCheckinCard();
   const ym = S.ui.calMonth, first = ym + '-01', t = todayISO();
   const startD = mondayOf(first);
   const by = new Map();
@@ -2133,41 +2148,35 @@ function figureSvg(side, heat){
 }
 function guidance(sc, r, p){
   const out = [], vals = Object.values(sc), tot = vals.reduce((a, b) => a + b, 0), mx = Math.max.apply(null, vals), nm = k => REGIONS[k][0];
-  const last = r.key === 'last', weeks = Math.max(1, (dayDiff(r.to, r.from) + 1) / 7);
-  if(!tot){ out.push(last ? 'Log a workout and the map fills in.' : 'No strength sets in this period yet. Log a workout and the map fills in.'); }
-  else {
-    const top = Object.keys(sc).filter(k => sc[k] >= mx * .7).sort((a, b) => sc[b] - sc[a]).slice(0, 3);
-    out.push('Most work went to ' + andList(top.map(nm)).toLowerCase().replace(/^./, c => c.toUpperCase()) + '.');
-    const low = ['chest', 'lats', 'traps', 'delts', 'quads', 'hams', 'glutes'].filter(k => sc[k] < mx * .15).map(nm);
-    if(low.length) out.push(last ? 'Not trained this time: ' + andList(low).toLowerCase() + '.' : andList(low) + ' got little or no work. A couple of sets next time evens out the body.');
-    const push = sc.chest + sc.delts + sc.tri * .5, pull = sc.lats + sc.traps + sc.rear * .5 + sc.biceps * .5;
-    if(push + pull >= 4){
-      if(push > pull * 1.5) out.push('You pushed about ' + fmt(Math.round(push / Math.max(pull, .5) * 10) / 10) + ' times as much as you pulled. A row or a pulldown keeps the shoulders healthy.');
-      else if(pull > push * 1.5) out.push('Pulling outweighs pushing. A press keeps front and back even.');
-      else out.push('Push and pull are in balance.');
-    }
-    const legs = sc.quads + sc.hams + sc.glutes + sc.calves + sc.add;
-    if(tot >= 6 && legs < tot * .3) out.push('Legs got less than a third of the work.');
-    if(!last && lvlNew()){ const k = Object.keys(sc).sort((a, b) => sc[b] - sc[a])[0]; out.push(nm(k) + ' got about ' + fmt(Math.round(sc[k] / weeks * 10) / 10) + ' sets a week. Around 10 hard sets a week per muscle is a solid target for growth.'); }
+  const last = r.key === 'last', weeks = Math.max(1, (dayDiff(r.to, r.from) + 1) / 7), lower = a => andList(a).toLowerCase();
+  if(!tot) return ['Log a workout and the body fills in.'];
+  const top = Object.keys(sc).filter(k => sc[k] >= mx * .7).sort((a, b) => sc[b] - sc[a]).slice(0, 3);
+  out.push('Most work: ' + lower(top.map(nm)) + '.');
+  const low = ['chest', 'lats', 'traps', 'delts', 'quads', 'hams', 'glutes'].filter(k => sc[k] < mx * .15).map(nm);
+  if(low.length) out.push(last ? 'Not trained this time: ' + lower(low) + '.' : 'Little or no work: ' + lower(low) + '. Give them a couple of sets next time.');
+  const push = sc.chest + sc.delts + sc.tri * .5, pull = sc.lats + sc.traps + sc.rear * .5 + sc.biceps * .5;
+  if(push + pull >= 4){
+    if(push > pull * 1.5) out.push('You push more than you pull. Add a row or a pulldown to keep your shoulders healthy.');
+    else if(pull > push * 1.5) out.push('You pull more than you push. Add a press to even it out.');
   }
   if(!last){
-    const goal = ST().goal || 3, perWeek = p.str.length / weeks;
-    if(weeks >= 1.5 && p.str.length) out.push(fmt(Math.round(perWeek * 10) / 10) + ' strength workouts a week against your goal of ' + goal + (perWeek >= goal ? '. Right on track.' : '.'));
-    if(p.sleep && p.sleep < 7) out.push('Sleep averaged ' + fmt(Math.round(p.sleep * 10) / 10) + ' hours. Seven or more makes recovery and strength gains come easier.');
+    const goal = ST().goal || 3, perWeek = Math.round(p.str.length / weeks * 10) / 10;
+    if(weeks >= 1.5 && p.str.length) out.push('You trained ' + fmt(perWeek) + ' times a week. Your goal is ' + goal + '.' + (perWeek >= goal ? ' Nice work.' : ''));
+    if(p.sleep && p.sleep < 7) out.push('You slept ' + fmt(Math.round(p.sleep * 10) / 10) + ' hours a night. Aim for 7 or more to recover.');
     if(p.painDays) out.push(plural(p.painDays, 'day') + ' with pain. Pick exercises that feel good and tell Claude what hurts.');
+    if(lvlNew()){ const k = Object.keys(sc).sort((a, b) => sc[b] - sc[a])[0]; out.push(nm(k) + ' got about ' + fmt(Math.round(sc[k] / weeks * 10) / 10) + ' sets a week. Around 10 hard sets a week per muscle builds muscle well.'); }
   }
-  return out;
+  return out.slice(0, 5);
 }
 function renderBody(r, p){
   const sc = muscleScores(p.sets), mx = Math.max.apply(null, Object.values(sc)) || 1;
   S.ui.muscles = sc;
   const heat = k => sc[k] ? 'color-mix(in srgb, var(--g1) ' + Math.round(22 + sc[k] / mx * 78) + '%, var(--fill-2))' : 'var(--fill-2)';
-  const label = $('#period').selectedOptions[0] ? $('#period').selectedOptions[0].text : '';
-  setHTML($('#body-card'), '<div class="hd"><h2>Body</h2><small>' + esc(label) + '</small></div>' +
-    '<p class="hint">Darker means more sets for that muscle in the period you picked. Tap a muscle to see its sets, and switch the period at the top.</p>' +
+  setHTML($('#body-card'), '<div class="hd"><h2>Muscles</h2></div>' +
+    '<p class="hint">Darker means that muscle got more sets. Tap a muscle to see how many, and change the period at the top.</p>' +
     '<div class="bodymap"><figure>' + figureSvg('front', heat) + '<figcaption>Front</figcaption></figure><figure>' + figureSvg('back', heat) + '<figcaption>Back</figcaption></figure></div>' +
     '<div class="heat"><span>Less</span><i></i><span>More</span></div>' +
-    '<div class="guide"><h3>Guidance</h3>' + guidance(sc, r, p).map(l => '<p>' + esc(l) + '</p>').join('') + '</div>');
+    '<div class="guide"><h3>Tips</h3>' + guidance(sc, r, p).map(l => '<p>' + esc(l) + '</p>').join('') + '</div>');
 }
 
 /* Goals: at most three, in your own words. Claude rewrites each one short and formal in the evening review (the
@@ -2179,13 +2188,13 @@ function renderGoals(){
   const gs = goals();
   const rows = gs.map((g, i) => {
     let st = '', bar = '';
-    if(g.lift && g.target){ const now = liftNow(g.lift); st = g.lift + ' · e1RM ' + fmt(now) + ' of ' + fmt(g.target) + ' kg' + (now >= g.target ? ' · reached ✓' : ''); bar = '<div class="gbar"><i style="width:' + Math.min(100, Math.round(now / g.target * 100)) + '%"></i></div>'; }
+    if(g.lift && g.target){ const now = liftNow(g.lift); st = g.lift + ' · ' + fmt(now) + ' of ' + fmt(g.target) + ' kg' + (now >= g.target ? ' · reached ✓' : ''); bar = '<div class="gbar"><i style="width:' + Math.min(100, Math.round(now / g.target * 100)) + '%"></i></div>'; }
     else if(g.lift) st = g.lift;
     if(!g.formal) st = (st ? st + ' · ' : '') + 'Claude words it tonight';
     return '<button class="goal" data-a="goal-edit" data-id="' + esc(g.id) + '"><i class="gn">' + (i + 1) + '</i><span><b>' + esc(g.formal || g.text) + '</b>' + (st ? '<small>' + esc(st) + '</small>' : '') + bar + '</span></button>';
   }).join('');
   setHTML($('#goals-card'), '<div class="hd"><h2>Goals</h2><small>' + gs.length + ' of 3</small></div>' +
-    '<p class="hint">Write a goal in your own words, a lift or anything else. Claude rewrites it short and clear tonight and plans with it until you change it.</p>' +
+    '<p class="hint">Write what you want to reach in your own words. Claude makes it short and clear tonight and plans your training around it.</p>' +
     (rows ? '<div style="margin-top:6px">' + rows + '</div>' : '') +
     (gs.length < 3 ? '<button class="btn-glass wide" data-a="goal-new" style="margin-top:12px">+ Goal</button>' : ''));
 }
@@ -2252,35 +2261,40 @@ function renderLifts(){
     let body = '';
     if(open){
       const pts = view === 'vol' ? sr.vol : view === 'all' ? strengthIndex() : sr.e1;
-      const o = view === 'vol' ? {unit: sr.reps ? ' reps' : ' kg', fy: v => fmt(Math.round(v)), label: 'Volume per session'} : view === 'all' ? {unit: '%', fy: v => (v > 0 ? '+' : '') + fmt(v), label: 'Strength across all lifts', empty: 'Log a few sessions and your overall progress shows up'} : {unit: sr.reps ? ' reps' : ' kg', label: 'Best set per session'};
-      body = '<div class="lbody">' + seg2('lift-view', [['lift', sr.reps ? 'Reps' : 'e1RM'], ['vol', 'Volume'], ['all', 'All lifts']], view) + curveHtml(pts, o) +
-        '<p class="hint">' + (view === 'all' ? 'How much stronger you are across every lift you log, compared with the first time you did each one.' : view === 'vol' ? 'Volume is weight times reps, added up for the session.' : 'e1RM is your estimated one rep max, worked out from your best set that day.') + '</p>' +
+      const o = view === 'vol' ? {unit: sr.reps ? ' reps' : ' kg', fy: v => fmt(Math.round(v)), label: 'Volume per workout'} : view === 'all' ? {unit: '%', fy: v => (v > 0 ? '+' : '') + fmt(v), label: 'Strength across all lifts', empty: 'Log a few workouts and your overall progress shows up'} : {unit: sr.reps ? ' reps' : ' kg', label: 'Estimated max per workout', empty: 'Do it twice and your curve shows up'};
+      body = '<div class="lbody">' + seg2('lift-view', [['lift', sr.reps ? 'Reps' : 'Max'], ['vol', 'Volume'], ['all', 'All lifts']], view) + curveHtml(pts, o) +
+        '<p class="hint">' + (view === 'all' ? 'How much stronger you are across all your lifts since you started.' : view === 'vol' ? 'Weight times reps, added up for each workout.' : 'Your estimated max for one rep, worked out from your best set each day.') + '</p>' +
         '<div class="row"><button class="chip" data-a="exhist" data-n="' + esc(p.name) + '">History</button><button class="chip" data-a="goal-new" data-lift="' + esc(p.name) + '"' + (goals().length >= 3 ? ' hidden' : '') + '>Set a goal</button></div></div>';
     }
-    return '<div class="lift' + (open ? ' open' : '') + '"><button data-a="lift-open" data-n="' + esc(p.name) + '" aria-expanded="' + open + '"><span><b>' + esc(p.name) + '</b><small>' + esc(wTxt(best.weight || 0, p.info) + ' × ' + best.reps + ' · ' + dDay(best.date)) + '</small></span>' + sparkHtml(sr.e1) +
-      '<strong>' + (sr.reps ? p.maxReps.reps + ' reps' : fmt(Math.round(p.e1.sc * 2) / 2)) + '</strong><span class="chev2">›</span></button>' + body + '</div>';
+    return '<div class="lift' + (open ? ' open' : '') + '"><button data-a="lift-open" data-n="' + esc(p.name) + '" aria-expanded="' + open + '"><span><b>' + esc(p.name) + '</b><small>' + esc('Best ' + wTxt(best.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + best.reps + ' · ' + dDay(best.date)) + '</small></span>' + sparkHtml(sr.e1) +
+      '<span class="lnum"><strong>' + (sr.reps ? p.maxReps.reps : fmt(Math.round(p.e1.sc * 2) / 2)) + '</strong><small>' + (sr.reps ? 'reps' : 'kg max') + '</small></span><span class="chev2">›</span></button>' + body + '</div>';
   }).join('');
-  setHTML($('#lifts-card'), '<div class="hd"><h2>Records</h2>' + (D.sets.length ? '<button class="chip" data-a="all-lifts">All lifts</button>' : '') + '</div>' +
+  setHTML($('#lifts-card'), '<div class="hd"><h2>Best lifts</h2>' + (D.sets.length ? '<button class="chip" data-a="all-lifts">All lifts</button>' : '') + '</div>' +
     (ev.length ? '<p class="prline">New PR ' + ev.map(x => '<b>' + esc(x.exercise + ' ' + wTxt(x.weight || 0, infoOf(x.exercise)) + ' × ' + x.reps) + '</b> ' + esc(dDay(x.date))).join(', ') + '</p>' : '') +
-    '<p class="hint">Your key lifts. The number is your estimated one rep max (e1RM). Tap a lift for its curve.</p>' +
+    '<p class="hint">Your main lifts. The big number is your estimated max for one rep. Tap a lift to see your progress.</p>' +
     (rows ? '<div style="margin-top:4px">' + rows + '</div>' : '<p class="sub" style="margin-top:8px">Log your first sets and your key lifts show up here.</p>'));
 }
 const seg2 = (a, pairs, cur) => { const i = Math.max(0, pairs.findIndex(p => p[0] === cur)); return '<div class="sg" style="--n:' + pairs.length + ';--i:' + i + '">' + pairs.map(([v, l]) => '<button data-a="' + a + '" data-v="' + esc(v) + '" class="' + (v === cur ? 'on' : '') + '">' + esc(l) + '</button>').join('') + '</div>'; };
-function renderProgress(){
+/* Body: how your training is spread over the body in the period you pick, a few plain numbers, and body weight */
+function renderBodyPage(){
   const r = periodRange($('#period').value), p = periodStats(r);
   renderBody(r, p);
+  const cardio = p.min >= 120 ? fmt(Math.round(p.min / 6) / 10) + ' h' : Math.round(p.min) + ' min';
+  setHTML($('#prog'), '<article class="glass card"><div class="grid3" style="margin-top:0"><div class="tile"><small>Workouts</small><b>' + p.str.length + '</b></div><div class="tile"><small>Hard sets</small><b>' + p.sets.length + '</b></div><div class="tile"><small>Cardio</small><b>' + cardio + '</b></div></div></article>');
+  const ws = D.weightSeries;
+  let bw = '';
+  if(ws.length){
+    const pts = ws.filter(x => x.date >= r.from && x.date <= r.to), use = pts.length >= 2 ? pts : ws;
+    bw = '<article class="glass card"><div class="hd"><h2>Body weight</h2><small>' + fmt(ws[ws.length - 1].kg) + ' kg</small></div>' + curveHtml(use.map(x => ({x: x.date, y: x.kg})), {unit: ' kg', label: 'Body weight', empty: 'Weigh yourself in the morning check-in to see the trend'}) + '</article>';
+  }
+  setHTML($('#bw-card'), bw);
+}
+/* Records: your goals, your best lifts with their curves, cardio bests and the 1RM test */
+function renderRecords(){
   renderGoals();
   renderLifts();
   renderRmCard();
-  const cardio = p.min >= 120 ? fmt(Math.round(p.min / 6) / 10) + ' h' : Math.round(p.min) + ' min';
-  setHTML($('#prog'), '<article class="glass card"><div class="grid3" style="margin-top:0"><div class="tile"><small>Workouts</small><b>' + p.str.length + '</b></div><div class="tile"><small>Sets</small><b>' + p.sets.length + '</b></div><div class="tile"><small>Cardio</small><b>' + cardio + '</b></div>' +
-    '<div class="tile"><small>Sleep</small>' + (p.sleep ? '<b>' + fmt(Math.round(p.sleep * 10) / 10) + ' h</b>' : '<b class="nil">None</b>') + '</div><div class="tile"><small>Energy</small>' + (p.energy ? '<b>' + fmt(Math.round(p.energy * 10) / 10) + '/5</b>' : '<b class="nil">None</b>') + '</div><div class="tile"><small>Pain days</small><b>' + p.painDays + '</b></div></div></article>');
   let more = '';
-  const ws = D.weightSeries;
-  if(ws.length){
-    const pts = ws.filter(x => x.date >= r.from && x.date <= r.to), use = pts.length >= 2 ? pts : ws;
-    more += '<article class="glass card"><div class="hd"><h2>Body weight</h2><small>' + fmt(ws[ws.length - 1].kg) + ' kg</small></div>' + curveHtml(use.map(x => ({x: x.date, y: x.kg})), {unit: ' kg', label: 'Body weight', empty: 'Log your weight in the morning check-in to see the trend'}) + '</article>';
-  }
   for(const c of cardioPRs()) more += '<article class="glass card"><div class="hd"><h2>' + esc(c.act) + '</h2><small>' + plural(c.n, 'session') + '</small></div><div class="grid2">' + c.tiles.map(([a, b, d]) => '<div class="tile"><small>' + esc(a) + '</small><b>' + esc(b) + '</b><em>' + esc(dShort(d)) + '</em></div>').join('') + '</div></article>';
   setHTML($('#prs-more'), more);
 }
@@ -2314,9 +2328,9 @@ function composerHtml(re){
     '<button class="cmp-btn send" data-a="msg-send" data-re="' + esc(re) + '" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></div></div>';
 }
 /* ---------- Coach Claude on Today ----------
-   The latest evening review is the first thing on Today. While it is new it shows in full with the thread under it
-   and the reply box above the tab bar; once read it folds to one line you can tap open. New reviews and answers put
-   a red count on the Today tab, and answers about the app put one on the gear. */
+   Today is the chat with Claude and nothing else: the latest evening review in full, today's plan, the thread, and the
+   reply box above the tab bar. New reviews and answers put a red count on the Today tab while you are elsewhere,
+   and answers about the app put one on the gear. */
 const tsOf = x => x.createdAt || Date.parse((x.date || '1970-01-01') + 'T20:00:00');
 const seenAt = k => +(ls.get(k) || 0);
 const claudeMsgs = app => [...vmap('messages').values()].filter(m => m && m.from === 'claude' && (m.re === 'app') === app);
@@ -2333,26 +2347,27 @@ function renderBadges(){
   try{ if(navigator.setAppBadge){ (n + a ? navigator.setAppBadge(n + a) : navigator.clearAppBadge()).catch(() => {}); } }catch(e){}
 }
 function renderCoach(){
-  const fb = D.feedback[0], re = fb ? fbId(fb) : 'general', unread = coachUnread();
-  if(unread && unread !== S.ui.lastUnread) S.ui.coachOpen = true;
-  S.ui.lastUnread = unread;
-  const open = !!S.ui.coachOpen, el = $('#coach');
-  el.classList.toggle('folded', !open);
-  document.body.classList.toggle('coach-open', open);
-  S.ui.coachShown = open && S.tab === 0;
-  if(!open) setHTML(el, '<button class="coach-row" data-a="coach-open" aria-expanded="false"><i class="av">C</i><b>Coach Claude</b><span class="more" aria-label="Show the message">…</span></button>');
-  else {
-    const n = msgsFor(re).length;
-    setHTML(el, '<div class="coach-top"><i class="av">C</i><h2>Coach Claude</h2>' + (D.feedback.length ? '<button class="chip" data-a="reviews">Earlier</button>' : '') + '<button class="chip" data-a="coach-fold" aria-expanded="true">Done</button></div>' +
-      (fb ? '<p class="fbmeta">' + esc(fbLabel(fb)) + '</p><div class="report">' + reportHtml(fb.text) + '</div>' : '<p class="sub" style="margin-top:8px">Your evening reviews land here. Ask Claude anything in the box below.</p>') +
-      threadHtml(re, true, 6) + (n > 6 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : ''));
-  }
+  const fb = D.feedback[0], re = fb ? fbId(fb) : 'general', n = msgsFor(re).length;
+  setHTML($('#coach'), '<div class="coach-top"><i class="av">C</i><h2>Coach Claude</h2>' + (D.feedback.length ? '<button class="chip" data-a="reviews">Earlier</button>' : '') + '</div>' +
+    (fb ? '<p class="fbmeta">' + esc(fbLabel(fb)) + '</p><div class="report">' + reportHtml(fb.text) + '</div>' : '<p class="sub" style="margin-top:8px">Your first evening review arrives tonight. Ask me anything in the box below.</p>'));
+  // today's plan from Claude is the first message in the chat, with a button that starts the planned workout
+  const plan = todaysPlan(), act = activeSession(), sug = act ? null : routineById(suggested());
+  let chat = '';
+  if(plan && plan.message) chat += '<div class="msg plan"><b>Today\'s plan</b>' + esc(plan.message) +
+    (act ? '<button class="chip" data-a="resume">Continue workout</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
+    '<small>Claude · ' + esc(dShort(plan.date)) + '</small></div>';
+  chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
+  setHTML($('#chat'), chat);
   setHTML($('#dock'), composerHtml(re));
   dockVis(S.tab === 0 ? 1 : 0);
   renderBadges();
+  if(S.tab === 0) readSoon();
   hydratePhotos();
 }
-document.addEventListener('visibilitychange', () => { if(document.hidden && S.ui.coachShown && S.tab === 0) markCoachRead(); });
+// new messages count as read once Today has been on screen for a moment
+let readT = null;
+function readSoon(){ clearTimeout(readT); readT = setTimeout(() => { if(S.tab === 0 && !document.hidden) markCoachRead(); }, 1500); }
+document.addEventListener('visibilitychange', () => { if(!document.hidden && S.tab === 0 && D) readSoon(); });
 /* Earlier reviews and their threads, in a sheet from the Coach Claude card */
 function openReviews(){ openSheet('reviews', shTop('Coach Claude', 'Earlier'), '<div id="rv-panel"></div>', true); renderReviews(); }
 function renderReviews(){
@@ -2774,6 +2789,7 @@ function renderFeedbackPanel(){
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.8.0', date: '2026-10-19', items: [['today', 'Today is just the chat with Coach Claude, always open'], ['plan', 'Today\'s plan from Claude as a message with a start button'], ['split', 'Progress split into Body and Records'], ['simple', 'Simpler words and fewer numbers'], ['next', 'Next workout on Workout shows the planned weights and starts right away'], ['week', 'This week shows your goal, tap a day to open it in Log'], ['checkin', 'Morning check-in moved to Log']]},
   {v: '4.7.0', date: '2026-10-19', items: [['coach', 'Coach Claude first on Today, folds to one line once read'], ['badge', 'Red count for new messages from Claude'], ['progress', 'Progress and Records on one page'], ['body', 'Body map, front and back, with guidance'], ['lifts', 'Fewer records, each opens into a smooth chart'], ['goals', 'Up to three goals that Claude words and plans around'], ['rir', 'Reps in reserve instead of partials'], ['del', 'Remove an exercise next to Swap'], ['slide', 'Smoother sliders, drag down for finer steps'], ['notify', 'Notification when rest is over'], ['level', 'Beginner or Experienced level'], ['chat', 'Cleaner message box without the orange ring'], ['claude', 'One calm Claude look, liquid glass removed'], ['flash', 'No flash of another look when the app opens'], ['gear', 'New settings gear'], ['box', 'Settings sections open in the same size box'], ['fbup', 'Feedback and Updates in Settings']]},
   {v: '4.6.1', date: '2026-10-19', items: [['paper', 'Paper always wins over the glass amount'], ['newest', 'Newest message on top']]},
   {v: '4.6.0', date: '2026-10-19', items: [['clay', 'Clay accent with flat buttons'], ['paper', 'Paper style']]},
@@ -3024,8 +3040,7 @@ document.addEventListener('click', e => {
     case 'swap': openLib('swap', b.dataset.k); break;
     case 'ex-del': armDelete(b); break;
     case 'rir': { const k = b.dataset.k, v = +b.dataset.v; S.ui.rir[k] = S.ui.rir[k] === v ? null : v; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(S.ui.rir[k] === +x.dataset.v))); haptic(); break; }
-    case 'coach-open': S.ui.coachOpen = true; renderCoach(); break;
-    case 'coach-fold': S.ui.coachOpen = false; markCoachRead(); renderCoach(); break;
+    case 'week-day': S.ui.calDay = b.dataset.d; S.ui.calMonth = b.dataset.d.slice(0, 7); selectTab(2); break;
     case 'reviews': openReviews(); break;
     case 'muscle': { const m = b.dataset.m, n = (S.ui.muscles || {})[m] || 0; toast(REGIONS[m][0] + ' · ' + (n ? plural(Math.max(1, Math.round(n)), 'set') : 'no sets')); haptic(); break; }
     case 'lift-open': S.ui.liftOpen = S.ui.liftOpen === b.dataset.n ? null : b.dataset.n; renderLifts(); break;
@@ -3143,7 +3158,7 @@ function saveSettings(patch){
 document.addEventListener('change', e => {
   const t = e.target;
   if(t.dataset && t.dataset.set){ const k = t.dataset.set, numeric = ['weeks','goal','step','restB','restI','warmMin'].includes(k); saveSettings({[k]: numeric ? num(t.value) : t.value.trim()}); if(k === 'warm') renderSettings(); return; }
-  if(t.id === 'period'){ renderProgress(); return; }
+  if(t.id === 'period'){ renderBodyPage(); return; }
   if(t.id === 'pr-filter'){ S.ui.prFilter = t.value; renderAllLifts(); return; }
   if(t.id === 'pr-sort'){ S.ui.prSort = t.value; renderAllLifts(); return; }
   if(t.id === 'fb-sel'){ S.ui.fbKey = t.value; renderReviews(); return; }
