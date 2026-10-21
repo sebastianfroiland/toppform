@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.11.0"
+VERSION = "4.12.0"
 
 HEAD = """<!doctype html>
 <html lang="en">
@@ -48,7 +48,7 @@ self.addEventListener('fetch', e => {
   }
   e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
-// Tapping the rest alert brings the app back to the front
+// Tapping the rest alert or the lock screen card brings the app back to the front
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(clients.matchAll({type: 'window', includeUncontrolled: true}).then(cs => cs.length ? cs[0].focus() : clients.openWindow('./#workout')));
