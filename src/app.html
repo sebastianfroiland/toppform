@@ -1032,7 +1032,23 @@ button.day:active { transform: scale(.94); }
    and the tab bar has track(f) so the drop follows your finger while you swipe between pages. */
 (function () {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const haptic = () => { if (window.LiquidGlass && window.LiquidGlass.quiet) return; try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+  // iPhone has no vibrate(), but since iOS 18 flipping a switch input gives a small tick, so a hidden one is flipped
+  // instead. Its clicks stop at the label so the app never sees them. At most one tick per 30 ms while a slider runs.
+  let hapEl = null, hapAt = 0;
+  const haptic = () => {
+    if (window.LiquidGlass && window.LiquidGlass.quiet) return;
+    const now = performance.now(); if (now - hapAt < 30) return; hapAt = now;
+    try {
+      if (navigator.vibrate) { navigator.vibrate(8); return; }
+      if (!hapEl) {
+        hapEl = document.createElement('label'); hapEl.setAttribute('aria-hidden', 'true');
+        hapEl.style.cssText = 'position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden';
+        const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+        hapEl.append(i); hapEl.addEventListener('click', e => e.stopPropagation()); document.body.append(hapEl);
+      }
+      hapEl.click();
+    } catch (e) {}
+  };
   function spring(x, k = 300, zeta = .75) { return { x, v: 0, t: x, k, zeta }; }
   function stepSpring(s, dt) { const a = s.k * (s.t - s.x) - 2 * Math.sqrt(s.k) * s.zeta * s.v; s.v += a * dt; s.x += s.v * dt; return Math.abs(s.t - s.x) > .05 || Math.abs(s.v) > .05; }
   function runLoop(springs, render) {
@@ -1140,7 +1156,7 @@ button.day:active { transform: scale(.94); }
 (() => {
 'use strict';
 const LG = window.LiquidGlass;
-const SLOTS = {quad:'Quads',ham:'Hamstrings',hip:'Glutes and hips',cpress:'Chest press',cfly:'Chest fly',row:'Rows',vert:'Pulldowns',spress:'Shoulder press',lat:'Side delts',rear:'Rear delts',tri:'Triceps',bi:'Biceps',core:'Abs',calf:'Calves',other:'Custom'};
+const SLOTS = {quad:'Quads',ham:'Hamstrings',hip:'Glutes and hips',cpress:'Chest press',cfly:'Chest fly',row:'Rows',vert:'Pulldowns',spress:'Shoulder press',lat:'Side delts',rear:'Rear delts',cuff:'Rotator cuff',tri:'Triceps',bi:'Biceps',fore:'Forearms',core:'Abs',calf:'Calves',other:'Custom'};
 // [name, muscle group, b = compound | i = isolation, bw | assist]
 const LIB = [
   ['Hack Squat','quad','b'],['Pendulum Squat','quad','b'],['Leg Press','quad','b'],['Belt Squat','quad','b'],['Back Squat','quad','b'],['Smith Machine Squat','quad','b'],['Bulgarian Split Squat','quad','b'],['Leg Extension','quad','i'],
@@ -1153,8 +1169,10 @@ const LIB = [
   ['Seated Machine Shoulder Press','spress','b'],['Seated Dumbbell Press','spress','b'],['Overhead Press','spress','b'],
   ['Behind-the-Back Cable Lateral Raise','lat','i'],['Dumbbell Lateral Raise','lat','i'],['Machine Lateral Raise','lat','i'],
   ['Reverse Pec Deck','rear','i'],['Face Pull','rear','i'],
+  ['Cable External Rotation','cuff','i'],['Band External Rotation','cuff','i'],['Band Pull-Apart','cuff','i'],
   ['Overhead Cable Triceps Extension','tri','i'],['Triceps Pushdown','tri','i'],['EZ-Bar Skull Crusher','tri','i'],
   ['Bayesian Cable Curl','bi','i'],['Incline Dumbbell Curl','bi','i'],['Preacher Curl','bi','i'],['Hammer Curl','bi','i'],['Barbell Curl','bi','i'],
+  ['Dumbbell Wrist Curl','fore','i'],['Cable Wrist Curl','fore','i'],['Reverse Wrist Curl','fore','i'],['Reverse Curl','fore','i'],['Farmer Carry','fore','i'],['Dead Hang','fore','i','bw'],
   ['Cable Crunch','core','i'],['Machine Crunch','core','i'],['Hanging Knee Raise','core','i','bw'],
   ['Standing Calf Raise','calf','i'],['Seated Calf Raise','calf','i']
 ];
@@ -1898,7 +1916,7 @@ function fillCard(el, ex, s){
   const ss = r('sets'), pl = ex.planned || 0;
   if(document.activeElement !== ss){ const n = Math.max(8, pl); ss.innerHTML = opts([[0, 'Sets']].concat(Array.from({length: n}, (_, i) => [i + 1, plural(i + 1, 'set')])), pl); }
   const t = r('target');
-  if(tg){ t.hidden = false; t.innerHTML = 'Target <b>' + (tg.w != null ? esc(wTxt(tg.w, info)) + (info.bw ? '' : ' kg') + ' × ' : '') + (tg.lo ? tg.lo + (tg.hi && tg.hi !== tg.lo ? '-' + tg.hi : '') : '') + '</b>' + (tg.note ? '<span>' + esc(tg.note) + '</span>' : ''); }
+  if(tg){ t.hidden = false; t.innerHTML = 'Target <b>' + (tg.w != null ? esc(wTxt(tg.w, info)) + (info.bw ? '' : ' kg') + ' × ' : '') + (tg.lo ? tg.lo + (tg.hi && tg.hi !== tg.lo ? '-' + tg.hi : '') : '') + (tg.rir != null ? ' · RIR ' + esc(String(tg.rir)) : '') + '</b>' + (tg.note ? '<span>' + esc(tg.note) + '</span>' : ''); }
   else t.hidden = true;
   r('last').innerHTML = last ? 'Last ' + esc(dShort(last.date)) + ': <b>' + last.sets.map(x => esc(setText(x, info))).join(' &nbsp;·&nbsp; ') + '</b>' : '';
   r('last').hidden = !last;
@@ -1965,7 +1983,7 @@ function logSet(k){
   ensureAudio();
   ['w','r'].forEach(f => { delete g(f).dataset.touched; g(f).blur(); });
   queue('set', 'sets', set.id, set);
-  if(ST().haptics !== false) try{ navigator.vibrate && navigator.vibrate(20); }catch(e){}
+  haptic();
   startRest(s.template === 'T' ? 180 : info.kind === 'b' ? ST().restB : ST().restI, ex.name);
   const rec = !prevScores.length || score(w, reps, info) > Math.max.apply(null, prevScores) + 1e-9;
   if(rec){ S.ui.prNew = true; $('#pr-dot').hidden = false; }
@@ -2567,8 +2585,8 @@ function periodStats(r){
    a helper half or less (a bench press is mostly chest, partly front shoulders and triceps). */
 const REGIONS = {
   chest: ['Chest', {cpress: 1, cfly: 1}], delts: ['Shoulders', {spress: 1, lat: 1, cpress: .35}], biceps: ['Biceps', {bi: 1, vert: .4, row: .3}],
-  fore: ['Forearms', {bi: .5, row: .3, vert: .3}], abs: ['Abs', {core: 1}], obl: ['Obliques', {core: .7}], quads: ['Quads', {quad: 1, hip: .2}], add: ['Inner thighs', {hip: .6, quad: .2}], calves: ['Calves', {calf: 1}],
-  traps: ['Upper back', {row: 1, rear: .4, vert: .3}], rear: ['Rear delts', {rear: 1, row: .35, lat: .4}], lats: ['Lats', {vert: 1, row: .5}], lower: ['Lower back', {ham: .5, core: .3}],
+  fore: ['Forearms', {fore: 1, bi: .5, row: .3, vert: .3}], abs: ['Abs', {core: 1}], obl: ['Obliques', {core: .7}], quads: ['Quads', {quad: 1, hip: .2}], add: ['Inner thighs', {hip: .6, quad: .2}], calves: ['Calves', {calf: 1}],
+  traps: ['Upper back', {row: 1, rear: .4, vert: .3}], rear: ['Rear delts', {rear: 1, cuff: .5, row: .35, lat: .4}], lats: ['Lats', {vert: 1, row: .5}], lower: ['Lower back', {ham: .5, core: .3}],
   tri: ['Triceps', {tri: 1, cpress: .4, spress: .4}], glutes: ['Glutes', {hip: 1, quad: .4, ham: .3}], hams: ['Hamstrings', {ham: 1}]
 };
 function muscleScores(sets){
@@ -3541,6 +3559,7 @@ function renderFeedbackPanel(){
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.10.1', date: '2026-10-21', items: [['haptic', 'Sliders, RIR and logged sets tick on iPhone too'], ['forearms', 'Forearm and rotator cuff exercises in the library and on the body map'], ['rirtarget', 'Targets show the RIR to aim for']]},
   {v: '4.10.0', date: '2026-10-19', items: [['cardio', 'Cardio workouts with a card per machine, a timer that counts down and the pace from your distance'], ['skierg', 'SkiErg added, in metres like the rower'], ['pins', 'Choose the lifts on Records yourself, cardio distances like a 3 km run too'], ['search', 'Lift lists in A to Z order with search'], ['ruler', 'Sliders look like a ruler, and dragging down slows them more gently'], ['fit', 'Every page and flashcard fits the screen, tightening itself when there is a lot on it']]},
   {v: '4.9.3', date: '2026-10-19', items: [['liftcard', 'A lift card on Records with a picker like the tab bar, small drawings for each lift and a curve that fills the box'], ['rm', '1RM test joined into the lift card, set to the lift you are looking at']]},
   {v: '4.9.2', date: '2026-10-19', items: [['records', 'Records is goals and the 1RM test and fits the screen'], ['best', 'Best lifts and cardio bests in their own window, from the sidebar or the 1RM card']]},
@@ -3785,7 +3804,7 @@ document.addEventListener('input', e => {
     if(inp && inp.value !== String(v)){ inp.value = v; inp.dataset.touched = '1'; haptic(); }
     paintRange(t);
   } else if(t.classList.contains('rng') && t.dataset.sets){
-    setsLabel($('#sets-' + t.dataset.sets), +t.value); paintRange(t);
+    setsLabel($('#sets-' + t.dataset.sets), +t.value); paintRange(t); haptic();
   } else if(t.matches('.steppers.slide input[data-f]')){
     const rg = t.parentElement.querySelector('.rng'); if(rg) syncRange(rg);
   }
