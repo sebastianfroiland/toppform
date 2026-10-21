@@ -116,27 +116,11 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cp-ghost { fill: color-mix(in srgb, var(--dim) 20%, transparent); }
 .cps.picked .cp:not(.on) .cp-fig { height: 250px; top: 7px; }
 .cps.picked .cp.on .cp-fig { height: min(calc(100% - 22px), 360px); top: 12px; animation: cpHop .75s var(--spring), cpBreathe 4.8s ease-in-out .75s infinite; }
-/* Gunnar in layers, back to front: his body; the body for the wave, with that forearm painted over (.gn-w); the waving
-   forearm, authored raised with the elbow at his side (.gn-a1); his open eyes; his other forearm with the pink hand
-   and cuff (.gn-o); his big hand as it rests on his arm (.gn-h); and the open waving hand under its cuff (.gn-a2).
-   Both arm layers fill the figure and turn about the elbow: from lying across his belly up to the wave and back, while
-   the open hand waves at the wrist. The wave layers cross-fade with the resting ones */
 .cp-fig { will-change: transform, rotate, scale; }
-.cp-fig > .gn-w, .cp-fig > .gn-a1, .cp-fig > .gn-a2 { opacity: 0; transition: opacity .15s; }
-.cp-fig.waving > .gn-w, .cp-fig.waving > .gn-a1, .cp-fig.waving > .gn-a2 { opacity: 1; }
-.cp-fig > .gn-a1, .cp-fig > .gn-a2 { transform-origin: 11.79% 46.35%; will-change: transform; }
-.gn-a1 > img, .gn-a2 > img { position: absolute; display: block; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
-.gn-a1 > .gn-arm { left: 3.59%; top: 31.02%; width: 19.38%; height: 18.34%; }
-.cp-fig > .gn-o { left: 22.67%; top: 40.53%; width: 52.41%; height: 10.96%; }
-.cp-fig > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transition: opacity .15s; }
-.cp-fig.waving > .gn-h { opacity: 0; }
-.gn-a2 > .gn-oh { left: 7.28%; top: 20.79%; width: 23.28%; height: 11.92%; transform-origin: 36.51% 89.91%; will-change: transform; }
-.gn-a2 > .gn-cf { left: 6.56%; top: 29.49%; width: 18.97%; height: 6.34%; }
 .cp-fig > .gn-o { left: 22.67%; top: 40.53%; width: 52.41%; height: 10.96%; }
 .gn-a2 > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transform-origin: 1% 54.23%; will-change: transform; }
-/* his open eyes, laid over the closed ones while he waves or looks at a butterfly on his nose; they open and close
-   like a quick blink */
-.cp-fig > .gn-e { left: 33.54%; top: 11.68%; width: 30.15%; height: 3.13%; opacity: 0; transform: scaleY(.2); transform-origin: 50% 60%; transition: opacity .08s, transform .12s var(--ease); }
+/* his open eyes, laid over the closed ones in his picture when you tap him; they open and close like a blink */
+.cp-fig > .gn-e { left: 33.13%; top: 11.52%; width: 31.18%; height: 3.53%; opacity: 0; transform: scaleY(.15); transform-origin: 50% 55%; transition: opacity .09s, transform .14s var(--ease); }
 .cp-fig.eyes > .gn-e { opacity: 1; transform: none; }
 /* butterflies, painted like the coaches, flutter round Gunnar in his open box */
 .bfs { position: absolute; inset: 0; z-index: 2; overflow: hidden; border-radius: inherit; pointer-events: none; }
@@ -3450,8 +3434,7 @@ function saveGoal(id){
    app, and Claude plans and writes in that coach's voice in the evening review (data README, Trainers). A coach
    without a portrait yet shows a soft silhouette. */
 const TRAINERS = [
-  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', hand: 'art/coach-gunnar-hand.webp', eyes: 'art/coach-gunnar-eyes.webp',
-    wave: 'art/coach-gunnar-wave.webp', arm: 'art/coach-gunnar-arm.webp', over: 'art/coach-gunnar-over.webp', cuff: 'art/coach-gunnar-cuff.webp', open: 'art/coach-gunnar-open.webp',
+  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', eyes: 'art/coach-gunnar-eyes.webp',
     about: 'Calm, patient and proud of every set. He keeps things simple and never rushes you.',
     how: 'Machines and simple lifts, one tip on every card and small steps up.',
     fits: 'New lifters, or anyone back after a break.',
@@ -3471,22 +3454,22 @@ const coachPick = (cur, picked, cls) => '<div class="cps' + (picked ? ' picked' 
   const on = picked && t.id === cur;
   const img = (src, c) => '<img' + (c ? ' class="' + c + '"' : '') + ' src="' + src + '" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
   return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art"><span class="cp-fig"' + (t.art ? '' : ' style="--ar: 40 / 100"') + '>' +
-    (t.art ? img(t.art) + (t.hand ? img(t.wave, 'gn-w') + '<span class="gn-a1">' + img(t.arm, 'gn-arm') + '</span>' + img(t.eyes, 'gn-e') + img(t.over, 'gn-o') + img(t.hand, 'gn-h') + '<span class="gn-a2">' + img(t.open, 'gn-oh') + img(t.cuff, 'gn-cf') + '</span>' : '') : COACH_GHOST) + '</span></span>' + (t.hand ? '<span class="bfs" aria-hidden="true"></span>' : '') +
+    (t.art ? img(t.art) + (t.eyes ? img(t.eyes, 'gn-e') : '') : COACH_GHOST) + '</span></span>' + (t.eyes ? '<span class="bfs" aria-hidden="true"></span>' : '') +
     '<span class="cp-tx"><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.about + '</small><span class="cp-more">' +
     [['Trains', t.how], ['Best for', t.fits], ['Messages', t.talk]].filter(r => r[1]).map(r => '<span><i>' + r[0] + '</i>' + r[1] + '</span>').join('') + '</span></span></button>';
 }).join('') + '</div>';
-/* Gunnar comes alive in the coach picker. While his box is open he breathes, three painted butterflies drift round
-   him, and now and then he waves on his own or a butterfly lands on his nose and he gives it a sniff. A tap makes him
-   wave big with his top hand while he leans into it; the butterflies take fright, fly off and come back one by one.
-   The butterflies steer with soft springs toward a slow orbit round his head and body, with a flutter on top; their
-   wings beat in 3D (CSS), glide now and then, and fold slowly while they sit. Gunnar's lean and sniff use the separate
-   rotate and scale properties, so they never fight the breathing and hop animations on transform. It all runs only
-   while his open box is on screen, and not at all with reduced motion. */
+/* Gunnar comes alive in the coach picker. While his box is open he breathes with his eyes closed, three painted
+   butterflies drift round him, and now and then one lands on his nose and he gives it a sniff. A tap makes him hop and
+   open his eyes for a moment; the butterflies take fright, fly off and come back one by one. The butterflies steer
+   with soft springs toward a slow orbit round his head and body, with a flutter on top; their wings beat in 3D (CSS),
+   glide now and then, and fold slowly while they sit. The sniff uses the separate scale property, so it never fights
+   the breathing and hop animations on transform. It all runs only while his open box is on screen, and not at all
+   with reduced motion. */
 const BF_DEFS = "<radialGradient id=\"bfg-lime\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#E3EC9C\"/><stop offset=\".72\" stop-color=\"#E3EC9C\"/><stop offset=\"1\" stop-color=\"#A7BF4A\"/></radialGradient><g id=\"bfw-lime\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-lime)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-lime)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#A7BF4A\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#F09CC0\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#F09CC0\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g><radialGradient id=\"bfg-pink\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#FAC3DA\"/><stop offset=\".72\" stop-color=\"#FAC3DA\"/><stop offset=\"1\" stop-color=\"#DE76A6\"/></radialGradient><g id=\"bfw-pink\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-pink)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-pink)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#DE76A6\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#D9E38E\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#D9E38E\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g><radialGradient id=\"bfg-coral\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#FBC7AE\"/><stop offset=\".72\" stop-color=\"#FBC7AE\"/><stop offset=\"1\" stop-color=\"#E4876A\"/></radialGradient><g id=\"bfw-coral\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-coral)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-coral)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#E4876A\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#FBEAB0\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#FBEAB0\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g>", BF_BODY = "<ellipse fill=\"#37613C\" rx=\".95\" ry=\"4.2\" cy=\"1\"/><circle fill=\"#37613C\" cy=\"-3.6\" r=\"1.15\"/><path fill=\"none\" stroke=\"#37613C\" stroke-width=\".7\" stroke-linecap=\"round\" d=\"M-.4-4.3C-1-6.8-2.2-8.2-3.4-8.6M.4-4.3C1-6.8 2.2-8.2 3.4-8.6\"/><circle fill=\"#37613C\" cx=\"-3.5\" cy=\"-8.6\" r=\".6\"/><circle fill=\"#37613C\" cx=\"3.5\" cy=\"-8.6\" r=\".6\"/>", BF_COLS = ['lime', 'pink', 'coral'];
 let bfDefs = false;
 function bfDefine(){ if(bfDefs) return; bfDefs = true; document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + BF_DEFS + '</defs></svg>'); }
 const bfHtml = col => '<b class="wl"><svg viewBox="-12 -10 12 20"><use href="#bfw-' + col + '"/></svg></b><b class="wr"><svg viewBox="0 -10 12 20"><g transform="scale(-1 1)"><use href="#bfw-' + col + '"/></g></svg></b><svg class="bb" viewBox="-12 -10 24 20">' + BF_BODY + '</svg>';
-const GN = {raf: 0, card: null, bfs: [], wave: null, last: 0, backAt: 0, nextAt: 0, waveAt: 0, noseAt: 0, sniffs: [], geo: null, geoAt: 0, fig: null, hand: null, cuff: null, a1: null, a2: null, lean: '', sc: '', eyes: false, waving: false};
+const GN = {raf: 0, card: null, bfs: [], last: 0, backAt: 0, nextAt: 0, noseAt: 0, eyesTil: 0, sniffs: [], geo: null, geoAt: 0, fig: null, sc: '', eyes: false};
 const gnCard = () => [...document.querySelectorAll('.cps.picked .cp.on[data-v="guide"]')].find(c => c.offsetParent !== null && !c.closest('.modal:not(.open), .sheet-wrap:not(.open)')) || null;
 function gnLive(){ if(!GN.raf && !reduceMotion() && gnCard()) GN.raf = requestAnimationFrame(gnTick); }
 // where he is in the card's own pixels (the sheet may be zoomed for large text)
@@ -3502,25 +3485,10 @@ function bfAdd(g){
     th: left ? Math.PI : 0, dir: Math.random() < .5 ? -1 : 1, sp: .5 + Math.random() * .35, mode: 'fly', until: 0, sc: .9 + Math.random() * .25, glideAt: performance.now() + 1500 + Math.random() * 3000, glideEnd: 0};
   GN.bfs.push(b); return b;
 }
-// a wave is one smooth motion worked out from the clock every frame: the forearm swings up from lying across his
-// belly (58 degrees from the raised pose) to the raised pose, the open hand waves to and fro at the wrist while the
-// forearm rocks a little, and it all comes back down. A tap waves big; on his own he waves a little smaller
-function gnWave(now, big){
-  GN.wave = {t0: now, dur: big ? 2300 : 1700, amp: big ? 1 : .7, hz: 2.6};
-  GN.waveAt = now + 9000 + Math.random() * 6000;
-}
-function wavePose(t){
-  const w = GN.wave; if(!w) return null;
-  const e = t - w.t0; if(e >= w.dur){ GN.wave = null; return null; }
-  const up = Math.min(1, e / 360), down = Math.min(1, (w.dur - e) / 380), env0 = Math.min(up, down), env = env0 * env0 * (3 - 2 * env0);
-  const ph = Math.sin((e - 300) / 1000 * w.hz * 2 * Math.PI) * Math.min(1, Math.max(0, (e - 300) / 300)) * w.amp;
-  // the rocking stays inside his picture: further left and the fingertips leave the box
-  return {arm: (1 - env) * 58 + env * (3 + 4 * ph), wrist: env * (3 + 9 * ph)};
-}
 function gnPlay(card){
   if(reduceMotion()) return;
   GN.card = card; const now = performance.now();
-  gnWave(now, true);
+  GN.eyesTil = now + 2600;
   const fig = card.querySelector('.cp-fig'); fig.style.animation = 'none'; void fig.offsetWidth; fig.style.animation = '';
   // the butterflies take fright and come back a few seconds later
   // (when his box has just opened there are none yet, so they flutter in right away)
@@ -3532,10 +3500,9 @@ function gnPlay(card){
 function gnTick(t){
   GN.raf = 0;
   const card = gnCard();
-  if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.wave = null; GN.last = 0; GN.waveAt = GN.noseAt = 0; GN.geo = null; return; }
+  if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.last = 0; GN.noseAt = 0; GN.geo = null; return; }
   bfDefine();
-  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.hand = card.querySelector('.gn-oh'); GN.a1 = card.querySelector('.gn-a1'); GN.a2 = card.querySelector('.gn-a2');  GN.geo = null; GN.lean = GN.sc = ''; GN.eyes = GN.waving = false; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
-  if(!GN.waveAt) GN.waveAt = t + 6000 + Math.random() * 4000;
+  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.geo = null; GN.sc = ''; GN.eyes = false; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
   if(!GN.noseAt) GN.noseAt = t + 9000 + Math.random() * 6000;
   const dt = Math.min(.034, Math.max(.001, (t - (GN.last || t - 16)) / 1000)); GN.last = t;
   // where he stands is read a few times a second, not every frame: reading layout each frame costs frames on a phone
@@ -3543,27 +3510,20 @@ function gnTick(t){
   const g = GN.geo, fig = GN.fig;
   // three butterflies keep him company, coming in one at a time
   if(t > GN.backAt && t > GN.nextAt && GN.bfs.filter(b => b.mode !== 'flee').length < 3){ bfAdd(g); GN.nextAt = t + 650 + Math.random() * 500; }
-  // now and then he waves on his own, or a butterfly comes down on his nose
-  const busy = GN.wave || GN.bfs.some(b => b.mode === 'land' || b.mode === 'perch');
-  if(t > GN.waveAt && !busy) gnWave(t, false);
+  // now and then a butterfly comes down on his nose
+  const busy = t < GN.eyesTil || GN.bfs.some(b => b.mode === 'land' || b.mode === 'perch');
   if(t > GN.noseAt && !busy){
     const free = GN.bfs.filter(b => b.mode === 'fly');
     if(free.length){ const b = free.sort((p, q) => Math.hypot(p.x - g.nose.x, p.y - g.nose.y) - Math.hypot(q.x - g.nose.x, q.y - g.nose.y))[0]; b.mode = 'land'; b.el.classList.remove('gl'); }
     GN.noseAt = t + 14000 + Math.random() * 8000;
   }
-  // the arm and hand, his lean into the wave, and his eyes, open while he waves or looks at a butterfly on his nose
-  const pose = wavePose(t), ha = pose ? pose.arm : 0, lift = pose ? 58 - pose.arm : 0;
-  if(!!pose !== GN.waving){ GN.waving = !!pose; fig.classList.toggle('waving', GN.waving); }
-  const at = ha ? 'rotate(' + ha.toFixed(2) + 'deg)' : '';
-  if(GN.a1) GN.a1.style.transform = at; if(GN.a2) GN.a2.style.transform = at;
-  if(GN.hand) GN.hand.style.transform = pose && pose.wrist ? 'rotate(' + pose.wrist.toFixed(2) + 'deg)' : '';
-  const eyes = !!GN.wave || GN.bfs.some(b => b.mode === 'perch');
+  // his eyes: closed, open for a moment after a tap
+  const eyes = t < GN.eyesTil;
   if(eyes !== GN.eyes){ GN.eyes = eyes; fig.classList.toggle('eyes', eyes); }
   // the sniff: two quick little breaths in while a butterfly sits on his nose
   let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / 240; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
   GN.sniffs = GN.sniffs.filter(s0 => t - s0 < 400);
-  const lean = lift ? (-lift * .02).toFixed(3) + 'deg' : '', scl = sn ? (1 + .012 * sn).toFixed(4) + ' ' + (1 - .018 * sn).toFixed(4) : '';
-  if(lean !== GN.lean){ GN.lean = lean; fig.style.rotate = lean; }
+  const scl = sn ? (1 + .012 * sn).toFixed(4) + ' ' + (1 - .018 * sn).toFixed(4) : '';
   if(scl !== GN.sc){ GN.sc = scl; fig.style.scale = scl; }
   for(const b of GN.bfs){
     let tx, ty, k = 16, c = 4.2;
@@ -4964,6 +4924,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.25.0', date: '2026-10-21', items: [['gunnarcalm', 'Gunnar no longer waves: he keeps his eyes closed and opens them when you tap him'], ['gunnareyes2', 'Proper eyes for Gunnar, white round the pupil']]},
   {v: '4.24.2', date: '2026-10-21', items: [['openhand', 'Gunnar waves properly: elbow at his side, forearm up and an open hand, palm to you']]},
   {v: '4.24.1', date: '2026-10-21', items: [['gunnareyes', 'Gunnar\'s open eyes smile now'], ['wrist', 'His waving hand comes out of the sleeve, no more thin wrist']]},
   {v: '4.24.0', date: '2026-10-21', items: [['wavearm', 'Gunnar waves with his whole arm: it swings up from the elbow and his hand waves beside his face']]},
@@ -5376,7 +5337,7 @@ document.addEventListener('click', e => {
       grp.classList.add('picked');
       if(S.ui.ob && b.closest('#ob')){ S.ui.ob.trainer = t.id; S.ui.ob.picked = true; const nx = $('#ob [data-a="ob-next"]'); if(nx) nx.disabled = false; }
       else { saveSettings({trainer: t.id, level: t.level}); toast(t.name + ' is your coach'); }
-      if(t.hand) setTimeout(() => { const c = gnCard(); if(c) gnPlay(c); }, 120);
+      if(t.eyes) setTimeout(() => { const c = gnCard(); if(c) gnPlay(c); }, 120);
       break;
     }
     case 'set-panel': S.ui.setPanel = b.dataset.p; renderSettings(); setTimeout(gnLive, 300); break;
