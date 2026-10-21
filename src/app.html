@@ -93,6 +93,12 @@ html { background: var(--bg); -webkit-text-size-adjust: 100%; text-size-adjust: 
    is shorter than the screen (WebKit bug 301108). Making the page just that much taller gives it the full screen. */
 @media (display-mode: standalone) { html { min-height: min(100lvh, calc(100% + env(safe-area-inset-top, 0px))); } }
 body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px/1.45 var(--font); background: var(--bg); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+/* iPhone haptics: an invisible label with a hidden switch over each button and slider (see hzScan) */
+.hz { position: absolute; inset: 0; z-index: 3; border-radius: inherit; -webkit-tap-highlight-color: transparent; }
+:where(button:has(> .hz)) { position: relative; }
+.hz input, .hz-r input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; visibility: hidden; pointer-events: none; }
+.steppers.slide .stp > label.hz-r { grid-area: r; align-self: stretch; z-index: 3; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
+.no-hz .hz, .no-hz .hz-r, button:disabled > .hz { display: none; }
 button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 input, textarea, select { font-family: inherit; color: inherit; font-size: 16px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -1037,7 +1043,7 @@ button.day:active { transform: scale(.94); }
   let hapEl = null, hapAt = 0;
   const haptic = () => {
     if (window.LiquidGlass && window.LiquidGlass.quiet) return;
-    const now = performance.now(); if (now - hapAt < 30) return; hapAt = now;
+    const now = performance.now(); if (now - hapAt < 30 || now - (window.LiquidGlass && window.LiquidGlass.tapAt || -1e9) < 400) return; hapAt = now;
     try {
       if (navigator.vibrate) { navigator.vibrate(8); return; }
       if (!hapEl) {
@@ -1227,6 +1233,25 @@ function parseDur(s){
 const fmtDur = sec => !sec ? '' : sec % 60 === 0 ? (sec/60) + ' min' : mmss(sec);
 const toast = msg => LG.toast(msg);
 const haptic = () => LG.haptic();
+/* Since iOS 26.5 a web page can only make an iPhone tick when a real finger taps a switch: a tick started from code
+   is ignored. So every button and slider gets an invisible label on top with a hidden switch inside. The tap lands on
+   the label, the click bubbles to the button as before, and iPhone then flips the switch with a tick. The flip stops
+   at the switch so no handler runs twice. A drag is not a tap, so sliders tick when tapped, not while you drag. */
+const HZ_ON = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform)) || /[?&]hz\b/.test(location.search);
+function hzLabel(cls){
+  const l = document.createElement('label'); l.className = cls; l.setAttribute('aria-hidden', 'true');
+  const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', '');
+  i.addEventListener('click', e => e.stopPropagation());
+  l.addEventListener('pointerup', () => { LG.tapAt = performance.now(); });
+  l.append(i); return l;
+}
+let hzRaf = 0;
+function hzScan(){
+  hzRaf = 0;
+  document.querySelectorAll('button:not(:has(> .hz))').forEach(b => b.append(hzLabel('hz')));
+  document.querySelectorAll('.steppers.slide .stp:has(> .rng):not(:has(> .hz-r))').forEach(p => p.append(hzLabel('hz-r')));
+}
+if(HZ_ON){ try{ new MutationObserver(() => { if(!hzRaf) hzRaf = requestAnimationFrame(hzScan); }).observe(document.body, {childList: true, subtree: true}); hzScan(); }catch(e){} }
 const opts = (pairs, cur) => pairs.map(([v, l]) => '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + esc(l) + '</option>').join('');
 const plural = (n, one, many) => n + ' ' + (n === 1 ? one : (many || one + 's'));
 /* Only touch the DOM when the markup really changed, and never while a control inside is in use. */
@@ -1370,7 +1395,7 @@ function applyLook(){
   root.style.setProperty('--g1', a[0]); root.style.setProperty('--g2', a[1]);
   root.style.setProperty('--z', {S:.92, M:1, L:1.1}[st.text] || 1);
   root.classList.toggle('lvl-new', st.level !== 'pro');
-  LG.quiet = st.haptics === false;
+  LG.quiet = st.haptics === false; document.documentElement.classList.toggle('no-hz', LG.quiet);
   if(D.meta.settings){
     const data = {}; for(const k of ['theme', 'style', 'glass', 'corners', 'font', 'tint', 'density']) if(root.dataset[k]) data[k] = root.dataset[k];
     const look = JSON.stringify({data, cls: ['noglow', 'calm', 'nolabels', 'flatbtn', 'lvl-new'].filter(c => root.classList.contains(c)), vars: {'--g1': a[0], '--g2': a[1], '--z': String({S:.92, M:1, L:1.1}[st.text] || 1)}});
@@ -3559,6 +3584,7 @@ function renderFeedbackPanel(){
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.10.2', date: '2026-10-21', items: [['haptic2', 'Haptics that work on new iPhones: every button, RIR, switch and tap on a slider ticks']]},
   {v: '4.10.1', date: '2026-10-21', items: [['haptic', 'Sliders, RIR and logged sets tick on iPhone too'], ['forearms', 'Forearm and rotator cuff exercises in the library and on the body map'], ['rirtarget', 'Targets show the RIR to aim for']]},
   {v: '4.10.0', date: '2026-10-19', items: [['cardio', 'Cardio workouts with a card per machine, a timer that counts down and the pace from your distance'], ['skierg', 'SkiErg added, in metres like the rower'], ['pins', 'Choose the lifts on Records yourself, cardio distances like a 3 km run too'], ['search', 'Lift lists in A to Z order with search'], ['ruler', 'Sliders look like a ruler, and dragging down slows them more gently'], ['fit', 'Every page and flashcard fits the screen, tightening itself when there is a lot on it']]},
   {v: '4.9.3', date: '2026-10-19', items: [['liftcard', 'A lift card on Records with a picker like the tab bar, small drawings for each lift and a curve that fills the box'], ['rm', '1RM test joined into the lift card, set to the lift you are looking at']]},
@@ -3687,7 +3713,7 @@ function scrubTip(rg, text){
 let rgDrag = null;
 const dragVal = (d, x) => d.v0 + (x - d.x0) / Math.max(1, d.w - RTH) * (+d.rg.max - +d.rg.min) * d.f;
 document.addEventListener('pointerdown', e => {
-  const rg = e.target.closest && e.target.closest('.rng'); if(!rg) return;
+  const hz = e.target.closest && e.target.closest('.hz-r'), rg = hz ? hz.parentElement.querySelector('.rng') : e.target.closest && e.target.closest('.rng'); if(!rg) return;
   S.ui.sliding = rg; rgDrag = {rg, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, f: 1, v0: +rg.value, x0: e.clientX, w: rg.getBoundingClientRect().width};
 });
 document.addEventListener('pointermove', e => {
