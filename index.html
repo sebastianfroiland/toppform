@@ -508,6 +508,10 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .ex.tight .ctm-go { width: 52px; height: 52px; }
 .ex.tight .stp { padding-top: 3px; padding-bottom: 3px; }
 .ex.tight .pm button { height: 34px; }
+.ex.tight .eff { margin-top: 10px; }
+.ex.tight .eff-b .chip { min-height: 36px; }
+.ex.tight .wdone { margin-top: 10px; }
+.ex.tight .wdone button { min-height: 44px; }
 .vin.fit .lc-chart { overflow: hidden; contain: size; }
 .vin.fit.tight .cal { gap: 2px; margin-top: 6px; }
 .vin.fit.tight .cd { aspect-ratio: 1 / .64; border-radius: 10px; }
@@ -871,13 +875,15 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .dk.fin span { background: transparent; box-shadow: inset 0 0 0 1.5px var(--dim); }
 .last { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; margin-top: 8px; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; line-height: 1.45; }
 .last b { color: var(--text); font-weight: 600; }
-.target { margin-top: 10px; padding: 9px 12px; border-radius: 15px; background: color-mix(in srgb, var(--g1) 11%, var(--fill)); border: 1px solid color-mix(in srgb, var(--g1) 30%, var(--line)); font-size: 13.5px; }
-.target b { font-weight: 700; font-variant-numeric: tabular-nums; }
-.target:has(.tg-reset) { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding-block: 6px; }
-.tg-l { min-width: 0; }
-.tg-reset { flex: none; min-height: 28px; padding: 0 11px; font-size: 13px; animation: tg-in .35s var(--spring); }
+.tg-reset { flex: none; min-height: 26px; margin: -5px 0 -4px; padding: 0 11px; font-size: 12.5px; animation: tg-in .35s var(--spring); }
+.rir .lab:has(.tg-reset:not([hidden])) .rir-u { display: none; }
 @keyframes tg-in { from { opacity: 0; transform: scale(.7); } }
 .wdone { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.eff { margin-top: 14px; }
+.eff-b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.eff-b .chip { min-height: 42px; font-size: 14.5px; }
+.pace .vs { font-weight: 650; }
+.pace .vs.up { color: var(--up); }
 .wdone button { min-height: 52px; font-size: 16px; }
 .badge { display: inline-flex; margin-top: 10px; padding: 4px 11px; border-radius: 999px; background: var(--accent-grad); color: var(--on-grad); font-size: 12px; font-weight: 600; }
 .logged { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -1177,7 +1183,7 @@ button.day:active { transform: scale(.94); }
 
 /* reps in reserve: six buttons in a row instead of a slider */
 .rir { margin-top: 10px; }
-.rir .lab { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.rir .lab { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
 .rir-b { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
 .rir-b button { min-width: 0; height: 40px; border-radius: 13px; border: 1px solid var(--line); background: var(--fill); font-size: 16px; font-weight: 650; font-variant-numeric: tabular-nums; transition: transform .3s var(--spring), background .2s, color .2s; }
 .rir-b button:active { transform: scale(.92); }
@@ -2427,7 +2433,7 @@ function stp(k, f, label, mode){
 }
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
-const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span>RIR</span></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
+const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span class="rir-u">RIR</span><button class="chip tg-reset" data-a="ex-reset" data-k="' + k + '" data-r="reset" hidden>Reset</button></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
   [0, 1, 2, 3, 4, 5].map(n => '<button data-a="rir" data-k="' + k + '" data-v="' + n + '" aria-pressed="false">' + rirTxt(n) + '</button>').join('') + '</div></div>';
 function buildCard(ex, mode){
   const info = infoOf(ex.name), el = document.createElement('article');
@@ -2435,7 +2441,7 @@ function buildCard(ex, mode){
   el.className = 'glass card ex'; el.dataset.key = cardKey(ex); el.dataset.k = ex.k; el.dataset.mode = mode;
   el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-ex-sets="' + ex.k + '" data-r="sets" aria-label="Sets for ' + esc(ex.name) + '"></select><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button>' + delBtn(ex.k) + '</div></div>' +
     '<div class="ladder" data-r="ladder" hidden></div><input class="field exs" data-exsetup="' + ex.k + '" autocomplete="off" enterkeyhint="done" placeholder="Setup, like seat 4 or rope" aria-label="Setup for ' + esc(ex.name) + '">' +
-    '<div class="target" data-r="target" hidden></div><button class="last" data-a="exhist" data-n="' + esc(ex.name) + '" data-r="last"></button><span class="badge" data-r="tag" hidden></span><div class="logged" data-r="logged"></div>' +
+    '<button class="last" data-a="exhist" data-n="' + esc(ex.name) + '" data-r="last"></button><span class="badge" data-r="tag" hidden></span><div class="logged" data-r="logged"></div>' +
     '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : ' two-up') + '">' +
     (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
     stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + '</div>' + (ex.rm ? '' : rirRow(ex.k)) +
@@ -2451,12 +2457,6 @@ function fillCard(el, ex, s){
   r('meta').textContent = (SLOTS[info.slot] || 'Custom') + (ex.hint ? ' · ' + ex.hint : '');
   const ss = r('sets'), pl = ex.planned || 0;
   if(document.activeElement !== ss){ const n = Math.max(8, pl); ss.innerHTML = opts([[0, 'Sets']].concat(Array.from({length: n}, (_, i) => [i + 1, plural(i + 1, 'set')])), pl); }
-  const t = r('target');
-  const rc = recFor(ex.name, s.id);
-  const line = tg ? (tg.w != null ? esc(wTxt(tg.w, info)) + (info.bw ? '' : ' kg') + ' × ' : '') + (tg.lo ? tg.lo + (tg.hi && tg.hi !== tg.lo ? '-' + tg.hi : '') : '') + (tg.rir != null ? ' · RIR ' + esc(String(tg.rir)) : '')
-    : rc.w != null || rc.r ? esc(wTxt(rc.w || 0, info)) + (info.bw ? '' : ' kg') + (rc.r ? ' × ' + rc.r : '') + (rc.rir != null ? ' · RIR ' + rirTxt(rc.rir) : '') : '';
-  if(line && !ex.rm){ t.hidden = false; setHTML(t, '<span class="tg-l">' + (tg ? 'Target' : 'Suggested') + ' <b>' + line + '</b></span><button class="chip tg-reset" data-a="ex-reset" data-k="' + ex.k + '" data-r="reset" hidden>Reset</button>'); }
-  else t.hidden = true;
   r('last').innerHTML = last ? 'Last ' + esc(dShort(last.date)) + ': <b>' + last.sets.map(x => esc(setText(x, info))).join(' &nbsp;·&nbsp; ') + '</b>' : '';
   r('last').hidden = !last;
   const tag = r('tag');
@@ -2609,7 +2609,16 @@ function paceText(name, sec, distM){
   return mmss(sec / (distM / 1000)) + ' /km';
 }
 const distText = (name, m) => inMeters(name) ? m + ' m' : fmt(Math.round(m / 10) / 100) + ' km';
-const warmText = (ex, short) => { const l = ex.log || {}; return [l.sec ? mmss(l.sec) : '', l.distM ? distText(ex.name, l.distM) : '', ex.cardio && !short ? paceText(ex.name, l.sec, l.distM) : ''].filter(Boolean).join(' · ') || 'Done'; };
+// how a warm-up felt, rated on its card
+const EFFORT = [['easy', 'Easy'], ['good', 'Good'], ['hard', 'Hard']];
+const warmText = (ex, short) => { const l = ex.log || {}, ef = !short && EFFORT.find(f => f[0] === ex.effort); return [l.sec ? mmss(l.sec) : '', l.distM ? distText(ex.name, l.distM) : '', !short ? paceText(ex.name, l.sec, l.distM) : '', ef ? ef[1] : ''].filter(Boolean).join(' · ') || 'Done'; };
+// today's pace against the last time on the same machine
+function paceVs(name, sec, distM, last){
+  const l = last && last.ex.log; if(!sec || !distM || !l || !l.sec || !l.distM) return null;
+  if(name === 'Bike' || name === 'Elliptical'){ const d = Math.round((distM / sec - l.distM / l.sec) * 36) / 10; return {up: d > 0, t: Math.abs(d) < .1 ? 'same speed as last time' : fmt(Math.abs(d)) + ' km/h ' + (d > 0 ? 'faster' : 'slower') + ' than last time'}; }
+  const u = inMeters(name) ? 500 : 1000, d = Math.round(sec / distM * u - l.sec / l.distM * u);
+  return {up: d < 0, t: !d ? 'same pace as last time' : Math.abs(d) + ' s ' + (d < 0 ? 'faster' : 'slower') + ' than last time'};
+}
 function addWarm(){
   const s = activeSession(); if(!s || s.exercises.some(e => e.warm)) return;
   updateSession(s.id, {exercises: [warmEx(ST().warm || ls.get('tl.lastWarm') || 'Row')].concat(s.exercises)});
@@ -2617,7 +2626,7 @@ function addWarm(){
 }
 // the last time you did this machine, so you have a number to beat
 function lastBlock(name, sid){
-  for(const x of D.sessions){ if(x.id === sid || !x.exercises) continue; const e = x.exercises.find(y => y.name === name && timed(y) && y.log && !y.skip && (y.cardio || x.template === 'C')); if(e) return {date: x.date, ex: e}; }
+  for(const x of D.sessions){ if(x.id === sid || !x.exercises) continue; const e = x.exercises.find(y => y.name === name && timed(y) && y.log && !y.skip); if(e) return {date: x.date, ex: e}; }
   return null;
 }
 const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>', PAUSE = '<svg viewBox="0 0 24 24"><path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z"/></svg>';
@@ -2628,25 +2637,20 @@ function buildWarm(ex, mode){
     '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
   const acts = cardio ? CARDIO_M.concat(CARDIO_M.includes(ex.name) ? [] : [ex.name]) : WARM_ACTS;
   const head = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + delBtn(k) + '</div></div>';
-  if(!cardio){
-    // a warm-up is just done or not done: no timer, no numbers
-    el.innerHTML = head + '<div class="logged" data-r="logged"></div>' +
-      '<div data-r="entry"><div class="wdone"><button class="btn-primary" data-a="warm-done" data-k="' + k + '">Done</button><button class="btn-glass" data-a="warm-not" data-k="' + k + '">Not done</button></div></div>' +
-      '<div data-r="skipped" hidden></div><button class="btn-quiet" data-a="warm-undo" data-k="' + k + '" data-r="more" hidden style="margin-top:4px">Undo</button>';
-    return el;
-  }
-  el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + delBtn(k) + '</div></div>' +
-    (cardio ? '' : '<p class="hint">Easy pace, just enough to get warm and loose before the first lift.</p>') +
+  // a warm-up has no timer: you type the time and distance from the machine, rate it, and mark it done or not done
+  el.innerHTML = head + (!cardio ? '' :
     '<div class="ctm" data-r="timer"><div class="ctm-l"><b data-r="ct-t">0:00</b><small data-r="ct-s"></small></div>' +
     '<button class="ctm-go" data-a="ct-go" data-k="' + k + '" data-r="ct-go" aria-label="Start timer">' + PLAY + '</button><button class="ctm-x" data-a="ct-reset" data-k="' + k + '" data-r="ct-x" aria-label="Reset timer" hidden><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg></button>' +
-    '<span class="ctm-bar"><i data-r="ct-bar"></i></span></div>' +
+    '<span class="ctm-bar"><i data-r="ct-bar"></i></span></div>') +
     '<button class="last" data-r="lastb" hidden></button>' +
     '<div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + k + '" rows="1" placeholder="' + (cardio ? 'Note, like level, damper or watts' : 'Note, like damper or level') + '" aria-label="Note for ' + esc(ex.name) + '"></textarea>' +
     '<div class="logged" data-r="logged"></div>' +
     '<div data-r="entry"><div class="steppers duo">' + box('m', 'time', 1, '0:00') + box('d', warmUnit(ex.name), row ? 100 : .5, '0') + '</div>' +
     '<p class="pace" data-r="pace"></p>' +
-    '<button class="btn-primary wide" data-a="warm-done" data-k="' + k + '">Done</button>' +
-    '<button class="btn-quiet" data-a="skip" data-k="' + k + '" style="margin-top:4px">' + (cardio ? 'Skip ' + esc(ex.name) : 'Skip warm-up') + '</button></div><div data-r="skipped" hidden></div>' +
+    (cardio ? '<button class="btn-primary wide" data-a="warm-done" data-k="' + k + '">Done</button><button class="btn-quiet" data-a="skip" data-k="' + k + '" style="margin-top:4px">Skip ' + esc(ex.name) + '</button>'
+      : '<div class="eff" data-r="eff"><p class="lab">How did it feel?</p><div class="eff-b" role="group" aria-label="How did it feel?">' + EFFORT.map(([v, l]) => '<button class="chip" data-a="effort" data-k="' + k + '" data-v="' + v + '" aria-pressed="false">' + l + '</button>').join('') + '</div></div>' +
+        '<div class="wdone"><button class="btn-primary" data-a="warm-done" data-k="' + k + '">Done</button><button class="btn-glass" data-a="warm-not" data-k="' + k + '">Not done</button></div>') +
+    '</div><div data-r="skipped" hidden></div>' +
     '<button class="btn-quiet" data-a="more" data-k="' + k + '" data-r="more" hidden style="margin-top:4px">Edit</button>';
   return el;
 }
@@ -2655,18 +2659,17 @@ function fillWarm(el, ex, s){
   r('meta').textContent = ex.cardio ? (ex.min ? ex.min + ' min' : 'Cardio') : 'Warm-up' + (ex.min ? ' · ' + ex.min + ' min' : '');
   const a = el.querySelector('[data-warm-act]'); if(a && document.activeElement !== a) a.value = ex.name;
   el.classList.toggle('done', done); el.classList.toggle('skipped', !!sk);
-  const simple = !ex.cardio;
   r('entry').hidden = done || !!sk; r('more').hidden = !done; if(r('timer')) r('timer').hidden = done || !!sk;
-  r('logged').innerHTML = ex.log && !sk ? '<span class="setchip">' + (simple ? 'Done ✓' : esc(warmText(ex))) + '</span>' : '';
+  r('logged').innerHTML = ex.log && !sk ? '<span class="setchip">' + esc(warmText(ex)) + '</span>' : '';
   const skb = r('skipped'); skb.hidden = !sk;
-  if(sk) setHTML(skb, '<div class="skipbox"><span>' + (simple ? 'Not done' : 'Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '')) + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
+  if(sk) setHTML(skb, '<div class="skipbox"><span>' + (!ex.cardio ? 'Not done' : 'Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '')) + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
   const nt = el.querySelector('.exn');
   if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
-  if(simple) return;
+  const ef = r('eff'); if(ef) ef.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.v === ex.effort)));
   const prev = prevNotes(ex.name, s.id), np = r('nprev');
   np.hidden = !prev.length;
   if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
-  const lb = ex.cardio ? lastBlock(ex.name, s.id) : null, lbe = r('lastb');
+  const lb = lastBlock(ex.name, s.id), lbe = r('lastb');
   lbe.hidden = !lb || done || !!sk;
   if(lb) setHTML(lbe, 'Last time <b>' + esc(warmText(lb.ex)) + '</b> · ' + esc(dDay(lb.date)));
   const m = el.querySelector('#in-' + ex.k + '-m'), d = el.querySelector('#in-' + ex.k + '-d'), l = ex.log || {};
@@ -2679,8 +2682,9 @@ function fillWarm(el, ex, s){
 function paintPace(el, ex){
   const p = el.querySelector('[data-r="pace"]'); if(!p) return;
   const m = el.querySelector('#in-' + ex.k + '-m'), d = el.querySelector('#in-' + ex.k + '-d'), dist = num(d && d.value);
-  const sec = parseDur(m && m.value), distM = dist > 0 ? (inMeters(ex.name) ? Math.round(dist) : Math.round(dist * 1000)) : 0;
-  p.textContent = paceText(ex.name, sec, distM);
+  const sec = parseDur(m && m.value), distM = dist > 0 ? (inMeters(ex.name) ? Math.round(dist) : Math.round(dist * 1000)) : 0, s = activeSession();
+  const pace = paceText(ex.name, sec, distM), vs = pace && s ? paceVs(ex.name, sec, distM, lastBlock(ex.name, s.id)) : null;
+  setHTML(p, esc(pace) + (vs ? ' · <span class="vs' + (vs.up ? ' up' : '') + '">' + esc(vs.t) + '</span>' : ''));
 }
 /* The timer on a cardio or warm-up card counts down the planned minutes. At zero it beeps, buzzes, sends the rest
    alert if that is on and stops; play again counts on so you see how far over you went. Pause fills in the time. Each card keeps
@@ -2736,14 +2740,14 @@ function warmDone(k){
   const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
   const m = $('#in-' + k + '-m'), d = $('#in-' + k + '-d');
   if(CT[k] && CT[k].run){ CT[k].acc += Date.now() - CT[k].start; CT[k].run = false; ctFill(k); }
-  // a plain warm-up card has no fields: done means the planned minutes
   const tsec = Math.round(ctSec(CT[k])), sec = (m && m.dataset.touched ? parseDur(m.value) : tsec >= 5 ? tsec : m ? parseDur(m.value) : null) || (ex.min || 0) * 60, dist = d ? num(d.value) : null;
   const distM = dist == null || dist <= 0 ? null : inMeters(ex.name) ? Math.round(dist) : Math.round(dist * 1000);
   [m, d].filter(Boolean).forEach(x => { delete x.dataset.touched; x.blur(); });
   delete CT[k]; ctSave();
   S.ui.expanded.delete(k);
+  const vs = paceVs(ex.name, sec, distM, lastBlock(ex.name, s.id));
   updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {log: {sec: sec || null, distM}}) : e)});
-  toast(ex.cardio ? ex.name + ' done' : 'Warm-up done'); scrollNext(k);
+  toast((ex.cardio ? ex.name + ' done' : 'Warm-up done') + (vs ? ' · ' + vs.t : '')); scrollNext(k);
 }
 
 /* Cardio workout: pick the machines and minutes, then one card per machine like a strength workout, each with the
@@ -4793,6 +4797,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.20.0', date: '2026-10-21', items: [['warmlog', 'Warm-up logs time and distance from the machine, with the pace and how it compares with last time'], ['warmfeel', 'Rate the warm-up: Easy, Good or Hard'], ['notarget', 'No Target box on the cards. Reset sits by RIR once you change the numbers']]},
   {v: '4.19.0', date: '2026-10-21', items: [['coaches', 'Meet the coaches: tap one and it steps forward to say how it trains and who it suits'], ['gunnar', 'Gentle Gunnar, the calm coach for new lifters, with his own portrait'], ['setcoach', 'The same coach boxes in Settings, Coach']]},
   {v: '4.18.0', date: '2026-10-21', items: [['purple', 'Purple hides behind the Coach Claude card, peeks at you and drums his fingers. Tap him'], ['tabbar', 'The tab bar stays put: a haptic tick no longer counts as typing'], ['prefill', 'Every card starts on the recommended weight, reps and RIR, with no tips under it'], ['reset', 'Reset on a card puts the recommended numbers back after you change them'], ['warm', 'Warm-up is just Done or Not done, no timer']]},
   {v: '4.17.0', date: '2026-10-21', items: [['purple', 'Purple peeks over the Coach Claude card with his coffee'], ['tabbar', 'The tab bar no longer blinks away while you scroll']]},
@@ -5213,7 +5218,7 @@ document.addEventListener('click', e => {
     case 'xp-filter': S.ui.xpF = b.dataset.v; S.ui.xpOpen = null; setHTML($('#xp-fw'), xpFilterHtml()); renderXPList(); $('#setPanels').scrollTop = 0; haptic(); break;
     case 'rate': { const k = b.dataset.key, v = +b.dataset.v, cur = (D.meta.ratings || {})[k] || 0, nv = cur === v ? 0 : v; b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', +x.dataset.v <= nv)); rate(k, v); break; }
     case 'add-ex': if(isCardioS(activeSession())) openCardioAdd(); else openLib('add', null); break;
-    case 'more': S.ui.expanded.add(b.dataset.k); renderWorkout(); break;
+    case 'more': S.ui.expanded.add(b.dataset.k); renderWorkout(); syncFit(); requestAnimationFrame(syncFit); break;
     case 'skip': openSkip(b.dataset.k); break;
     case 'goto-finish': { const s = activeSession(); if(!s) break; if($('#cards').classList.contains('deck-on')){ S.ui.overview = false; deckGo(s.exercises.length, true); } else $('#finish-card').scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start'}); break; }
     case 'log-past': openPast(b.dataset.d); break;
@@ -5229,7 +5234,7 @@ document.addEventListener('click', e => {
     case 'cadd': cardioAdd(b.dataset.n); break;
     case 'warm-done': warmDone(b.dataset.k); haptic(); break;
     case 'warm-not': setSkip(b.dataset.k, {reason: '', note: ''}); haptic(); scrollNext(b.dataset.k); break;
-    case 'warm-undo': { const s = activeSession(); if(s) updateSession(s.id, {exercises: s.exercises.map(e => { if(e.k !== b.dataset.k) return e; const c = Object.assign({}, e); delete c.log; return c; })}); S.ui.expanded.delete(b.dataset.k); break; }
+    case 'effort': { const s = activeSession(), ex = s && s.exercises.find(e => e.k === b.dataset.k); if(ex){ saveExField(ex.k, 'effort', ex.effort === b.dataset.v ? '' : b.dataset.v); haptic(); } break; }
     case 'skip-why': { const on = b.getAttribute('aria-pressed') !== 'true'; b.parentElement.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b && on))); if(S.ui.skip) S.ui.skip.reason = on ? b.dataset.v : ''; break; }
     case 'skip-save': saveSkip(); break;
     case 'unskip': setSkip(b.dataset.k, null); break;
