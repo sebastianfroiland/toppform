@@ -1191,6 +1191,21 @@ button.day:active { transform: scale(.94); }
 
 /* delete next to Swap */
 .ex-acts .ib { width: 34px; height: 34px; background: var(--fill); border: 1px solid var(--line); color: var(--dim); transition: background .2s, color .2s, width .3s var(--ease); }
+/* the note bubble: filled once the exercise has a rating or note today, a dot when there are notes from earlier */
+.ex-acts .ib.nb { position: relative; }
+.ex-acts .ib.nb.on { background: color-mix(in srgb, var(--g1) 16%, var(--fill)); border-color: color-mix(in srgb, var(--g1) 45%, var(--line)); color: var(--g1); }
+.ex-acts .ib.nb.on svg { fill: color-mix(in srgb, var(--g1) 30%, transparent); }
+.ib.nb .nbd { position: absolute; top: 1px; right: 1px; width: 8px; height: 8px; border-radius: 50%; background: var(--g1); box-shadow: 0 0 0 2px var(--bg); }
+/* the notes sheet, and Settings, Notes */
+.npl { display: flex; flex-direction: column; gap: 6px; }
+.npl .npi { max-width: none; }
+.sheet-body .feel { margin-top: 0; }
+.ntg { margin: 16px 2px 0; }
+.ntg h3 { margin: 0 4px 7px; font-size: 15px; font-weight: 650; }
+.nti { padding: 9px 12px; border-radius: 14px; background: var(--fill); border: 1px solid var(--line); margin-bottom: 6px; }
+.nti small { display: block; color: var(--dim); font-size: 12px; font-weight: 600; }
+.nti small b { color: var(--g1); font-weight: 650; }
+.nti p { margin: 2px 0 0; font-size: 14px; line-height: 1.4; }
 .ex-acts .ib.armed { width: auto; padding: 0 11px; border-radius: 999px; font-size: 13px; font-weight: 700; }
 
 /* sliders: a ruler. A fine tick for each step and taller ones at round numbers, a soft fill up to a slim accent handle,
@@ -1414,6 +1429,7 @@ button.day:active { transform: scale(.94); }
       <button data-p="coach" role="tab">Coach</button>
       <button data-p="workout" role="tab">Workout</button>
       <button data-p="exercises" role="tab">Exercises</button>
+      <button data-p="notes" role="tab">Notes</button>
       <button data-p="look" role="tab">Look</button>
       <button data-p="feedback" role="tab">Feedback</button>
       <button data-p="updates" role="tab">Updates</button>
@@ -2425,7 +2441,7 @@ function ensureCards(s){
 function stp(k, f, label, mode){
   const id = 'in-' + k + '-' + f;
   if(mode === 'slide') return '<div class="stp"><label for="' + id + '">' + label + '</label><input id="' + id + '" data-f="' + f + '" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" placeholder="0" enterkeyhint="done">' +
-    '<input type="range" class="rng" data-k="' + k + '" data-rf="' + f + '" min="0" max="' + (f === 'w' ? 60 : f === 'r' ? 30 : 15) + '" step="' + (f === 'w' ? ST().step : 1) + '" value="0" aria-label="' + label + '"></div>';
+    '<input type="range" class="rng" data-k="' + k + '" data-rf="' + f + '" min="0" max="' + (f === 'w' ? 60 : f === 'r' ? 30 : 15) + '" step="' + (f === 'w' ? .5 : 1) + '" value="0" aria-label="' + label + '"></div>';
   return '<div class="stp"><label for="' + id + '">' + label + '</label><input id="' + id + '" data-f="' + f + '" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" placeholder="0" enterkeyhint="done">' +
     '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
 }
@@ -2433,22 +2449,28 @@ function stp(k, f, label, mode){
 const hintOf = h => h && !/super\s?set/i.test(h) ? h : '';
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
+const BUBBLE = '<svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>';
+const noteBtn = k => '<button class="ib nb" data-a="ex-notes" data-k="' + k + '" aria-label="Notes">' + BUBBLE + '<i class="nbd" hidden></i></button>';
+function paintNoteBtn(el, ex, s){
+  const b = el.querySelector('[data-a="ex-notes"]'); if(!b) return;
+  const has = !!((ex.note && ex.note.trim()) || ex.feel), prev = !has && prevNotes(ex.name, s.id).length > 0;
+  b.classList.toggle('on', has); b.querySelector('.nbd').hidden = !prev;
+  b.setAttribute('aria-label', has ? 'Notes, added' : prev ? 'Notes, earlier ones' : 'Notes');
+}
 const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span class="rir-u">RIR</span><button class="chip tg-reset" data-a="ex-reset" data-k="' + k + '" data-r="reset" hidden>Reset</button></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
   [0, 1, 2, 3, 4, 5].map(n => '<button data-a="rir" data-k="' + k + '" data-v="' + n + '" aria-pressed="false">' + rirTxt(n) + '</button>').join('') + '</div></div>';
 function buildCard(ex, mode){
   const info = infoOf(ex.name), el = document.createElement('article');
   const wl = info.bw === 'bw' ? '+kg' : info.bw === 'assist' ? 'assist' : 'kg';
   el.className = 'glass card ex'; el.dataset.key = cardKey(ex); el.dataset.k = ex.k; el.dataset.mode = mode;
-  el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-ex-sets="' + ex.k + '" data-r="sets" aria-label="Sets for ' + esc(ex.name) + '"></select><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button>' + delBtn(ex.k) + '</div></div>' +
+  el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-ex-sets="' + ex.k + '" data-r="sets" aria-label="Sets for ' + esc(ex.name) + '"></select><button class="chip" data-a="swap" data-k="' + ex.k + '">Swap</button>' + noteBtn(ex.k) + delBtn(ex.k) + '</div></div>' +
     '<div class="ladder" data-r="ladder" hidden></div><input class="field exs" data-exsetup="' + ex.k + '" autocomplete="off" enterkeyhint="done" placeholder="Setup, like seat 4 or rope" aria-label="Setup for ' + esc(ex.name) + '">' +
     '<button class="last" data-a="exhist" data-n="' + esc(ex.name) + '" data-r="last"></button><span class="badge" data-r="tag" hidden></span><div class="logged" data-r="logged"></div>' +
     '<div data-r="entry"><div class="steppers' + (mode === 'slide' ? ' slide' : ' two-up') + '">' +
     (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
     stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + '</div>' + (ex.rm ? '' : rirRow(ex.k)) +
     '<div class="logrow"><button class="btn-primary" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button><button class="btn-glass" data-a="skip" data-k="' + ex.k + '">Skip</button></div></div><div data-r="skipped" hidden></div>' +
-    '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>' +
-    '<div class="feel" data-r="feel"><small>How was it?</small>' + FEEL.map(([v, l]) => '<button class="chip" data-a="feel" data-k="' + ex.k + '" data-v="' + v + '" aria-pressed="false">' + l + '</button>').join('') + '</div>' +
-    '<div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + ex.k + '" rows="1" placeholder="How it felt" aria-label="Note for ' + esc(ex.name) + '"></textarea>';
+    '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>';
   return el;
 }
 function fillCard(el, ex, s){
@@ -2469,18 +2491,9 @@ function fillCard(el, ex, s){
   const skb = r('skipped'); skb.hidden = !sk;
   if(sk) setHTML(skb, '<div class="skipbox"><span>Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '') + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
   r('logbtn').textContent = 'Log set ' + (today.length + 1) + (ex.planned && today.length < ex.planned ? ' of ' + ex.planned : '');
-  const nt = el.querySelector('.exn');
-  if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
-  // how it went is for after the last set: while sets are left, the rating and an empty note step aside so the card fits
-  const left = !sk && ((ex.planned > 0 && today.length < ex.planned) || S.ui.expanded.has(ex.k));
-  if(nt) nt.hidden = left && !ex.note && document.activeElement !== nt;
+  paintNoteBtn(el, ex, s);
   const su = el.querySelector('.exs'), setup = ex.setup != null ? ex.setup : lastSetup(ex.name, s.id);
   if(su && document.activeElement !== su && su.value !== setup) su.value = setup;
-  r('feel').querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.v === ex.feel)));
-  r('feel').hidden = !!sk || (left && !ex.feel);
-  const prev = prevNotes(ex.name, s.id), np = r('nprev');
-  np.hidden = !prev.length;
-  if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
   const lad = r('ladder');
   if(ex.rm){
     const steps = rmLadder(ex.rm), i = today.length; lad.hidden = false;
@@ -2642,14 +2655,13 @@ function buildWarm(ex, mode){
   const box = (f, label, st, ph) => '<div class="stp"><label for="in-' + k + '-' + f + '">' + label + '</label><input id="in-' + k + '-' + f + '" data-f="' + f + '" inputmode="' + (f === 'm' ? 'text' : 'decimal') + '" autocomplete="off" placeholder="' + ph + '" enterkeyhint="done">' +
     (slide ? '<input type="range" class="rng" data-k="' + k + '" data-rf="' + f + '" min="0" max="' + top(f) + '" step="' + (f === 'm' ? 15 : row ? 10 : .05) + '" value="0" aria-label="' + label + '"></div>' : '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>');
   const acts = cardio ? CARDIO_M.concat(CARDIO_M.includes(ex.name) ? [] : [ex.name]) : WARM_ACTS;
-  const head = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + delBtn(k) + '</div></div>';
+  const head = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + noteBtn(k) + delBtn(k) + '</div></div>';
   // a warm-up has no timer: you type the time and distance from the machine, rate it, and mark it done or not done
   el.innerHTML = head + (!cardio ? '' :
     '<div class="ctm" data-r="timer"><div class="ctm-l"><b data-r="ct-t">0:00</b><small data-r="ct-s"></small></div>' +
     '<button class="ctm-go" data-a="ct-go" data-k="' + k + '" data-r="ct-go" aria-label="Start timer">' + PLAY + '</button><button class="ctm-x" data-a="ct-reset" data-k="' + k + '" data-r="ct-x" aria-label="Reset timer" hidden><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg></button>' +
     '<span class="ctm-bar"><i data-r="ct-bar"></i></span></div>') +
     '<button class="last" data-r="lastb" hidden></button>' +
-    '<div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + k + '" rows="1" placeholder="' + (cardio ? 'Note, like level, damper or watts' : 'Note, like damper or level') + '" aria-label="Note for ' + esc(ex.name) + '"></textarea>' +
     '<div class="logged" data-r="logged"></div>' +
     '<div data-r="entry"><div class="steppers ' + (slide ? 'slide' : 'duo') + '">' + box('m', 'time', 1, '0:00') + box('d', warmUnit(ex.name), row ? 100 : .5, '0') + '</div>' +
     '<p class="pace" data-r="pace"></p>' +
@@ -2669,12 +2681,8 @@ function fillWarm(el, ex, s){
   r('logged').innerHTML = ex.log && !sk ? '<span class="setchip">' + esc(warmText(ex)) + '</span>' : '';
   const skb = r('skipped'); skb.hidden = !sk;
   if(sk) setHTML(skb, '<div class="skipbox"><span>' + (!ex.cardio ? 'Not done' : 'Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '')) + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
-  const nt = el.querySelector('.exn');
-  if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
   const ef = r('eff'); if(ef) ef.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.v === ex.effort)));
-  const prev = prevNotes(ex.name, s.id), np = r('nprev');
-  np.hidden = !prev.length;
-  if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
+  paintNoteBtn(el, ex, s);
   const lb = lastBlock(ex.name, s.id), lbe = r('lastb');
   lbe.hidden = !lb || done || !!sk;
   if(lb) setHTML(lbe, 'Last time <b>' + esc(warmText(lb.ex)) + '</b> · ' + esc(dDay(lb.date)));
@@ -4766,6 +4774,7 @@ function renderSettings(){
     srow('Vibration', 'On taps and saved sets', sw('haptics', st.haptics !== false)) +
     srow('Suggest next workout', 'From workouts in rotation', sw('rotation', st.rotation));
   p.exercises = '<div id="xp-panel"></div>';
+  p.notes = notesHtml();
   p.look = srow('Theme', '', seg('theme', [['system','Auto'],['light','Light'],['dark','Dark']], st.theme)) +
     srow('Text size', '', seg('text', [['S','Small'],['M','Medium'],['L','Large']], st.text)) +
     srow('Font', '', seg('font', [['system','Plain'],['rounded','Round'],['serif','Serif'],['mono','Mono']], st.font)) +
@@ -4872,6 +4881,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.22.0', date: '2026-10-21', items: [['bubble', 'A note bubble on every card opens how it went and your note, so the whole card always fits'], ['notespanel', 'Settings, Notes: every note and rating, by exercise'], ['halfkg', 'The weight slider moves in half kilos'], ['nudge', 'Tap beside the marker to move it one step, with a tick on iPhone. iPhone allows no ticks while you drag']]},
   {v: '4.21.2', date: '2026-10-21', items: [['nosuperset', 'No supersets: Claude no longer plans them and the app never shows one'], ['feelrow', 'Loved it, Good, Meh and Disliked sit as four even buttons across the card']]},
   {v: '4.21.1', date: '2026-10-21', items: [['fitcard', 'The whole flashcard fits during rest: How was it and the note show after the last set'], ['restroom', 'Cards use the room above the rest bar']]},
   {v: '4.21.0', date: '2026-10-21', items: [['gunnarwave', 'Tap Gentle Gunnar: he lifts his hand and waves while butterflies flutter out, and one lands on his beanie'], ['butterflies', 'Two butterflies keep Gunnar company while his box is open']]},
@@ -4991,14 +5001,17 @@ function syncRange(rg){
   if(v < +rg.min) rg.min = Math.max(0, Math.floor(v * .8 / 10) * 10);
   rg.value = v; paintRange(rg);
 }
-// iPhone only moves a slider when you hit the thumb itself. Here the whole strip works: tap a spot to jump there, or
-// drag sideways from anywhere and the value follows your finger from where it was, without jumping. Like scrubbing a
+// iPhone only moves a slider when you hit the thumb itself. Here the whole strip works: tap beside the marker to move
+// it one step that way (half a kilo, a rep, a set), or drag sideways from anywhere and the value follows your finger
+// from where it was, without jumping. A tap is a real tap on the hidden switch, so iPhone ticks for every step; it
+// does not let a web page tick while a finger drags. Like scrubbing a
 // video, the further you pull your finger down below the slider while you drag, the slower it moves: gradually, from
 // full speed right on the slider down to a quarter of it far below.
 // An up or down swipe that starts on the slider is left to the page, so scrolling never changes a value.
-function rangeFromX(rg, x){
-  const b = rg.getBoundingClientRect(), th = RTH, f = Math.min(1, Math.max(0, (x - b.left - th / 2) / Math.max(1, b.width - th)));
-  setRange(rg, +rg.min + f * (+rg.max - +rg.min));
+function rangeNudge(rg, x){
+  const b = rg.getBoundingClientRect(), min = +rg.min, max = +rg.max, f = (+rg.value - min) / ((max - min) || 1), at = b.left + RTH / 2 + f * (b.width - RTH);
+  if(Math.abs(x - at) < 12) return;
+  setRange(rg, +rg.value + (x > at ? 1 : -1) * (+rg.step || 1));
 }
 function setRange(rg, raw){
   const min = +rg.min, max = +rg.max, st = +rg.step || 1, v = Math.min(max, Math.max(min, Math.round(raw / st) * st));
@@ -5047,7 +5060,7 @@ function endRange(){
 }
 document.addEventListener('pointerup', e => {
   const d = endRange(); if(!d) return;
-  if(!d.moved) rangeFromX(d.rg, e.clientX);
+  if(!d.moved) rangeNudge(d.rg, e.clientX);
   d.rg.dispatchEvent(new Event('change', {bubbles: true}));
 });
 document.addEventListener('pointercancel', endRange);
@@ -5060,6 +5073,31 @@ function prevNotes(name, sid){
   const out = [];
   for(const x of D.sessions){ if(x.id === sid || !x.exercises) continue; const e = x.exercises.find(y => y.name === name && y.note && y.note.trim()); if(e) out.push({date: x.date, note: e.note.trim()}); }
   return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
+}
+/* The bubble on a card opens a small sheet with how it went (on an exercise), the note, and the notes from earlier
+   times, so everything about the exercise stays one tap from its card without taking room on it. */
+function openNotes(k){
+  const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
+  const prev = prevNotes(ex.name, s.id), t = timed(ex);
+  openSheet('notes', shTop(ex.name, ex.warm ? 'Warm-up' : 'Notes'),
+    (t ? '' : '<div><p class="lab">How was it?</p><div class="feel">' + FEEL.map(([v, l]) => '<button class="chip" data-a="feel" data-k="' + k + '" data-v="' + v + '" aria-pressed="' + (ex.feel === v) + '">' + l + '</button>').join('') + '</div></div>') +
+    '<div><label class="lab" for="nt-' + k + '">' + (t ? 'Note' : 'How it felt') + '</label><textarea id="nt-' + k + '" class="field exn" data-exnote="' + k + '" rows="2" placeholder="' + (t ? 'Like damper, level or watts' : 'Like the rope worked, or a tight shoulder') + '">' + esc(ex.note || '') + '</textarea></div>' +
+    (prev.length ? '<div><p class="lab">Earlier</p><div class="npl">' + prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join('') + '</div></div>' : '') +
+    '<button class="btn-primary wide" data-a="sheet-close">Done</button>');
+  const ta = $('#nt-' + k); if(ta) growNote(ta);
+}
+// Settings, Notes: every note and rating you gave, grouped by exercise, the most recent first
+function notesHtml(){
+  const by = new Map();
+  for(const x of D.sessions) for(const e of x.exercises || []){
+    const note = (e.note || '').trim(), tag = (FEEL.find(f => f[0] === e.feel) || EFFORT.find(f => f[0] === e.effort) || [])[1] || '';
+    if(!note && !tag) continue;
+    if(!by.has(e.name)) by.set(e.name, []);
+    by.get(e.name).push({date: x.date, note, tag});
+  }
+  if(!by.size) return '<p class="hint" style="margin:12px 6px">Notes and ratings from the bubble on each card show up here.</p>';
+  const groups = [...by].map(([n, xs]) => [n, xs.sort((a, b) => b.date.localeCompare(a.date))]).sort((a, b) => b[1][0].date.localeCompare(a[1][0].date));
+  return groups.map(([n, xs]) => '<div class="ntg"><h3>' + esc(n) + '</h3>' + xs.slice(0, 15).map(x => '<div class="nti"><small>' + esc(dShort(x.date)) + (x.tag ? ' · <b>' + esc(x.tag) + '</b>' : '') + '</small>' + (x.note ? '<p>' + esc(x.note) + '</p>' : '') + '</div>').join('') + '</div>').join('');
 }
 const growNote = t => { const max = t.classList.contains('cmp-t') ? 132 : 1e4, min = t.classList.contains('cmp-t') ? 36 : 40; t.style.height = 'auto'; const h = Math.max(min, t.scrollHeight + 2); t.style.height = Math.min(h, max) + 'px'; t.style.overflowY = h > max ? 'auto' : 'hidden'; };
 const noteTimers = {};
@@ -5304,7 +5342,8 @@ document.addEventListener('click', e => {
     case 'log-past': openPast(b.dataset.d); break;
     case 'start-past': startSession(b.dataset.id || null, b.dataset.d); break;
     case 'cardio-past': closeSheet(); setTimeout(() => openCardio({date: b.dataset.d}), 0); break;
-    case 'feel': { const s = activeSession(), ex = s && s.exercises.find(e => e.k === b.dataset.k); if(ex){ saveExField(ex.k, 'feel', ex.feel === b.dataset.v ? '' : b.dataset.v); haptic(); } break; }
+    case 'feel': { const s = activeSession(), ex = s && s.exercises.find(e => e.k === b.dataset.k); if(ex){ const v = ex.feel === b.dataset.v ? '' : b.dataset.v; saveExField(ex.k, 'feel', v); b.parentElement.querySelectorAll('[data-a="feel"]').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.v === v))); haptic(); } break; }
+    case 'ex-notes': openNotes(b.dataset.k); break;
     case 'add-warm': addWarm(); break;
     case 'ct-go': ctToggle(b.dataset.k); break;
     case 'ct-reset': ctReset(b.dataset.k); break;
