@@ -119,9 +119,6 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cp-fig { will-change: transform, rotate, scale; }
 .cp-fig > .gn-o { left: 22.67%; top: 40.53%; width: 52.41%; height: 10.96%; }
 .gn-a2 > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transform-origin: 1% 54.23%; will-change: transform; }
-/* his open eyes, laid over the closed ones in his picture when you tap him; they open and close like a blink */
-.cp-fig > .gn-e { left: 33.13%; top: 11.52%; width: 31.18%; height: 3.53%; opacity: 0; transform: scaleY(.15); transform-origin: 50% 55%; transition: opacity .09s, transform .14s var(--ease); }
-.cp-fig.eyes > .gn-e { opacity: 1; transform: none; }
 /* butterflies, painted like the coaches, flutter round Gunnar in his open box */
 .bfs { position: absolute; inset: 0; z-index: 2; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .bf { position: absolute; left: 0; top: 0; width: 34px; height: 28px; margin: -14px 0 0 -17px; will-change: transform; perspective: 90px; backface-visibility: hidden; }
@@ -3434,7 +3431,7 @@ function saveGoal(id){
    app, and Claude plans and writes in that coach's voice in the evening review (data README, Trainers). A coach
    without a portrait yet shows a soft silhouette. */
 const TRAINERS = [
-  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', eyes: 'art/coach-gunnar-eyes.webp',
+  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', alive: true,
     about: 'Calm, patient and proud of every set. He keeps things simple and never rushes you.',
     how: 'Machines and simple lifts, one tip on every card and small steps up.',
     fits: 'New lifters, or anyone back after a break.',
@@ -3454,13 +3451,13 @@ const coachPick = (cur, picked, cls) => '<div class="cps' + (picked ? ' picked' 
   const on = picked && t.id === cur;
   const img = (src, c) => '<img' + (c ? ' class="' + c + '"' : '') + ' src="' + src + '" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
   return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art"><span class="cp-fig"' + (t.art ? '' : ' style="--ar: 40 / 100"') + '>' +
-    (t.art ? img(t.art) + (t.eyes ? img(t.eyes, 'gn-e') : '') : COACH_GHOST) + '</span></span>' + (t.eyes ? '<span class="bfs" aria-hidden="true"></span>' : '') +
+    (t.art ? img(t.art) : COACH_GHOST) + '</span></span>' + (t.alive ? '<span class="bfs" aria-hidden="true"></span>' : '') +
     '<span class="cp-tx"><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.about + '</small><span class="cp-more">' +
     [['Trains', t.how], ['Best for', t.fits], ['Messages', t.talk]].filter(r => r[1]).map(r => '<span><i>' + r[0] + '</i>' + r[1] + '</span>').join('') + '</span></span></button>';
 }).join('') + '</div>';
 /* Gunnar comes alive in the coach picker. While his box is open he breathes with his eyes closed, three painted
-   butterflies drift round him, and now and then one lands on his nose and he gives it a sniff. A tap makes him hop and
-   open his eyes for a moment; the butterflies take fright, fly off and come back one by one. The butterflies steer
+   butterflies drift round him, and now and then one lands on his nose and he gives it a sniff. A tap makes him hop;
+   the butterflies take fright, fly off and come back one by one. The butterflies steer
    with soft springs toward a slow orbit round his head and body, with a flutter on top; their wings beat in 3D (CSS),
    glide now and then, and fold slowly while they sit. The sniff uses the separate scale property, so it never fights
    the breathing and hop animations on transform. It all runs only while his open box is on screen, and not at all
@@ -3469,7 +3466,7 @@ const BF_DEFS = "<radialGradient id=\"bfg-lime\" cx=\".85\" cy=\".55\" r=\"1\"><
 let bfDefs = false;
 function bfDefine(){ if(bfDefs) return; bfDefs = true; document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + BF_DEFS + '</defs></svg>'); }
 const bfHtml = col => '<b class="wl"><svg viewBox="-12 -10 12 20"><use href="#bfw-' + col + '"/></svg></b><b class="wr"><svg viewBox="0 -10 12 20"><g transform="scale(-1 1)"><use href="#bfw-' + col + '"/></g></svg></b><svg class="bb" viewBox="-12 -10 24 20">' + BF_BODY + '</svg>';
-const GN = {raf: 0, card: null, bfs: [], last: 0, backAt: 0, nextAt: 0, noseAt: 0, eyesTil: 0, sniffs: [], geo: null, geoAt: 0, fig: null, sc: '', eyes: false};
+const GN = {raf: 0, card: null, bfs: [], last: 0, backAt: 0, nextAt: 0, noseAt: 0, quietTil: 0, sniffs: [], geo: null, geoAt: 0, fig: null, sc: ''};
 const gnCard = () => [...document.querySelectorAll('.cps.picked .cp.on[data-v="guide"]')].find(c => c.offsetParent !== null && !c.closest('.modal:not(.open), .sheet-wrap:not(.open)')) || null;
 function gnLive(){ if(!GN.raf && !reduceMotion() && gnCard()) GN.raf = requestAnimationFrame(gnTick); }
 // where he is in the card's own pixels (the sheet may be zoomed for large text)
@@ -3488,7 +3485,7 @@ function bfAdd(g){
 function gnPlay(card){
   if(reduceMotion()) return;
   GN.card = card; const now = performance.now();
-  GN.eyesTil = now + 2600;
+  GN.quietTil = now + 2600;
   const fig = card.querySelector('.cp-fig'); fig.style.animation = 'none'; void fig.offsetWidth; fig.style.animation = '';
   // the butterflies take fright and come back a few seconds later
   // (when his box has just opened there are none yet, so they flutter in right away)
@@ -3502,7 +3499,7 @@ function gnTick(t){
   const card = gnCard();
   if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.last = 0; GN.noseAt = 0; GN.geo = null; return; }
   bfDefine();
-  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.geo = null; GN.sc = ''; GN.eyes = false; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
+  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.geo = null; GN.sc = ''; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
   if(!GN.noseAt) GN.noseAt = t + 9000 + Math.random() * 6000;
   const dt = Math.min(.034, Math.max(.001, (t - (GN.last || t - 16)) / 1000)); GN.last = t;
   // where he stands is read a few times a second, not every frame: reading layout each frame costs frames on a phone
@@ -3511,15 +3508,12 @@ function gnTick(t){
   // three butterflies keep him company, coming in one at a time
   if(t > GN.backAt && t > GN.nextAt && GN.bfs.filter(b => b.mode !== 'flee').length < 3){ bfAdd(g); GN.nextAt = t + 650 + Math.random() * 500; }
   // now and then a butterfly comes down on his nose
-  const busy = t < GN.eyesTil || GN.bfs.some(b => b.mode === 'land' || b.mode === 'perch');
+  const busy = t < GN.quietTil || GN.bfs.some(b => b.mode === 'land' || b.mode === 'perch');
   if(t > GN.noseAt && !busy){
     const free = GN.bfs.filter(b => b.mode === 'fly');
     if(free.length){ const b = free.sort((p, q) => Math.hypot(p.x - g.nose.x, p.y - g.nose.y) - Math.hypot(q.x - g.nose.x, q.y - g.nose.y))[0]; b.mode = 'land'; b.el.classList.remove('gl'); }
     GN.noseAt = t + 14000 + Math.random() * 8000;
   }
-  // his eyes: closed, open for a moment after a tap
-  const eyes = t < GN.eyesTil;
-  if(eyes !== GN.eyes){ GN.eyes = eyes; fig.classList.toggle('eyes', eyes); }
   // the sniff: two quick little breaths in while a butterfly sits on his nose
   let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / 240; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
   GN.sniffs = GN.sniffs.filter(s0 => t - s0 < 400);
@@ -4924,6 +4918,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.25.1', date: '2026-10-21', items: [['gunnarclosed', 'Gunnar keeps his eyes closed, calm as he is painted']]},
   {v: '4.25.0', date: '2026-10-21', items: [['gunnarcalm', 'Gunnar no longer waves: he keeps his eyes closed and opens them when you tap him'], ['gunnareyes2', 'Proper eyes for Gunnar, white round the pupil']]},
   {v: '4.24.2', date: '2026-10-21', items: [['openhand', 'Gunnar waves properly: elbow at his side, forearm up and an open hand, palm to you']]},
   {v: '4.24.1', date: '2026-10-21', items: [['gunnareyes', 'Gunnar\'s open eyes smile now'], ['wrist', 'His waving hand comes out of the sleeve, no more thin wrist']]},
@@ -5337,7 +5332,7 @@ document.addEventListener('click', e => {
       grp.classList.add('picked');
       if(S.ui.ob && b.closest('#ob')){ S.ui.ob.trainer = t.id; S.ui.ob.picked = true; const nx = $('#ob [data-a="ob-next"]'); if(nx) nx.disabled = false; }
       else { saveSettings({trainer: t.id, level: t.level}); toast(t.name + ' is your coach'); }
-      if(t.eyes) setTimeout(() => { const c = gnCard(); if(c) gnPlay(c); }, 120);
+      if(t.alive) setTimeout(() => { const c = gnCard(); if(c) gnPlay(c); }, 120);
       break;
     }
     case 'set-panel': S.ui.setPanel = b.dataset.p; renderSettings(); setTimeout(gnLive, 300); break;
