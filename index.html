@@ -182,7 +182,10 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .fg-plate { fill: color-mix(in srgb, var(--text) 9%, transparent); stroke: color-mix(in srgb, var(--text) 28%, transparent); stroke-width: 1.5; }
 .fg-rim { fill: none; stroke: color-mix(in srgb, var(--text) 16%, transparent); stroke-width: 1.2; }
 .fg-f1 { fill: #ecdfc3; } .fg-f2 { fill: #c4895c; } .fg-f3 { fill: #6c9a58; }
-.fg-hand { fill: var(--g1); opacity: .78; }
+.fg-hand { fill: var(--g1); opacity: .8; }
+.fg-hand .fl { fill: none; stroke: var(--bg); stroke-width: 1.6; stroke-linecap: round; opacity: .55; }
+.fg-tilt { stroke: var(--dim); stroke-width: 1.2; stroke-dasharray: 3 3; fill: none; }
+.fg-phone2 { fill: var(--text); opacity: .35; }
 .fg-card { fill: color-mix(in srgb, var(--text) 16%, transparent); stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: 1.2; }
 .fg-chip { fill: #d9b45f; }
 .fg-line { stroke: var(--dim); stroke-width: 2; stroke-linecap: round; }
@@ -210,12 +213,12 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .food-sheet > .sg { width: 100%; display: grid; }
 .fd-big { border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--fill); }
 .fd-big img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.fits { display: flex; flex-direction: column; }
-.fit { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
-.fit:first-child { border-top: 0; }
-.fit span small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
-.fit b { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.fit.tot { font-weight: 700; border-top: 1.5px solid var(--text); }
+.fdis { display: flex; flex-direction: column; }
+.fdi { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.fdi:first-child { border-top: 0; }
+.fdi span small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
+.fdi b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fdi.tot { font-weight: 700; border-top: 1.5px solid var(--text); }
 .fmac { margin: 0; color: var(--dim); font-size: 13.5px; }
 .fconf { margin: 0; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 650; }
 .fconf i { width: 9px; height: 9px; border-radius: 50%; background: #d9a441; }
@@ -243,13 +246,13 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cam-plate { left: 4vw; top: 21%; width: 63vw; aspect-ratio: 1; border-radius: 50%; }
 .cam-card { display: none; right: 9vw; top: 40%; width: 34vw; aspect-ratio: 85.6 / 54; border-radius: 3vw; }
 .cam-plate span, .cam-card span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.42); }
-.cam-hand { position: absolute; right: 3vw; top: 19%; width: 26vw; height: auto; fill: #fff; stroke: none; }
+.cam-hand { position: absolute; right: 5vw; top: calc(21% + 44vw); width: 22vw; height: auto; fill: #fff; stroke: none; }
 .cam-hand g { opacity: .34; }
 .cam.left .cam-plate { left: auto; right: 4vw; }
-.cam.left .cam-hand { right: auto; left: 3vw; transform: scaleX(-1); }
+.cam.left .cam-hand { right: auto; left: 5vw; transform: scaleX(-1); }
 .cam[data-mode="hand"] .cam-plate { display: none; }
 .cam[data-mode="hand"] .cam-card { display: grid; }
-.cam[data-mode="hand"] .cam-hand { right: auto; left: 12vw; top: 24%; width: 32vw; }
+.cam[data-mode="hand"] .cam-hand { right: auto; left: 12vw; top: 36%; width: 30vw; }
 .cam.left[data-mode="hand"] .cam-hand { left: auto; right: 12vw; }
 .cam.left[data-mode="hand"] .cam-card { right: auto; left: 9vw; }
 .cam-top { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 26px; background: linear-gradient(rgba(0,0,0,.6), transparent); }
@@ -497,9 +500,15 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit.tight .scrolly { min-height: 40px; }
 .vin.fit.tight .bodymap { min-height: 140px; }
 .goal-add { margin-top: 12px; }
-#v-records .card { padding: 16px; }
-#v-records .goal b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#v-records .goal-add { min-height: 44px; }
+.pg-h { display: flex; justify-content: center; }
+.pg-seg { display: block; width: min(220px, 56vw); font-size: 15px; font-family: inherit; letter-spacing: 0; }
+.pg-seg .sg { width: 100%; display: grid; }
+.pg-seg .sg button { font: 600 14px/1.2 var(--font); letter-spacing: 0; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.vin[data-pg="records"] .pg-body, .vin[data-pg="body"] .pg-rec { display: none !important; }
+#v-body .pg-rec.card { padding: 16px; }
+#v-body .goal b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#v-body .goal-add { min-height: 44px; }
 /* the lift picker looks like the tab bar: a pill with a drop that slides to the lift you pick */
 .lc-bar { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 3px; border-radius: 999px; background: var(--fill); border: 1px solid var(--line); }
 .lc-bar::before { content: ''; position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n, 1)); border-radius: 999px; background: var(--drop); box-shadow: var(--drop-shadow); transform: translateX(calc(var(--i, 0) * 100%)); transition: transform .55s var(--spring); }
@@ -1122,7 +1131,12 @@ button.day:active { transform: scale(.94); }
 .goal b { display: block; font-weight: 600; font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
 .goal small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 2px; }
 .gbar { height: 5px; border-radius: 3px; background: var(--fill-2); overflow: hidden; margin-top: 7px; }
-.gbar i { display: block; height: 100%; background: var(--g1); border-radius: inherit; }
+.gbar i { display: block; height: 100%; background: var(--g1); border-radius: inherit; transition: width .6s var(--ease); }
+.gprog { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+.gprog .gbar, .gall .gbar { flex: 1; margin: 0; }
+.gprog em, .gall em { flex: none; min-width: 36px; text-align: right; font-style: normal; font-size: 12.5px; font-weight: 700; color: var(--g1); font-variant-numeric: tabular-nums; }
+.gall { display: flex; align-items: center; gap: 10px; padding: 11px 0 2px; border-top: 1px solid var(--line); font-size: 13.5px; font-weight: 650; }
+.gall .gbar { height: 8px; border-radius: 4px; }
 
 /* reps in reserve: six buttons in a row instead of a slider */
 .rir { margin-top: 10px; }
@@ -1302,17 +1316,13 @@ button.day:active { transform: scale(.94); }
     <div id="dayview" class="grow"></div>
   </div></section>
 
-  <section class="view" id="v-body" aria-label="Body"><div class="vin">
-    <header class="top"><h1>Body</h1><small><span class="status" data-s="busy"></span></small></header>
-    <div class="filters"><select class="sel" id="period" aria-label="Period"><option value="last">Last workout</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="all">All time</option></select></div>
-    <article class="glass card grow" id="body-card"></article>
-    <div id="bw-card"></div>
-  </div></section>
-
-  <section class="view" id="v-records" aria-label="Records"><div class="vin">
-    <header class="top"><h1>Records</h1><small><span class="status" data-s="busy"></span></small></header>
-    <article class="glass card" id="goals-card"></article>
-    <article class="glass card grow" id="lc-card"><div id="lc-bar"></div><div id="lc-head"></div><div id="lc-chart" class="lc-chart"></div><div id="lc-foot"></div></article>
+  <section class="view" id="v-body" aria-label="Progress"><div class="vin" data-pg="records">
+    <header class="top"><h1 class="pg-h"><span class="vh">Progress</span><span class="pg-seg" id="pg-seg"></span></h1><small><span class="status" data-s="busy"></span></small></header>
+    <article class="glass card pg-rec" id="goals-card"></article>
+    <article class="glass card grow pg-rec" id="lc-card"><div id="lc-bar"></div><div id="lc-head"></div><div id="lc-chart" class="lc-chart"></div><div id="lc-foot"></div></article>
+    <div class="filters pg-body"><select class="sel" id="period" aria-label="Period"><option value="last">Last workout</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="all">All time</option></select></div>
+    <article class="glass card grow pg-body" id="body-card"></article>
+    <div id="bw-card" class="pg-body"></div>
   </div></section>
 
   <section class="view" id="v-food" aria-label="Food"><div class="vin">
@@ -1337,8 +1347,7 @@ button.day:active { transform: scale(.94); }
   <a href="#today" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5"/></svg>Today<i class="nbadge" id="coach-badge" hidden></i></a>
   <a href="#workout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Workout<i class="live" id="live-dot" hidden></i></a>
   <a href="#log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Log</a>
-  <a href="#body"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2.2"/><path d="M4.5 8.6h15M12 8.6v5.6M12 14.2l-3.2 6.6M12 14.2l3.2 6.6"/></svg>Body</a>
-  <a href="#records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>Records<i class="live" id="pr-dot" hidden></i></a>
+  <a href="#progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></svg>Progress<i class="live" id="pr-dot" hidden></i></a>
   <a href="#food"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M4.5 3v5.5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1-3.7 3.6-3.7 7.4 0 2 1.4 3.1 3.7 3.1"/></svg>Food</a>
 </nav>
 
@@ -1532,7 +1541,7 @@ const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
 const ACCENTS = {clay:['#d97757','#d97757'], aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a'], grape:['#9a5dff','#ff5fa8'], gold:['#f5a524','#ff6a3d'], mint:['#00b89c','#5ac8fa'], cherry:['#ff3b5c','#a33bff']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true, trainer:'', onboarded:false, kcal:0, protein:0, handSide:'right'};
+const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true, trainer:'', onboarded:false, kcal:0, protein:0, handSide:'left'};
 const WARM_ACTS = ['Row','Bike','SkiErg','Elliptical','Run','Walk','Mobility','Other'];
 // Machines for a cardio workout, one card each. Row and SkiErg show metres like the Concept2 screens, the rest km.
 const CARDIO_M = ['Bike','SkiErg','Row','Run','Elliptical','Walk'];
@@ -1947,7 +1956,8 @@ function ghDisconnect(){ ls.del('tl.gh'); ls.del('tl.gh.cache'); location.reload
 function routeHash(){
   const h = (location.hash || '').replace('#','');
   if(h === 'checkin' || h === 'morgen'){ openCheckin(); return true; }
-  const idx = {today:0, workout:1, log:2, body:3, progress:3, records:4, food:5}[h];
+  if(h === 'body' || h === 'records') S.ui.pg = h;
+  const idx = {today:0, workout:1, log:2, body:3, progress:3, records:3, food:4}[h];
   if(idx != null){ selectTab(idx); return true; }
   return false;
 }
@@ -1959,14 +1969,14 @@ function maybeAutoOpen(){
 }
 function loadedCol(c){ S.loaded.add(c); if(S.loaded.has('sessions') && S.loaded.has('sets') && S.loaded.has('meta')) maybeAutoOpen(); }
 let tabsApi = null, sheetApi = null, sheetMode = null, sampleFn = null, downloadsApi = null;
-const VIEWS = ['v-today','v-workout','v-log','v-body','v-records','v-food'];
+const VIEWS = ['v-today','v-workout','v-log','v-body','v-food'];
 const pager = $('#pager');
 function setView(i){
   S.tab = i;
   renderLater();
   if(i !== 1) saveNote();
-  if(i === 4){ S.ui.prNew = false; $('#pr-dot').hidden = true; }
-  if(i === 3) setTimeout(helloFig, 450);
+  if(i === 3 && pgNow() === 'records'){ S.ui.prNew = false; $('#pr-dot').hidden = true; }
+  if(i === 3 && pgNow() === 'body') setTimeout(helloFig, 450);
   if(D) PAGES[i]();
   VIEWS.forEach((id, j) => $('#' + id).setAttribute('aria-hidden', String(i !== j)));
   if(D) syncFit();
@@ -2022,7 +2032,7 @@ function goLocal(){ S.backend = 'local'; S.mode = 'local'; refresh(); maybeAutoO
 
 /* ---------- rendering ---------- */
 /* The page you are looking at renders right away, the others a moment later, so taps stay snappy with a long history. */
-const PAGES = [() => renderToday(), () => renderWorkout(), () => renderLog(), () => renderBodyPage(), () => renderRecords(), () => renderFood()];
+const PAGES = [() => renderToday(), () => renderWorkout(), () => renderLog(), () => renderProgress(), () => renderFood()];
 let laterT = null, laterDirty = false;
 function renderLater(){
   clearTimeout(laterT); laterT = null;
@@ -2051,7 +2061,7 @@ function fitBox(el, over, keep){
 }
 function syncFit(){
   const act = activeSession(), bar = $('#tabbar').getBoundingClientRect().top;
-  for(const id of ['v-workout', 'v-log', 'v-body', 'v-records']){
+  for(const id of ['v-workout', 'v-log', 'v-body']){
     const vin = $('#' + id + ' .vin'), want = id !== 'v-workout' || !act || (ST().view === 'cards' && act.exercises.length > 0);
     vin.classList.toggle('fit', want);
     if(!want){ vin.classList.remove('snug', 'tight'); vin.style.zoom = ''; continue; }
@@ -3116,9 +3126,15 @@ function goalStat(g){
   const t = goalType(g);
   if(t === 'strength'){
     if(!g.lift) return {st: ''};
+    const pr = strengthPRs().find(x => x.name === g.lift), info = infoOf(g.lift);
+    if(!pr) return {st: g.lift + ' · not logged yet', pct: 0};
+    // reps only, like 30 pull ups in a row: the most reps in one set without added weight
+    if(g.reps && !g.target){ const best = pr.maxReps ? pr.maxReps.reps : Math.max(0, ...D.sets.filter(x => x.exercise === g.lift).map(x => +x.reps || 0));
+      return {st: g.lift + ' · best ' + best + ' of ' + g.reps + ' reps' + (best >= g.reps ? ' · reached ✓' : ''), pct: best / g.reps}; }
     if(!g.target) return {st: g.lift};
-    const now = liftNow(g.lift);
-    return {st: g.lift + ' · ' + fmt(now) + ' of ' + fmt(g.target) + ' kg' + (now >= g.target ? ' · reached ✓' : ''), pct: now / g.target};
+    // a weight, or a weight for reps like 100 kg × 10: compare estimated maxes so every set counts
+    const now = pr.e1 ? pr.e1.sc : 0, want = g.reps ? score(g.target, g.reps, info) : g.target;
+    return {st: g.lift + ' · ' + (g.reps ? 'best ≈ ' + fmt(Math.round(now * 2) / 2) + ' kg max, goal ' + fmt(g.target) + ' × ' + g.reps : fmt(Math.round(now * 2) / 2) + ' of ' + fmt(g.target) + ' kg') + (now >= want ? ' · reached ✓' : ''), pct: now / want};
   }
   if(t === 'endurance'){
     if(!g.act || !g.distM) return {st: ''};
@@ -3137,13 +3153,16 @@ function renderGoals(){
   const gs = goals();
   const rows = gs.map((g, i) => {
     let {st, pct} = goalStat(g);
-    const bar = pct != null ? '<div class="gbar"><i style="width:' + Math.max(0, Math.min(100, Math.round(pct * 100))) + '%"></i></div>' : '';
+    const pc = pct != null && isFinite(pct) ? Math.max(0, Math.min(100, Math.round(pct * 100))) : 0;
+    const bar = '<span class="gprog"><span class="gbar"><i style="width:' + pc + '%"></i></span><em>' + pc + '%</em></span>';
     if(!g.formal) st = (st ? st + ' · ' : '') + 'Claude words it tonight';
     return '<button class="goal" data-a="goal-edit" data-id="' + esc(g.id) + '"><i class="gn">' + (i + 1) + '</i><span><em class="gt">' + GOAL_T[goalType(g)] + '</em><b>' + esc(g.formal || g.text) + '</b>' + (st ? '<small>' + esc(st) + '</small>' : '') + bar + '</span></button>';
   }).join('');
   setHTML($('#goals-card'), '<div class="hd"><h2>Goals</h2><small>' + gs.length + ' of 3</small></div>' +
     (gs.length < 3 ? '<p class="hint">A strength, an endurance and a health goal, in your own words. Claude makes each one short and clear tonight and plans around it.</p>' : '') +
     (rows ? '<div style="margin-top:6px">' + rows + '</div>' : '') +
+    (gs.length > 1 ? (() => { const ps = gs.map(g => { const p = goalStat(g).pct; return p != null && isFinite(p) ? Math.max(0, Math.min(1, p)) : 0; }), all = Math.round(ps.reduce((a, b) => a + b, 0) / ps.length * 100);
+      return '<div class="gall"><span>All goals</span><span class="gbar"><i style="width:' + all + '%"></i></span><em>' + all + '%</em></div>'; })() : '') +
     (gs.length ? '' : '<p class="sub" style="margin-top:6px">No goals yet. What do you want to reach?</p>') +
     (gs.length < 3 ? '<button class="btn-glass wide goal-add" data-a="goal-new">+ Goal</button>' : ''));
 }
@@ -3155,7 +3174,8 @@ function openGoal(id, type){
     '<div class="gsheet" id="g-sheet" data-t="' + t + '">' + seg2('g-type', Object.entries(GOAL_T), t) +
     '<div><label class="lab" for="g-text">In your own words</label><textarea id="g-text" class="field" rows="2" placeholder="Bench 100 kg by summer, run 5 km under 25 minutes, or lose 5 kg of fat">' + esc(g ? g.text : '') + '</textarea></div>' +
     '<div class="gf gf-strength"><div><p class="lab">Lift</p>' + pickerHtml('g-lift', allLiftNames(), g ? g.lift || '' : '', 'None') + '</div>' +
-      '<div><label class="lab" for="g-target">Target 1RM</label><div class="unit"><input id="g-target" class="field" inputmode="decimal" autocomplete="off" placeholder="optional" value="' + (t === 'strength' ? val('target', fmt) : '') + '" enterkeyhint="done"><span>kg</span></div></div></div>' +
+      '<div class="g2"><div><label class="lab" for="g-target">Weight</label><div class="unit"><input id="g-target" class="field" inputmode="decimal" autocomplete="off" placeholder="optional" value="' + (t === 'strength' ? val('target', fmt) : '') + '" enterkeyhint="done"><span>kg</span></div></div>' +
+      '<div><label class="lab" for="g-reps">Reps</label><input id="g-reps" class="field" inputmode="numeric" autocomplete="off" placeholder="1" value="' + (t === 'strength' ? val('reps') : '') + '" enterkeyhint="done"></div></div></div>' +
     '<div class="gf gf-endurance"><div><label class="lab" for="g-act">Activity</label><select id="g-act" class="sel">' + opts(END_ACTS.map(a => [a, a]), g && g.act || 'Run') + '</select></div>' +
       '<div class="g2"><div><label class="lab" for="g-dist">Distance</label><div class="unit"><input id="g-dist" class="field" inputmode="decimal" autocomplete="off" placeholder="5" value="' + val('distM', v => fmt(v / 1000)) + '"><span>km</span></div></div>' +
       '<div><label class="lab" for="g-time">Target time</label><input id="g-time" class="field" inputmode="numeric" autocomplete="off" placeholder="25:00" value="' + val('timeSec', mmss) + '"></div></div></div>' +
@@ -3166,9 +3186,10 @@ function openGoal(id, type){
 }
 function saveGoal(id){
   const t = ($('#g-sheet') || {dataset: {}}).dataset.t || 'strength', raw = $('#g-text').value.replace(/\s+/g, ' ').trim();
-  const f = {type: t, lift: null, target: null, act: null, distM: null, timeSec: null, metric: null, from: null};
+  const f = {type: t, lift: null, target: null, reps: null, act: null, distM: null, timeSec: null, metric: null, from: null};
   let auto = '';
-  if(t === 'strength'){ f.lift = $('#g-lift').value || null; const v = num($('#g-target').value); f.target = v && v > 0 ? v : null; if(f.lift && f.target) auto = f.lift + ' 1RM of ' + fmt(f.target) + ' kg'; }
+  if(t === 'strength'){ f.lift = $('#g-lift').value || null; const v = num($('#g-target').value), r = Math.round(num($('#g-reps').value) || 0); f.target = v && v > 0 ? v : null; f.reps = r > 1 ? r : null;
+    if(f.lift && f.target) auto = f.lift + (f.reps ? ' ' + fmt(f.target) + ' kg for ' + f.reps + ' reps' : ' 1RM of ' + fmt(f.target) + ' kg'); else if(f.lift && f.reps) auto = f.lift + ', ' + f.reps + ' reps in one set'; }
   else if(t === 'endurance'){ f.act = $('#g-act').value; const km = num($('#g-dist').value); f.distM = km && km > 0 ? Math.round(km * 1000) : null; f.timeSec = parseDur($('#g-time').value) || null; if(f.distM) auto = f.act + ' ' + fmt(km) + ' km' + (f.timeSec ? ' in under ' + mmss(f.timeSec) : ''); }
   else { f.metric = $('#g-metric').value; const v = num($('#g-hval').value); f.target = v != null && v > 0 ? v : null; f.from = healthNow(f.metric); if(f.target) auto = HEALTH_M[f.metric][0] + ' ' + fmt(f.target) + ' ' + HEALTH_M[f.metric][1]; }
   const text = (raw || auto).replace(/^./, c => c.toUpperCase()).slice(0, 200);
@@ -3216,7 +3237,7 @@ function renderOb(){
     ['Welcome to Plates', 'Five quick steps, then Claude plans your first week.',
       '<div><label class="lab" for="ob-name">What should Claude call you?</label><input id="ob-name" class="field" data-ob="name" autocomplete="given-name" placeholder="First name" value="' + esc(o.name) + '" enterkeyhint="next"></div>'],
     ['Pick your trainer', 'You can switch any time in Settings, Coach.', trainerHtml(o.trainer)],
-    ['Measure your hand', 'Your hand is the ruler in food photos, so Claude can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
+    ['Measure your fist', 'Your fist is the ruler in food photos, so Claude can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
     ['What do you like?', 'Tap once to love an exercise, twice to avoid it.',
       '<div class="obx">' + OB_LIFTS.map(n => '<button data-a="ob-x" data-n="' + esc(n) + '" data-p="' + o.prefs[n] + '"><i class="l">' + XP_ICON.love + '</i><i class="x">' + XP_ICON.avoid + '</i>' + esc(n) + '</button>').join('') + '</div>'],
     ['Your goals', 'One of each kind, all optional. Claude words them clearly tonight.',
@@ -3250,7 +3271,7 @@ function finishOb(){
   S.ui.ob = null; closeSheet(); toast('All set · Claude plans around this tonight');
 }
 
-/* Food: photo only. You snap the plate with your hand flat beside it, and the hand is the ruler: Claude knows its
+/* Food: photo only. You snap the plate with your free hand in a fist beside it, and the fist is the ruler: Claude knows its
    size from the one-time calibration (meta.hand) and uses it to judge the plate, the portions and the calories. The
    analysis runs in the evening review for now (status pending, then done or unclear), so it can later be swapped for a
    model on the phone without touching this page. Every result carries a range and a confidence, never fake precision. */
@@ -3271,28 +3292,30 @@ function foodSum(xs){
   }
   return t;
 }
-// The hand you lay beside the plate: a hand and its forearm from above, fingers up, thumb toward the plate
-const HAND_SHAPES = '<rect x="14" y="60" width="52" height="54" rx="18"/><rect x="14" y="16" width="11" height="58" rx="5.5"/><rect x="27" y="6" width="11" height="68" rx="5.5"/>' +
-  '<rect x="40" y="12" width="11" height="62" rx="5.5"/><rect x="53" y="28" width="10" height="46" rx="5"/><rect x="9" y="62" width="12" height="44" rx="6" transform="rotate(-22 21 104)"/><rect x="21" y="100" width="38" height="70" rx="14"/>';
+// The free hand in a fist beside the plate, seen from above: knuckles away from you, thumb on the inside, wrist toward you
+const FIST_SHAPES = '<rect x="8" y="12" width="48" height="42" rx="15"/><circle cx="16" cy="15.5" r="7.5"/><circle cx="28" cy="11.5" r="8"/><circle cx="40" cy="11.5" r="8"/><circle cx="51" cy="16" r="7"/>' +
+  '<rect x="3" y="26" width="15" height="27" rx="7.5" transform="rotate(-12 10 39)"/><rect x="18" y="47" width="30" height="25" rx="9"/>';
+const FIST_LINES = '<path d="M22 13v9M34 10v10M46 13v8M13 35c6 3 12 3 18 0" class="fl"/>';
 const GUIDE_TOP = '<svg viewBox="0 0 220 150" aria-hidden="true"><rect x="1" y="1" width="218" height="148" rx="18" class="fg-table"/>' +
-  '<circle cx="86" cy="75" r="56" class="fg-plate"/><circle cx="86" cy="75" r="42" class="fg-rim"/>' +
-  '<path d="M58 62c6-14 28-15 32-2s-6 19-19 17-17-5-13-15z" class="fg-f1"/><path d="M95 50c11-5 24 2 23 13s-11 15-21 12-11-20-2-25z" class="fg-f2"/>' +
-  '<circle cx="90" cy="97" r="9" class="fg-f3"/><circle cx="103" cy="92" r="7" class="fg-f3"/><circle cx="78" cy="99" r="7" class="fg-f3"/>' +
-  '<g class="fg-hand" transform="translate(150 18) scale(.78)">' + HAND_SHAPES + '</g>' +
-  '<text x="86" y="146" class="fg-t" text-anchor="middle">Plate</text><text x="181" y="14" class="fg-t" text-anchor="middle">Hand</text></svg>';
-const GUIDE_SIDE = '<svg viewBox="0 0 120 150" aria-hidden="true"><path d="M6 134h108" class="fg-line"/><path d="M24 129h50l-5 5H29z" class="fg-plate"/>' +
-  '<rect x="30" y="12" width="38" height="7" rx="3" class="fg-phone"/><path d="M49 24v98" class="fg-dash"/><path d="m44 116 5 7 5-7" class="fg-arrow"/>' +
-  '<path d="M90 16v114M85 16h10M85 130h10" class="fg-dim"/><text x="99" y="70" class="fg-t">45</text><text x="99" y="82" class="fg-t">cm</text></svg>';
+  '<circle cx="96" cy="70" r="58" class="fg-plate"/><circle cx="96" cy="70" r="44" class="fg-rim"/>' +
+  '<path d="M66 57c6-14 30-15 34-2s-6 20-20 18-18-6-14-16z" class="fg-f1"/><path d="M106 44c11-5 25 2 24 14s-11 16-22 13-11-22-2-27z" class="fg-f2"/>' +
+  '<circle cx="100" cy="94" r="9" class="fg-f3"/><circle cx="113" cy="89" r="7.5" class="fg-f3"/><circle cx="87" cy="96" r="7.5" class="fg-f3"/>' +
+  '<g class="fg-hand" transform="translate(160 88) scale(.68)">' + FIST_SHAPES + FIST_LINES + '</g>' +
+  '<text x="96" y="144" class="fg-t" text-anchor="middle">Plate</text><text x="182" y="80" class="fg-t" text-anchor="middle">Fist</text></svg>';
+const GUIDE_SIDE = '<svg viewBox="0 0 120 150" aria-hidden="true"><path d="M6 134h108" class="fg-line"/><path d="M22 129h50l-5 5H27z" class="fg-plate"/><circle cx="84" cy="128" r="6" class="fg-hand"/>' +
+  '<rect x="28" y="40" width="38" height="7" rx="3" class="fg-phone"/><path d="M47 52v70" class="fg-dash"/><path d="m42 116 5 7 5-7" class="fg-arrow"/>' +
+  '<path d="M64 36 90 22" class="fg-tilt"/><rect x="62" y="12" width="34" height="7" rx="3" class="fg-phone2" transform="rotate(-25 79 15)"/>' +
+  '<path d="M104 44v40M104 113v17M99 44h10M99 130h10" class="fg-dim"/><text x="104" y="96" class="fg-t" text-anchor="middle">30</text><text x="104" y="108" class="fg-t" text-anchor="middle">cm</text></svg>';
 const GUIDE_CARD = '<svg viewBox="0 0 220 130" aria-hidden="true"><rect x="1" y="1" width="218" height="128" rx="18" class="fg-table"/>' +
-  '<g class="fg-hand" transform="translate(26 6) scale(.68)">' + HAND_SHAPES + '</g>' +
-  '<rect x="128" y="44" width="68" height="43" rx="5" class="fg-card"/><rect x="136" y="56" width="11" height="9" rx="2" class="fg-chip"/>' +
-  '<text x="76" y="118" class="fg-t">Hand flat</text><text x="162" y="104" class="fg-t" text-anchor="middle">Any bank card</text></svg>';
+  '<g class="fg-hand" transform="translate(34 22) scale(1.05)">' + FIST_SHAPES + FIST_LINES + '</g>' +
+  '<rect x="128" y="40" width="68" height="43" rx="5" class="fg-card"/><rect x="136" y="52" width="11" height="9" rx="2" class="fg-chip"/>' +
+  '<text x="68" y="122" class="fg-t" text-anchor="middle">Your fist</text><text x="162" y="100" class="fg-t" text-anchor="middle">Any bank card</text></svg>';
 function foodGuideHtml(open){
-  if(!open) return '<button class="fg-open" data-a="food-guide">' + CAM_IC + '<span>How to snap a meal</span><svg class="chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>';
+  if(!open) return '<button class="fg-open" data-a="food-guide">' + CAM_IC + '<span>How to Snap-a-meal</span><svg class="chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>';
   return '<div class="hd"><h2>How to snap</h2><button class="fg-hide" data-a="food-guide">Hide</button></div>' +
     '<div class="fg">' + GUIDE_TOP + GUIDE_SIDE + '</div>' +
-    '<ol class="fg-tips"><li><span><b>Plate in the middle,</b> the whole rim in view.</span></li><li><span><b>Hand flat beside it,</b> fingers together, wrist and some forearm in view.</span></li>' +
-    '<li><span><b>Phone straight above,</b> about 45 cm up, in good light.</span></li></ol>';
+    '<ol class="fg-tips"><li><span><b>Plate fills most of the frame,</b> the whole rim in view.</span></li><li><span><b>Free hand in a fist</b> on the table, right next to the plate.</span></li>' +
+    '<li><span><b>Phone about 30 cm up,</b> straight down or a little tilted, in good light.</span></li></ol>';
 }
 function renderFood(){
   if(!$('#food-day')) return;
@@ -3306,7 +3329,7 @@ function renderFood(){
     '<div class="fk"><b>' + (t.done ? '≈ ' : '') + kNum(t.kcal) + '</b><span>' + (kT ? 'of ' + kNum(kT) + ' kcal' : 'kcal') + '</span></div>' + range + (kT ? bar(t.kcal, kT) : '') +
     '<div class="fms">' + mac('Protein', t.p, pT) + mac('Carbs', t.c, 0) + mac('Fat', t.f, 0) + '</div>' +
     (t.open ? '<p class="fwait-n">' + plural(t.open, 'photo') + ' waiting for Claude tonight</p>' : '') +
-    '<button class="btn-primary wide fsnap" data-a="food-snap">' + CAM_IC + 'Snap a meal</button>');
+    '<button class="btn-primary wide fsnap" data-a="food-snap">' + CAM_IC + 'Snap-a-meal</button>');
   const guideOpen = ls.get('tl.fguide') ? ls.get('tl.fguide') === '1' : (D.food || []).length < 3;
   setHTML($('#food-guide'), foodGuideHtml(guideOpen));
   $('#food-guide').classList.toggle('closed', !guideOpen);
@@ -3318,7 +3341,7 @@ function renderFood(){
       (s === 'pending' ? '<i class="fdot"></i>' : '') + '</span><span class="ft"><small>' + esc(x.meal || 'Meal') + ' · ' + fClock.format(x.ts || Date.now()) + '</small><b>' + esc(title) + '</b><em>' + sub + '</em></span></button>';
   }).join('');
   setHTML($('#food-list'), '<div class="hd"><h2>Meals</h2><small>' + (xs.length ? plural(xs.length, 'meal') : '') + '</small></div>' +
-    (rows || '<p class="sub" style="margin:6px 0 2px">Nothing logged ' + (d === todayISO() ? 'today' : 'this day') + '. Snap your plate with your hand beside it.</p>'));
+    (rows || '<p class="sub" style="margin:6px 0 2px">Nothing logged ' + (d === todayISO() ? 'today' : 'this day') + '. Snap your plate with your fist beside it.</p>'));
   hydratePhotos();
 }
 function openFood(id){
@@ -3327,12 +3350,12 @@ function openFood(id){
   const s = foodState(x), its = x.items || [];
   let body = '';
   if(s === 'done'){
-    body = '<div class="fits">' + its.map(i => '<div class="fit"><span>' + esc(i.name) + (i.g ? '<small>≈ ' + Math.round(i.g) + ' g' + (i.note ? ' · ' + esc(i.note) : '') + '</small>' : '') + '</span><b>' + (i.kcal != null ? kNum(i.kcal) : '') + '</b></div>').join('') +
-      '<div class="fit tot"><span>Total' + (x.kcalLo != null && x.kcalHi != null ? '<small>Likely ' + kNum(x.kcalLo) + ' to ' + kNum(x.kcalHi) + ' kcal</small>' : '') + '</span><b>≈ ' + kNum(x.kcal || 0) + ' kcal</b></div></div>' +
+    body = '<div class="fdis">' + its.map(i => '<div class="fdi"><span>' + esc(i.name) + (i.g ? '<small>≈ ' + Math.round(i.g) + ' g' + (i.note ? ' · ' + esc(i.note) : '') + '</small>' : '') + '</span><b>' + (i.kcal != null ? kNum(i.kcal) : '') + '</b></div>').join('') +
+      '<div class="fdi tot"><span>Total' + (x.kcalLo != null && x.kcalHi != null ? '<small>Likely ' + kNum(x.kcalLo) + ' to ' + kNum(x.kcalHi) + ' kcal</small>' : '') + '</span><b>≈ ' + kNum(x.kcal || 0) + ' kcal</b></div></div>' +
       '<p class="fmac">' + Math.round(+x.p || 0) + ' g protein · ' + Math.round(+x.c || 0) + ' g carbs · ' + Math.round(+x.f || 0) + ' g fat</p>' +
       (x.conf ? '<p class="fconf" data-c="' + esc(x.conf) + '"><i></i>' + (CONF[x.conf] || x.conf) + '</p>' : '') + (x.note ? '<p class="fnote">' + esc(x.note) + '</p>' : '');
   } else if(s === 'unclear') body = '<div class="fwait bad"><b>Claude could not read this photo</b><span>' + esc(x.note || 'Try again with the whole plate and your hand in view.') + '</span></div>';
-  else body = '<div class="fwait"><b>Waiting for Claude</b><span>Analysed in tonight’s review, with your hand as the ruler. You get the foods, portions, calories and how sure Claude is.</span></div>';
+  else body = '<div class="fwait"><b>Waiting for Claude</b><span>Analysed in tonight’s review, with your fist as the ruler. You get the foods, portions, calories and how sure Claude is.</span></div>';
   openSheet('food', shTop(x.meal || 'Meal', (x.date === todayISO() ? 'Today' : dDay(x.date)) + ' · ' + fClock.format(x.ts || Date.now())),
     '<div class="food-sheet">' + (x.photos && x.photos.length ? '<div class="fd-big">' + photoTag(x.photos[0]) + '</div>' : '') + seg2('fd-meal', MEALS.map(m => [m, m]), x.meal) + body +
     '<button class="btn-quiet danger" data-a="food-del" id="food-del">Delete meal</button></div>', true);
@@ -3347,41 +3370,41 @@ function storePhoto(id, url){
 function saveFoodShot(url){
   const id = newId(), date = S.ui.foodDay || todayISO(), now = Date.now();
   queue('set', 'food', id, {id, date, ts: date === todayISO() ? now : new Date(date + 'T12:00:00').getTime(), meal: mealNow(), photos: [storePhoto(id + '-0', url)],
-    hand: ST().handSide === 'left' ? 'left' : 'right', status: 'pending', createdAt: now, updatedAt: now});
+    hand: ST().handSide === 'right' ? 'right' : 'left', ref: 'fist', status: 'pending', createdAt: now, updatedAt: now});
   toast('Saved · Claude reads it tonight');
 }
 
-/* Hand calibration: once, so Claude knows the size of the ruler in every food photo. Either a photo of the hand flat
-   next to a bank card (a standard 85.6 by 54 mm), which Claude measures tonight, or two numbers from a tape measure. */
+/* Fist calibration: once, so Claude knows the size of the ruler in every food photo. Either a photo of the fist next to
+   a bank card (a standard 85.6 by 54 mm), which Claude measures tonight, or the width from a tape measure. */
 const handOf = () => D.meta.hand || null;
 function handText(){
   const h = handOf(); if(!h) return 'Not set';
-  if(h.lengthCm) return fmt(h.lengthCm) + ' cm long · ' + fmt(h.widthCm || 0) + ' cm wide';
+  if(h.widthCm) return 'Fist ' + fmt(h.widthCm) + ' cm wide' + (h.lengthCm ? ' · hand ' + fmt(h.lengthCm) + ' cm' : '');
   return h.status === 'unclear' ? 'Photo unclear, try again' : 'Photo saved · Claude measures it tonight';
 }
 function handCalHtml(){
   const h = handOf();
   return '<div class="hc"><div class="hc-art">' + GUIDE_CARD + '</div>' +
-    '<p class="hc-now"' + (h ? '' : ' hidden') + '>' + (h && h.lengthCm ? '✓ ' : '') + esc(handText()) + '</p>' +
-    '<button class="btn-primary wide" data-a="hand-snap">' + CAM_IC + (h ? 'Snap again' : 'Snap hand and card') + '</button>' +
+    '<p class="hc-now"' + (h ? '' : ' hidden') + '>' + (h && h.widthCm ? '✓ ' : '') + esc(handText()) + '</p>' +
+    '<button class="btn-primary wide" data-a="hand-snap">' + CAM_IC + (h ? 'Snap again' : 'Snap fist and card') + '</button>' +
     '<button class="btn-quiet" data-a="hand-type">I measured it myself</button>' +
-    '<div class="hc-type" hidden><div class="g2"><div><label class="lab" for="hc-len">Hand length</label><div class="unit"><input id="hc-len" class="field" inputmode="decimal" autocomplete="off" placeholder="19" value="' + (h && h.lengthCm ? fmt(h.lengthCm) : '') + '"><span>cm</span></div></div>' +
-    '<div><label class="lab" for="hc-wid">Palm width</label><div class="unit"><input id="hc-wid" class="field" inputmode="decimal" autocomplete="off" placeholder="8.5" value="' + (h && h.widthCm ? fmt(h.widthCm) : '') + '"><span>cm</span></div></div></div>' +
-    '<p class="sub" style="margin:6px 2px 10px">Length from the wrist crease to the tip of the middle finger. Width across the knuckles.</p>' +
+    '<div class="hc-type" hidden><div class="g2"><div><label class="lab" for="hc-wid">Fist width</label><div class="unit"><input id="hc-wid" class="field" inputmode="decimal" autocomplete="off" placeholder="9" value="' + (h && h.widthCm ? fmt(h.widthCm) : '') + '"><span>cm</span></div></div>' +
+    '<div><label class="lab" for="hc-len">Hand length</label><div class="unit"><input id="hc-len" class="field" inputmode="decimal" autocomplete="off" placeholder="optional" value="' + (h && h.lengthCm ? fmt(h.lengthCm) : '') + '"><span>cm</span></div></div></div>' +
+    '<p class="sub" style="margin:6px 2px 10px">Fist width across the knuckles. Hand length from the wrist crease to the tip of the middle finger, if you like.</p>' +
     '<button class="btn-glass wide" data-a="hand-save">Save</button></div></div>';
 }
-function openHandCal(){ openSheet('hand', shTop('Your hand', 'The ruler in your food photos'), handCalHtml(), false); }
+function openHandCal(){ openSheet('hand', shTop('Your fist', 'The ruler in your food photos'), handCalHtml(), false); }
 function paintHandCal(){ document.querySelectorAll('.hc').forEach(el => { const box = el.parentElement, open = !el.querySelector('.hc-type').hidden; box.innerHTML = handCalHtml(); if(open) box.querySelector('.hc-type').hidden = false; }); }
 function saveHandShot(url){
-  saveMeta({hand: {photo: storePhoto('hand-' + newId(), url), side: ST().handSide === 'left' ? 'left' : 'right', status: 'pending', at: todayISO()}});
-  toast('Saved · Claude measures your hand tonight'); paintHandCal();
+  saveMeta({hand: {photo: storePhoto('hand-' + newId(), url), side: ST().handSide === 'right' ? 'right' : 'left', ref: 'fist', status: 'pending', at: todayISO()}});
+  toast('Saved · Claude measures your fist tonight'); paintHandCal();
 }
 function saveHandTyped(){
   const len = num($('#hc-len').value), wid = num($('#hc-wid').value);
-  if(!len || len < 12 || len > 26){ toast('Hand length is usually 16 to 22 cm'); $('#hc-len').focus(); return; }
-  if(!wid || wid < 5 || wid > 13){ toast('Palm width is usually 7 to 10 cm'); $('#hc-wid').focus(); return; }
-  saveMeta({hand: {lengthCm: len, widthCm: wid, from: 'tape', side: ST().handSide === 'left' ? 'left' : 'right', status: 'done', at: todayISO()}});
-  toast('Hand saved'); paintHandCal();
+  if(!wid || wid < 5 || wid > 13){ toast('A fist is usually 7 to 11 cm wide'); $('#hc-wid').focus(); return; }
+  if(len && (len < 12 || len > 26)){ toast('Hand length is usually 16 to 22 cm'); $('#hc-len').focus(); return; }
+  saveMeta({hand: {lengthCm: len || null, widthCm: wid, from: 'tape', ref: 'fist', side: ST().handSide === 'right' ? 'right' : 'left', status: 'done', at: todayISO()}});
+  toast('Fist saved'); paintHandCal();
 }
 
 /* The guided camera: a live view with the plate circle and the hand drawn where they belong, a level that turns green
@@ -3392,10 +3415,10 @@ function camEl(){
   el = document.createElement('div'); el.className = 'cam'; el.id = 'cam'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Camera');
   el.innerHTML = '<video id="cam-v" playsinline muted autoplay></video><img id="cam-img" alt="Your photo">' +
     '<div class="cam-guide" aria-hidden="true"><i class="cam-plate"><span>Plate</span></i><i class="cam-card"><span>Card</span></i>' +
-    '<svg class="cam-hand" viewBox="0 0 70 172"><g>' + HAND_SHAPES + '</g></svg></div>' +
+    '<svg class="cam-hand" viewBox="0 0 64 72"><g>' + FIST_SHAPES + '</g></svg></div>' +
     '<div class="cam-top"><button class="cam-ib" data-a="cam-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button><p id="cam-tip"></p>' +
     '<button class="cam-ib" data-a="cam-flip" aria-label="Switch hand side"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg></button></div>' +
-    '<div class="cam-level" id="cam-level"><b><i></i></b><span>Hold flat above</span></div>' +
+    '<div class="cam-level" id="cam-level"><b><i></i></b><span>Tilt toward flat</span></div>' +
     '<div class="cam-bot"><label class="cam-alt"><input type="file" accept="image/*" capture="environment" data-camfile hidden>Camera app</label>' +
     '<button class="cam-shutter" data-a="cam-shot" aria-label="Take photo"></button><span></span></div>' +
     '<div class="cam-ok"><button class="btn-glass" data-a="cam-retake">Retake</button><button class="btn-primary" data-a="cam-use">Use photo</button></div>';
@@ -3404,16 +3427,16 @@ function camEl(){
 }
 function camTilt(e){
   const lv = $('#cam-level'); if(!lv || e.beta == null) return;
-  const b = Math.max(-30, Math.min(30, e.beta)), g = Math.max(-30, Math.min(30, e.gamma || 0)), ok = Math.abs(b) < 9 && Math.abs(g) < 9;
+  const b = Math.max(-40, Math.min(40, e.beta)), g = Math.max(-40, Math.min(40, e.gamma || 0)), ok = Math.abs(b) < 22 && Math.abs(g) < 22;
   lv.classList.add('on'); lv.classList.toggle('ok', ok);
-  lv.querySelector('i').style.transform = 'translate(' + (g / 30 * 8).toFixed(1) + 'px,' + (b / 30 * 8).toFixed(1) + 'px)';
-  lv.querySelector('span').textContent = ok ? 'Level' : 'Hold flat above';
+  lv.querySelector('i').style.transform = 'translate(' + (g / 40 * 8).toFixed(1) + 'px,' + (b / 40 * 8).toFixed(1) + 'px)';
+  lv.querySelector('span').textContent = ok ? 'Good angle' : 'Tilt toward flat';
 }
 function openCam(mode){
   const el = camEl();
   CAMS.mode = mode; CAMS.shot = null;
-  el.dataset.mode = mode; el.classList.toggle('left', ST().handSide === 'left'); el.classList.remove('confirm', 'nocam'); el.hidden = false;
-  $('#cam-tip').textContent = mode === 'hand' ? 'Hand flat, fingers together, a bank card beside it' : 'Plate in the circle, your hand flat beside it';
+  el.dataset.mode = mode; el.classList.toggle('left', ST().handSide !== 'right'); el.classList.remove('confirm', 'nocam'); el.hidden = false;
+  $('#cam-tip').textContent = mode === 'hand' ? 'Your fist on the table, a bank card beside it' : 'Plate in the circle, your fist beside it';
   document.body.classList.add('cam-open');
   // iPhone asks once for motion access, and only straight from a tap
   try{
@@ -3518,6 +3541,14 @@ function renderBodyPage(){
   setHTML($('#bw-card'), bw);
 }
 /* Records: your goals, your best lifts with their curves, cardio bests and the 1RM test */
+/* Progress: Records and Body share one tab, with a switch at the top */
+const pgNow = () => S.ui.pg || ls.get('tl.pg') || 'records';
+function renderProgress(){
+  const pg = pgNow(), vin = $('#v-body .vin'); if(!vin) return;
+  vin.dataset.pg = pg;
+  setHTML($('#pg-seg'), seg2('pg-pane', [['records', 'Records'], ['body', 'Body']], pg));
+  if(pg === 'body') renderBodyPage(); else renderRecords();
+}
 function renderRecords(){
   renderGoals();
   renderLiftCard();
@@ -4430,8 +4461,8 @@ function renderSettings(){
     srow('Tips', 'Explanations on cards, like what RIR means', seg('level', [['new','Show'],['pro','Hide']], st.level === 'pro' ? 'pro' : 'new')) +
     srow('Exercise likes', nl || na ? nl + ' loved · ' + na + ' avoided' : 'Love or avoid exercises', '<button class="btn-glass btn-small" data-a="set-panel" data-p="exercises">Edit</button>') +
     srow('Goals', goals().length + ' of 3', '<button class="btn-glass btn-small" data-a="coach-goals">Edit</button>') +
-    srow('Hand size', esc(handText()), '<button class="btn-glass btn-small" data-a="hand-cal">' + (handOf() ? 'Redo' : 'Set') + '</button>') +
-    srow('Hand in food photos', '', seg('handSide', [['left','Left'],['right','Right']], st.handSide === 'left' ? 'left' : 'right')) +
+    srow('Fist size', esc(handText()), '<button class="btn-glass btn-small" data-a="hand-cal">' + (handOf() ? 'Redo' : 'Set') + '</button>') +
+    srow('Fist in food photos', 'The hand that is not holding the phone', seg('handSide', [['left','Left'],['right','Right']], st.handSide === 'right' ? 'right' : 'left')) +
     srow('Calories a day', 'For the Food page', sel('kcal', [[0, 'Not set']].concat(Array.from({length: 25}, (_, i) => [1600 + i * 100, (1600 + i * 100).toLocaleString('en-US')])), st.kcal || 0)) +
     srow('Protein a day', '', sel('protein', [[0, 'Not set']].concat(Array.from({length: 19}, (_, i) => [80 + i * 10, (80 + i * 10) + ' g'])), st.protein || 0)) +
     srow('Setup', 'The welcome steps again', '<button class="btn-glass btn-small" data-a="ob-open">Start</button>');
@@ -4556,6 +4587,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.16.0', date: '2026-10-21', items: [['fist', 'Food photos use your fist beside the plate, so you can hold the phone close and at a slight angle'], ['snap', 'Snap-a-meal'], ['progress', 'Records and Body share one Progress tab, five tabs in all'], ['goalbar', 'A progress bar with a percentage under every goal, and one for all goals']]},
   {v: '4.15.0', date: '2026-10-21', items: [['social', 'Social in the side menu: a feed like Strava with your workouts, posts and photos, kudos and comments'], ['groups', 'Groups with a weekly board, and your own profile with eight weeks of training'], ['samples', 'Sample athletes and groups until friends can join']]},
   {v: '4.14.0', date: '2026-10-21', items: [['foodphoto', 'Food is photo only: snap the plate with your hand beside it and Claude works out foods, portions and calories'], ['camera', 'A guided camera with the plate circle, your hand outline and a level'], ['hand', 'Measure your hand once, the ruler for portion sizes, under Settings, Coach'], ['range', 'Every meal shows a likely range and how sure Claude is']]},
   {v: '4.13.0', date: '2026-10-21', items: [['food', 'Food page: log meals with a photo or a few words, and Claude estimates calories and macros'], ['goaltypes', 'Three kinds of goal: strength, endurance and health'], ['trainers', 'Pick a trainer, Guide, Builder or Elite, under Settings, Coach'], ['welcome', 'Welcome steps for a new account: trainer, exercises you love and goals']]},
@@ -4865,6 +4897,13 @@ document.addEventListener('click', e => {
     case 'pin-auto': saveSettings({lcPins: []}); renderPins(); break;
     case 'goal-edit': openGoal(b.dataset.id); break;
     case 'goal-save': saveGoal(b.dataset.id || null); break;
+    case 'pg-pane': {
+      S.ui.pg = b.dataset.v; ls.set('tl.pg', b.dataset.v);
+      const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b));
+      renderProgress(); syncFit(); requestAnimationFrame(syncFit);
+      if(b.dataset.v === 'body') setTimeout(helloFig, 300); else { S.ui.prNew = false; $('#pr-dot').hidden = true; }
+      break;
+    }
     case 'so-tab': S.ui.soTab = b.dataset.v; S.ui.soGroup = null; renderSide(); $('#side-panel .side-body').scrollTop = 0; break;
     case 'so-kudos': {
       const id = b.dataset.id, on = !soKudos(id);
@@ -4918,7 +4957,7 @@ document.addEventListener('click', e => {
       break;
     }
     case 'set-panel': S.ui.setPanel = b.dataset.p; renderSettings(); break;
-    case 'coach-goals': closeSettings(); selectTab(4); break;
+    case 'coach-goals': closeSettings(); S.ui.pg = 'records'; selectTab(3); renderProgress(); break;
     case 'ob-open': closeSettings(); setTimeout(openOnboard, 250); break;
     case 'ob-x': { const o = S.ui.ob, n = b.dataset.n; if(!o) break; const nx = {fine: 'love', love: 'avoid', avoid: 'fine'}[o.prefs[n]] || 'love'; o.prefs[n] = nx; b.dataset.p = nx; break; }
     case 'ob-next': { const o = S.ui.ob; if(!o) break; if(o.step >= 4) finishOb(); else { o.step++; renderOb(); } break; }
@@ -4937,7 +4976,7 @@ document.addEventListener('click', e => {
     case 'cam-shot': camShot(); break;
     case 'cam-retake': CAMS.shot = null; $('#cam').classList.remove('confirm'); break;
     case 'cam-use': camUse(); break;
-    case 'cam-flip': { const left = ST().handSide !== 'left'; saveSettings({handSide: left ? 'left' : 'right'}); $('#cam').classList.toggle('left', left); haptic(); break; }
+    case 'cam-flip': { const left = ST().handSide === 'right'; saveSettings({handSide: left ? 'left' : 'right'}); $('#cam').classList.toggle('left', left); haptic(); break; }
     case 'hand-cal': closeSettings(); setTimeout(openHandCal, 250); break;
     case 'hand-snap': openCam('hand'); break;
     case 'hand-type': { const box = b.closest('.hc').querySelector('.hc-type'); box.hidden = !box.hidden; if(!box.hidden) setTimeout(() => $('#hc-len').focus(), 50); break; }
