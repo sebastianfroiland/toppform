@@ -118,14 +118,32 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cps.picked .cp.on .cp-fig { height: min(calc(100% - 22px), 360px); top: 12px; animation: cpHop .75s var(--spring), cpBreathe 4.8s ease-in-out .75s infinite; }
 /* Gunnar in layers: his body, the hand that lifts off his arm to wave, and the cuff it tucks under */
 .cp-fig > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transform-origin: 1% 54.23%; will-change: transform; }
+.cp-fig { will-change: transform, rotate, scale; }
 .cp-fig > .gn-c { left: 33.54%; top: 40.73%; width: 14.05%; height: 7.46%; }
+/* his open eyes, laid over the closed ones while he waves or looks at a butterfly on his nose; they open and close
+   like a quick blink */
+.cp-fig > .gn-e { left: 33.54%; top: 11.68%; width: 30.15%; height: 3.13%; opacity: 0; transform: scaleY(.2); transform-origin: 50% 60%; transition: opacity .08s, transform .12s var(--ease); }
+.cp-fig.eyes > .gn-e { opacity: 1; transform: none; }
 /* butterflies, painted like the coaches, flutter round Gunnar in his open box */
 .bfs { position: absolute; inset: 0; z-index: 2; overflow: hidden; border-radius: inherit; pointer-events: none; }
-.bf { position: absolute; left: 0; top: 0; width: 34px; height: 28px; margin: -14px 0 0 -17px; will-change: transform; }
+.bf { position: absolute; left: 0; top: 0; width: 34px; height: 28px; margin: -14px 0 0 -17px; will-change: transform; perspective: 90px; backface-visibility: hidden; }
 .bf svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.bf .w { transform-box: view-box; transform-origin: 50% 50%; animation: bfFlap .24s ease-in-out infinite alternate; }
-.bf .w:last-of-type { animation-delay: -.01s; }
-@keyframes bfFlap { from { transform: scaleX(1); } to { transform: scaleX(.42); } }
+/* each wing is its own layer hinged on the body and turns in 3D, so it foreshortens like a real wing; one beat has a
+   quick downstroke, a slower upstroke and a short hold at the top */
+.bf > b { position: absolute; top: 0; width: 50%; height: 100%; animation: bfL var(--fl, .26s) linear infinite; backface-visibility: visible; }
+.bf > .wl { left: 0; transform-origin: 100% 50%; }
+.bf > .wr { right: 0; transform-origin: 0 50%; animation-name: bfR; }
+.bf > .bb { position: absolute; inset: 0; }
+.bf.gl > b { animation: bfGL 1.4s ease-in-out infinite alternate; }
+.bf.gl > .wr { animation-name: bfGR; }
+.bf.p > b { animation: bfPL 2.4s ease-in-out infinite; }
+.bf.p > .wr { animation-name: bfPR; }
+@keyframes bfL { 0% { transform: rotateY(6deg); } 10% { transform: rotateY(20deg); } 22% { transform: rotateY(42deg); } 34% { transform: rotateY(62deg); } 44% { transform: rotateY(76deg); } 52% { transform: rotateY(80deg); } 58% { transform: rotateY(76deg); } 68% { transform: rotateY(52deg); } 78% { transform: rotateY(24deg); } 88% { transform: rotateY(4deg); } 100% { transform: rotateY(6deg); } }
+@keyframes bfR { 0% { transform: rotateY(-6deg); } 10% { transform: rotateY(-20deg); } 22% { transform: rotateY(-42deg); } 34% { transform: rotateY(-62deg); } 44% { transform: rotateY(-76deg); } 52% { transform: rotateY(-80deg); } 58% { transform: rotateY(-76deg); } 68% { transform: rotateY(-52deg); } 78% { transform: rotateY(-24deg); } 88% { transform: rotateY(-4deg); } 100% { transform: rotateY(-6deg); } }
+@keyframes bfGL { from { transform: rotateY(4deg); } to { transform: rotateY(22deg); } }
+@keyframes bfGR { from { transform: rotateY(-4deg); } to { transform: rotateY(-22deg); } }
+@keyframes bfPL { 0%, 100% { transform: rotateY(8deg); } 40%, 60% { transform: rotateY(74deg); } }
+@keyframes bfPR { 0%, 100% { transform: rotateY(-8deg); } 40%, 60% { transform: rotateY(-74deg); } }
 @keyframes cpHop { 0% { transform: none; } 30% { transform: translateY(-9px) scale(.97, 1.04); } 62% { transform: translateY(1px) scale(1.03, .97); } 100% { transform: none; } }
 @keyframes cpBreathe { 50% { transform: scale(1.012, 1.008); } }
 .cp-tx { display: flex; flex-direction: column; min-width: 0; padding: 14px 0 12px; }
@@ -3418,7 +3436,7 @@ function saveGoal(id){
    app, and Claude plans and writes in that coach's voice in the evening review (data README, Trainers). A coach
    without a portrait yet shows a soft silhouette. */
 const TRAINERS = [
-  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', hand: 'art/coach-gunnar-hand.webp', cuff: 'art/coach-gunnar-cuff.webp',
+  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', hand: 'art/coach-gunnar-hand.webp', cuff: 'art/coach-gunnar-cuff.webp', eyes: 'art/coach-gunnar-eyes.webp',
     about: 'Calm, patient and proud of every set. He keeps things simple and never rushes you.',
     how: 'Machines and simple lifts, one tip on every card and small steps up.',
     fits: 'New lifters, or anyone back after a break.',
@@ -3438,72 +3456,116 @@ const coachPick = (cur, picked, cls) => '<div class="cps' + (picked ? ' picked' 
   const on = picked && t.id === cur;
   const img = (src, c) => '<img' + (c ? ' class="' + c + '"' : '') + ' src="' + src + '" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
   return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art"><span class="cp-fig"' + (t.art ? '' : ' style="--ar: 40 / 100"') + '>' +
-    (t.art ? img(t.art) + (t.hand ? img(t.hand, 'gn-h') + img(t.cuff, 'gn-c') : '') : COACH_GHOST) + '</span></span>' + (t.hand ? '<span class="bfs" aria-hidden="true"></span>' : '') +
+    (t.art ? img(t.art) + (t.hand ? img(t.eyes, 'gn-e') + img(t.hand, 'gn-h') + img(t.cuff, 'gn-c') : '') : COACH_GHOST) + '</span></span>' + (t.hand ? '<span class="bfs" aria-hidden="true"></span>' : '') +
     '<span class="cp-tx"><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.about + '</small><span class="cp-more">' +
     [['Trains', t.how], ['Best for', t.fits], ['Messages', t.talk]].filter(r => r[1]).map(r => '<span><i>' + r[0] + '</i>' + r[1] + '</span>').join('') + '</span></span></button>';
 }).join('') + '</div>';
-/* Gunnar comes alive in the coach picker. While his box is open he breathes and three painted butterflies drift
-   round him. A tap makes him hop, lift his hand off his arm and wave; the butterflies take fright and fly off, and
-   after a few seconds they come back one by one. They steer with soft springs toward a slow orbit round his head and
-   body, with a flutter on top. It all runs only while his open box is on screen, and not at all with reduced motion. */
+/* Gunnar comes alive in the coach picker. While his box is open he breathes, three painted butterflies drift round
+   him, and now and then he waves on his own or a butterfly lands on his nose and he gives it a sniff. A tap makes him
+   wave big with his top hand while he leans into it; the butterflies take fright, fly off and come back one by one.
+   The butterflies steer with soft springs toward a slow orbit round his head and body, with a flutter on top; their
+   wings beat in 3D (CSS), glide now and then, and fold slowly while they sit. Gunnar's lean and sniff use the separate
+   rotate and scale properties, so they never fight the breathing and hop animations on transform. It all runs only
+   while his open box is on screen, and not at all with reduced motion. */
 const BF_DEFS = "<radialGradient id=\"bfg-lime\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#E3EC9C\"/><stop offset=\".72\" stop-color=\"#E3EC9C\"/><stop offset=\"1\" stop-color=\"#A7BF4A\"/></radialGradient><g id=\"bfw-lime\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-lime)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-lime)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#A7BF4A\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#F09CC0\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#F09CC0\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g><radialGradient id=\"bfg-pink\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#FAC3DA\"/><stop offset=\".72\" stop-color=\"#FAC3DA\"/><stop offset=\"1\" stop-color=\"#DE76A6\"/></radialGradient><g id=\"bfw-pink\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-pink)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-pink)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#DE76A6\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#D9E38E\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#D9E38E\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g><radialGradient id=\"bfg-coral\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#FBC7AE\"/><stop offset=\".72\" stop-color=\"#FBC7AE\"/><stop offset=\"1\" stop-color=\"#E4876A\"/></radialGradient><g id=\"bfw-coral\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-coral)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-coral)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#E4876A\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#FBEAB0\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#FBEAB0\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g>", BF_BODY = "<ellipse fill=\"#37613C\" rx=\".95\" ry=\"4.2\" cy=\"1\"/><circle fill=\"#37613C\" cy=\"-3.6\" r=\"1.15\"/><path fill=\"none\" stroke=\"#37613C\" stroke-width=\".7\" stroke-linecap=\"round\" d=\"M-.4-4.3C-1-6.8-2.2-8.2-3.4-8.6M.4-4.3C1-6.8 2.2-8.2 3.4-8.6\"/><circle fill=\"#37613C\" cx=\"-3.5\" cy=\"-8.6\" r=\".6\"/><circle fill=\"#37613C\" cx=\"3.5\" cy=\"-8.6\" r=\".6\"/>", BF_COLS = ['lime', 'pink', 'coral'];
 let bfDefs = false;
 function bfDefine(){ if(bfDefs) return; bfDefs = true; document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + BF_DEFS + '</defs></svg>'); }
-const bfHtml = col => '<svg viewBox="-12 -10 24 20"><g class="w"><use href="#bfw-' + col + '"/></g><g class="w"><g transform="scale(-1 1)"><use href="#bfw-' + col + '"/></g></g>' + BF_BODY + '</svg>';
-const GN = {raf: 0, card: null, bfs: [], hand: {x: 0, v: 0, t: 0}, seq: [], last: 0, backAt: 0, nextAt: 0};
+const bfHtml = col => '<b class="wl"><svg viewBox="-12 -10 12 20"><use href="#bfw-' + col + '"/></svg></b><b class="wr"><svg viewBox="0 -10 12 20"><g transform="scale(-1 1)"><use href="#bfw-' + col + '"/></g></svg></b><svg class="bb" viewBox="-12 -10 24 20">' + BF_BODY + '</svg>';
+const GN = {raf: 0, card: null, bfs: [], wave: null, last: 0, backAt: 0, nextAt: 0, waveAt: 0, noseAt: 0, sniffs: [], geo: null, geoAt: 0, fig: null, hand: null, lean: '', sc: '', eyes: false};
 const gnCard = () => [...document.querySelectorAll('.cps.picked .cp.on[data-v="guide"]')].find(c => c.offsetParent !== null && !c.closest('.modal:not(.open), .sheet-wrap:not(.open)')) || null;
 function gnLive(){ if(!GN.raf && !reduceMotion() && gnCard()) GN.raf = requestAnimationFrame(gnTick); }
 // where he is in the card's own pixels (the sheet may be zoomed for large text)
 function gnGeo(card){
   const cr = card.getBoundingClientRect(), k = card.offsetWidth / (cr.width || 1), f = card.querySelector('.cp-fig').getBoundingClientRect();
   const fx = (f.left - cr.left) * k, fy = (f.top - cr.top) * k, fw = f.width * k, fh = f.height * k;
-  return {w: card.offsetWidth, h: card.offsetHeight, cx: fx + fw * .42, cy: fy + fh * .27, rx: Math.max(38, fw * .42), ry: Math.max(56, fh * .3)};
+  return {w: card.offsetWidth, h: card.offsetHeight, cx: fx + fw * .42, cy: fy + fh * .27, rx: Math.max(38, fw * .42), ry: Math.max(56, fh * .3), nose: {x: fx + fw * .51, y: fy + fh * .148}};
 }
 function bfAdd(g){
   const used = GN.bfs.map(b => b.col), col = BF_COLS.find(c => !used.includes(c)) || BF_COLS[Math.floor(Math.random() * 3)], el = document.createElement('i'), left = Math.random() < .5;
-  el.className = 'bf'; el.innerHTML = bfHtml(col); GN.card.querySelector('.bfs').append(el);
+  el.className = 'bf'; el.innerHTML = bfHtml(col); el.style.setProperty('--fl', (.22 + Math.random() * .08).toFixed(3) + 's'); GN.card.querySelector('.bfs').append(el);
   const b = {el, col, x: left ? -16 : g.w + 16, y: g.cy - 50 + Math.random() * 100, vx: left ? 80 : -80, vy: -25, a: left ? 90 : -90, ph: Math.random() * 6.3,
-    th: left ? Math.PI : 0, dir: Math.random() < .5 ? -1 : 1, sp: .5 + Math.random() * .35, flee: false, sc: .9 + Math.random() * .25};
+    th: left ? Math.PI : 0, dir: Math.random() < .5 ? -1 : 1, sp: .5 + Math.random() * .35, mode: 'fly', until: 0, sc: .9 + Math.random() * .25, glideAt: performance.now() + 1500 + Math.random() * 3000, glideEnd: 0};
   GN.bfs.push(b); return b;
+}
+// a wave is one smooth motion worked out from the clock every frame: the hand lifts, swings to and fro and comes
+// back down. A tap waves big; on his own he waves a little smaller
+function gnWave(now, big){
+  GN.wave = {t0: now, dur: big ? 1900 : 1350, lift: big ? -47 : -41, amp: big ? 12 : 9, hz: 3.1};
+  GN.waveAt = now + 9000 + Math.random() * 6000;
+}
+function waveAngle(t){
+  const w = GN.wave; if(!w) return 0;
+  const e = t - w.t0; if(e >= w.dur){ GN.wave = null; return 0; }
+  const up = Math.min(1, e / 220), down = Math.min(1, (w.dur - e) / 300), env = Math.min(up, down), ease = env * env * (3 - 2 * env);
+  return ease * (w.lift + w.amp * Math.sin((e - 120) / 1000 * w.hz * 2 * Math.PI) * Math.min(1, e / 320));
 }
 function gnPlay(card){
   if(reduceMotion()) return;
   GN.card = card; const now = performance.now();
-  // the wave: lift the hand, waggle it three times, put it back
-  GN.seq = [[0, -30], [230, -19], [390, -33], [550, -19], [710, -31], [880, -21], [1180, 0]].map(([d, a]) => [now + d, a]);
+  gnWave(now, true);
   const fig = card.querySelector('.cp-fig'); fig.style.animation = 'none'; void fig.offsetWidth; fig.style.animation = '';
   // the butterflies take fright and come back a few seconds later
   // (when his box has just opened there are none yet, so they flutter in right away)
-  const had = GN.bfs.some(b => !b.flee);
-  GN.bfs.forEach(b => { b.flee = true; b.vx += (b.x < card.offsetWidth * .3 ? -1 : 1) * 160; b.vy -= 120; });
-  GN.backAt = now + (had ? 3400 : 500); GN.nextAt = GN.backAt;
+  const had = GN.bfs.some(b => b.mode !== 'flee');
+  GN.bfs.forEach(b => { b.mode = 'flee'; b.el.classList.remove('p', 'gl'); b.vx += (b.x < card.offsetWidth * .3 ? -1 : 1) * 160; b.vy -= 120; });
+  GN.backAt = now + (had ? 3400 : 500); GN.nextAt = GN.backAt; GN.noseAt = now + 7000 + Math.random() * 5000; GN.sniffs = [];
   gnLive();
 }
 function gnTick(t){
   GN.raf = 0;
   const card = gnCard();
-  if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.seq = []; GN.last = 0; return; }
+  if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.wave = null; GN.last = 0; GN.waveAt = GN.noseAt = 0; GN.geo = null; return; }
   bfDefine();
-  if(GN.card !== card){ GN.card = card; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
+  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.hand = card.querySelector('.gn-h'); GN.geo = null; GN.lean = GN.sc = ''; GN.eyes = false; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
+  if(!GN.waveAt) GN.waveAt = t + 6000 + Math.random() * 4000;
+  if(!GN.noseAt) GN.noseAt = t + 9000 + Math.random() * 6000;
   const dt = Math.min(.034, Math.max(.001, (t - (GN.last || t - 16)) / 1000)); GN.last = t;
-  const g = gnGeo(card);
+  // where he stands is read a few times a second, not every frame: reading layout each frame costs frames on a phone
+  if(!GN.geo || t - GN.geoAt > 200){ GN.geo = gnGeo(card); GN.geoAt = t; }
+  const g = GN.geo, fig = GN.fig;
   // three butterflies keep him company, coming in one at a time
-  if(t > GN.backAt && t > GN.nextAt && GN.bfs.filter(b => !b.flee).length < 3){ bfAdd(g); GN.nextAt = t + 650 + Math.random() * 500; }
-  // the hand
-  const H = GN.hand; while(GN.seq.length && t >= GN.seq[0][0]) H.t = GN.seq.shift()[1];
-  H.v += (-260 * (H.x - H.t) - 22 * H.v) * dt; H.x += H.v * dt;
-  if(Math.abs(H.x) < .05 && Math.abs(H.v) < .05 && !GN.seq.length) H.x = H.v = 0;
-  const he = card.querySelector('.gn-h'); if(he) he.style.transform = H.x ? 'rotate(' + H.x.toFixed(2) + 'deg)' : '';
+  if(t > GN.backAt && t > GN.nextAt && GN.bfs.filter(b => b.mode !== 'flee').length < 3){ bfAdd(g); GN.nextAt = t + 650 + Math.random() * 500; }
+  // now and then he waves on his own, or a butterfly comes down on his nose
+  const busy = GN.wave || GN.bfs.some(b => b.mode === 'land' || b.mode === 'perch');
+  if(t > GN.waveAt && !busy) gnWave(t, false);
+  if(t > GN.noseAt && !busy){
+    const free = GN.bfs.filter(b => b.mode === 'fly');
+    if(free.length){ const b = free.sort((p, q) => Math.hypot(p.x - g.nose.x, p.y - g.nose.y) - Math.hypot(q.x - g.nose.x, q.y - g.nose.y))[0]; b.mode = 'land'; b.el.classList.remove('gl'); }
+    GN.noseAt = t + 14000 + Math.random() * 8000;
+  }
+  // the hand, his lean into the wave, and his eyes, open while he waves or looks at a butterfly on his nose
+  const ha = waveAngle(t);
+  if(GN.hand) GN.hand.style.transform = ha ? 'rotate(' + ha.toFixed(2) + 'deg)' : '';
+  const eyes = !!GN.wave || GN.bfs.some(b => b.mode === 'perch');
+  if(eyes !== GN.eyes){ GN.eyes = eyes; fig.classList.toggle('eyes', eyes); }
+  // the sniff: two quick little breaths in while a butterfly sits on his nose
+  let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / 240; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
+  GN.sniffs = GN.sniffs.filter(s0 => t - s0 < 400);
+  const lean = ha ? (ha * .03).toFixed(3) + 'deg' : '', scl = sn ? (1 + .012 * sn).toFixed(4) + ' ' + (1 - .018 * sn).toFixed(4) : '';
+  if(lean !== GN.lean){ GN.lean = lean; fig.style.rotate = lean; }
+  if(scl !== GN.sc){ GN.sc = scl; fig.style.scale = scl; }
   for(const b of GN.bfs){
     let tx, ty, k = 16, c = 4.2;
-    if(b.flee){ tx = b.x < g.w * .3 ? -80 : g.w + 80; ty = b.y - 70; k = 9; c = 1.6; }
-    else { b.th += b.dir * b.sp * dt; tx = g.cx + Math.cos(b.th) * g.rx + Math.sin(t * .0017 + b.ph) * 10; ty = g.cy + Math.sin(b.th) * g.ry * .85 + Math.sin(t * .0023 + b.ph * 2) * 12; }
-    const ax = k * (tx - b.x) - c * b.vx + Math.sin(t * .011 + b.ph) * 70, ay = k * (ty - b.y) - c * b.vy + Math.cos(t * .0137 + b.ph) * 90;
-    b.vx += ax * dt; b.vy += ay * dt; b.x += b.vx * dt; b.y += b.vy * dt;
-    const want = Math.atan2(b.vy, b.vx) * 180 / Math.PI + 90, d = ((want - b.a + 540) % 360) - 180; b.a += d * Math.min(1, dt * 5);
-    b.el.style.transform = 'translate(' + b.x.toFixed(1) + 'px,' + (b.y + Math.sin(t * .021 + b.ph) * 1.6).toFixed(1) + 'px) rotate(' + b.a.toFixed(1) + 'deg) scale(' + b.sc + ')';
+    if(b.mode === 'perch'){
+      b.x = g.nose.x; b.y = g.nose.y; b.vx = b.vy = 0; b.a += (0 - b.a) * Math.min(1, dt * 6);
+      if(t > b.until){ b.mode = 'fly'; b.vy = -150; b.vx = (Math.random() - .5) * 120; b.el.classList.remove('p'); }
+    } else {
+      if(b.mode === 'flee'){ tx = b.x < g.w * .3 ? -80 : g.w + 80; ty = b.y - 70; k = 9; c = 1.6; }
+      else if(b.mode === 'land'){ tx = g.nose.x; ty = g.nose.y; k = 34; c = 10;
+        if(Math.hypot(tx - b.x, ty - b.y) < 2.5 && Math.hypot(b.vx, b.vy) < 22){ b.mode = 'perch'; b.until = t + 3300; b.el.classList.add('p'); GN.sniffs.push(t + 700, t + 1050, t + 2100); } }
+      else { b.th += b.dir * b.sp * dt; tx = g.cx + Math.cos(b.th) * g.rx + Math.sin(t * .0017 + b.ph) * 10; ty = g.cy + Math.sin(b.th) * g.ry * .85 + Math.sin(t * .0023 + b.ph * 2) * 12; }
+      const fl = b.mode === 'land' ? .35 : 1;
+      const ax = k * (tx - b.x) - c * b.vx + Math.sin(t * .011 + b.ph) * 70 * fl, ay = k * (ty - b.y) - c * b.vy + Math.cos(t * .0137 + b.ph) * 90 * fl;
+      b.vx += ax * dt; b.vy += ay * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+      const want = Math.atan2(b.vy, b.vx) * 180 / Math.PI + 90, d = ((want - b.a + 540) % 360) - 180; b.a += d * Math.min(1, dt * 5);
+      // a short glide now and then, wings held almost open
+      if(b.mode === 'fly' && t > b.glideAt && !b.glideEnd){ b.glideEnd = t + 450 + Math.random() * 700; b.el.classList.add('gl'); }
+      if(b.glideEnd && t > b.glideEnd){ b.glideEnd = 0; b.glideAt = t + 2500 + Math.random() * 4000; b.el.classList.remove('gl'); }
+    }
+    const perched = b.mode === 'perch', sc = perched || b.mode === 'land' ? b.sc * .62 : b.sc;
+    b.el.style.transform = 'translate3d(' + b.x.toFixed(2) + 'px,' + (b.y + (perched ? 0 : Math.sin(t * .021 + b.ph) * 1.6)).toFixed(2) + 'px,0) rotate(' + b.a.toFixed(2) + 'deg) scale(' + sc.toFixed(3) + ')';
   }
-  GN.bfs = GN.bfs.filter(b => { const gone = b.flee && (b.x < -40 || b.x > g.w + 40 || b.y < -40); if(gone) b.el.remove(); return !gone; });
+  GN.bfs = GN.bfs.filter(b => { const gone = b.mode === 'flee' && (b.x < -40 || b.x > g.w + 40 || b.y < -40); if(gone) b.el.remove(); return !gone; });
   GN.raf = requestAnimationFrame(gnTick);
 }
 
@@ -4881,6 +4943,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.23.0', date: '2026-10-21', items: [['gunnarwave2', 'Gunnar waves bigger and smoother when tapped, and now and then on his own'], ['eyes', 'Gunnar opens his eyes while he waves'], ['sniff', 'A butterfly sometimes lands on Gunnar\'s nose and he sniffs it'], ['wings', 'Butterflies beat their wings in 3D, glide and rest']]},
   {v: '4.22.0', date: '2026-10-21', items: [['bubble', 'A note bubble on every card opens how it went and your note, so the whole card always fits'], ['notespanel', 'Settings, Notes: every note and rating, by exercise'], ['halfkg', 'The weight slider moves in half kilos'], ['nudge', 'Tap beside the marker to move it one step, with a tick on iPhone. iPhone allows no ticks while you drag']]},
   {v: '4.21.2', date: '2026-10-21', items: [['nosuperset', 'No supersets: Claude no longer plans them and the app never shows one'], ['feelrow', 'Loved it, Good, Meh and Disliked sit as four even buttons across the card']]},
   {v: '4.21.1', date: '2026-10-21', items: [['fitcard', 'The whole flashcard fits during rest: How was it and the note show after the last set'], ['restroom', 'Cards use the room above the rest bar']]},
