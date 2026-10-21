@@ -898,7 +898,7 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .rng::-moz-range-progress { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--g1), var(--g2)); }
 .rng::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.28); }
 /* In slide mode the number of sets is a slider too, so the picker in the header goes */
-.ex[data-mode="slide"] .ex-acts .sel { display: none; }
+.ex[data-mode="slide"] .ex-acts .sel:not([data-warm-act]) { display: none; }
 .ex .wide { margin-top: 10px; }
 /* exercise notes: earlier notes you can swipe through, and a small field for today's */
 .nprev { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; margin: 10px -18px 0; padding: 0 18px; }
@@ -2617,8 +2617,11 @@ const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>', P
 function buildWarm(ex, mode){
   const el = document.createElement('article'), k = ex.k, row = inMeters(ex.name), cardio = !!ex.cardio;
   el.className = 'glass card ex warm' + (cardio ? ' cardio' : ''); el.dataset.key = cardKey(ex); el.dataset.k = k; el.dataset.mode = mode;
+  // time and distance follow the Weight and reps setting: plus and minus, or the same sliders as the exercises
+  const slide = mode === 'slide', mins = ex.min || 5;
+  const top = f => f === 'm' ? Math.max(600, mins * 120) : row ? Math.max(1000, Math.ceil(mins * 400 / 100) * 100) : Math.max(2, Math.ceil(mins * .6));
   const box = (f, label, st, ph) => '<div class="stp"><label for="in-' + k + '-' + f + '">' + label + '</label><input id="in-' + k + '-' + f + '" data-f="' + f + '" inputmode="' + (f === 'm' ? 'text' : 'decimal') + '" autocomplete="off" placeholder="' + ph + '" enterkeyhint="done">' +
-    '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
+    (slide ? '<input type="range" class="rng" data-k="' + k + '" data-rf="' + f + '" min="0" max="' + top(f) + '" step="' + (f === 'm' ? 15 : row ? 10 : .05) + '" value="0" aria-label="' + label + '"></div>' : '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>');
   const acts = cardio ? CARDIO_M.concat(CARDIO_M.includes(ex.name) ? [] : [ex.name]) : WARM_ACTS;
   const head = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + delBtn(k) + '</div></div>';
   // a warm-up has no timer: you type the time and distance from the machine, rate it, and mark it done or not done
@@ -2629,7 +2632,7 @@ function buildWarm(ex, mode){
     '<button class="last" data-r="lastb" hidden></button>' +
     '<div class="nprev" data-r="nprev" hidden></div><textarea class="field exn" data-exnote="' + k + '" rows="1" placeholder="' + (cardio ? 'Note, like level, damper or watts' : 'Note, like damper or level') + '" aria-label="Note for ' + esc(ex.name) + '"></textarea>' +
     '<div class="logged" data-r="logged"></div>' +
-    '<div data-r="entry"><div class="steppers duo">' + box('m', 'time', 1, '0:00') + box('d', warmUnit(ex.name), row ? 100 : .5, '0') + '</div>' +
+    '<div data-r="entry"><div class="steppers ' + (slide ? 'slide' : 'duo') + '">' + box('m', 'time', 1, '0:00') + box('d', warmUnit(ex.name), row ? 100 : .5, '0') + '</div>' +
     '<p class="pace" data-r="pace"></p>' +
     (cardio ? '<button class="btn-primary wide" data-a="warm-done" data-k="' + k + '">Done</button><button class="btn-quiet" data-a="skip" data-k="' + k + '" style="margin-top:4px">Skip ' + esc(ex.name) + '</button>'
       : '<div class="eff" data-r="eff"><p class="lab">How did it feel?</p><div class="eff-b" role="group" aria-label="How did it feel?">' + EFFORT.map(([v, l]) => '<button class="chip" data-a="effort" data-k="' + k + '" data-v="' + v + '" aria-pressed="false">' + l + '</button>').join('') + '</div></div>' +
@@ -2659,6 +2662,7 @@ function fillWarm(el, ex, s){
   const m = el.querySelector('#in-' + ex.k + '-m'), d = el.querySelector('#in-' + ex.k + '-d'), l = ex.log || {};
   if(m && !m.dataset.touched && document.activeElement !== m && m.value === '') m.value = l.sec ? mmss(l.sec) : ex.min ? mmss(ex.min * 60) : '';
   if(d && !d.dataset.touched && document.activeElement !== d && d.value === '' && l.distM) d.value = inMeters(ex.name) ? String(l.distM) : fmt(l.distM / 1000);
+  el.querySelectorAll('.rng[data-rf]').forEach(rg => { if(rg !== S.ui.sliding) syncRange(rg); });
   paintPace(el, ex);
   paintTimer(el, ex);
 }
@@ -2703,7 +2707,8 @@ function ctReset(k){ delete CT[k]; ctSave(); const el = $('#cards [data-k="' + k
 // pausing or reaching the end puts the timer's time in the time field, unless you typed one yourself
 function ctFill(k){
   const m = $('#in-' + k + '-m'), sec = Math.round(ctSec(CT[k])); if(!m || m.dataset.touched || sec < 5) return;
-  m.value = mmss(sec); const el = m.closest('.ex'), s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(el && ex) paintPace(el, ex);
+  m.value = mmss(sec); const rg = m.parentElement.querySelector('.rng'); if(rg) syncRange(rg);
+  const el = m.closest('.ex'), s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(el && ex) paintPace(el, ex);
 }
 function tickCardio(){
   const s = D && activeSession(); if(!s) return;
@@ -4781,6 +4786,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.20.1', date: '2026-10-21', items: [['warmslide', 'Warm-up and cardio use the same sliders as the exercises when Weight and reps is set to Slide'], ['warmact', 'The warm-up activity picker shows again with sliders on']]},
   {v: '4.20.0', date: '2026-10-21', items: [['warmlog', 'Warm-up logs time and distance from the machine, with the pace and how it compares with last time'], ['warmfeel', 'Rate the warm-up: Easy, Good or Hard'], ['notarget', 'No Target box on the cards. Reset sits by RIR once you change the numbers']]},
   {v: '4.19.0', date: '2026-10-21', items: [['coaches', 'Meet the coaches: tap one and it steps forward to say how it trains and who it suits'], ['gunnar', 'Gentle Gunnar, the calm coach for new lifters, with his own portrait'], ['setcoach', 'The same coach boxes in Settings, Coach']]},
   {v: '4.18.0', date: '2026-10-21', items: [['purple', 'Purple hides behind the Coach Claude card, peeks at you and drums his fingers. Tap him'], ['tabbar', 'The tab bar stays put: a haptic tick no longer counts as typing'], ['prefill', 'Every card starts on the recommended weight, reps and RIR, with no tips under it'], ['reset', 'Reset on a card puts the recommended numbers back after you change them'], ['warm', 'Warm-up is just Done or Not done, no timer']]},
@@ -4889,7 +4895,7 @@ window.addEventListener('resize', () => document.querySelectorAll('.rng').forEac
 const setsLabel = (o, n) => { if(!o) return; o.textContent = n ? String(n) : 'Free'; o.classList.toggle('free', !n); };
 function syncRange(rg){
   const inp = $('#in-' + rg.dataset.k + '-' + rg.dataset.rf); if(!inp) return;
-  const v = Math.max(0, num(inp.value) || 0);
+  const v = Math.max(0, (rg.dataset.rf === 'm' ? parseDur(inp.value) : num(inp.value)) || 0);
   // the weight slider spans half to one and a half times the starting weight, so each millimetre is a small step
   if(rg.dataset.rf === 'w' && !rg.dataset.top){ rg.dataset.top = '1'; rg.max = Math.max(60, Math.ceil((v * 1.5) / 10) * 10); rg.min = v >= 30 ? Math.floor(v * .5 / 10) * 10 : 0; }
   if(v > +rg.max) rg.max = rg.dataset.rf === 'w' ? Math.ceil((v * 1.25) / 10) * 10 : Math.ceil(v);
@@ -5033,7 +5039,7 @@ function startRm(){
 document.addEventListener('input', e => {
   const t = e.target; if(!t.classList) return;
   if(t.classList.contains('rng') && t.dataset.rf){
-    const inp = $('#in-' + t.dataset.k + '-' + t.dataset.rf), v = fmt(+t.value);
+    const inp = $('#in-' + t.dataset.k + '-' + t.dataset.rf), v = t.dataset.rf === 'm' ? mmss(+t.value) : fmt(+t.value);
     if(inp && inp.value !== String(v)){ inp.value = v; inp.dataset.touched = '1'; haptic(); }
     paintRange(t);
   } else if(t.classList.contains('rng') && t.dataset.sets){
