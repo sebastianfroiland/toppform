@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vibration test</title>
+<style>
+/* A test page for Plates: which kind of slider makes an iPhone tick while a finger drags. Open it on the phone,
+   drag each slider slowly and note the letters that tick. */
+:root { --bg: #f5f4ee; --card: #fbfaf6; --text: #1f1e1d; --dim: rgba(31,30,29,.6); --line: rgba(31,30,29,.1); --g1: #c96442; }
+@media (prefers-color-scheme: dark) { :root { --bg: #262624; --card: #30302e; --text: #f2f0e8; --dim: rgba(242,240,232,.6); --line: rgba(255,255,255,.1); --g1: #e08a6b; } }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 20px 16px 60px; background: var(--bg); color: var(--text); font: 16px/1.45 -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+h1 { font: 500 28px/1.2 ui-serif, Georgia, serif; margin: 6px 0 4px; }
+p.sub { color: var(--dim); margin: 0 0 18px; font-size: 14.5px; }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 16px; margin-bottom: 12px; }
+h2 { margin: 0 0 2px; font-size: 17px; display: flex; justify-content: space-between; align-items: baseline; }
+h2 b { color: var(--g1); font-size: 22px; margin-right: 8px; }
+h2 span { font-variant-numeric: tabular-nums; color: var(--dim); font-size: 14px; font-weight: 500; }
+small { display: block; color: var(--dim); font-size: 13px; margin-bottom: 12px; }
+input[type=range] { width: 100%; height: 34px; accent-color: var(--g1); }
+select { width: 100%; font-size: 17px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+.strip { position: relative; height: 44px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; }
+.strip i { position: absolute; top: 4px; bottom: 4px; width: 6px; margin-left: -3px; border-radius: 3px; background: var(--g1); left: 50%; }
+.taps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.taps button { height: 48px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 20px; }
+.hp { position: fixed; left: -200px; top: 0; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+</style>
+</head>
+<body>
+<h1>Vibration test</h1>
+<p class="sub">Drag each slider slowly from side to side. Note the letters that tick while your finger moves, not only when you let go. Check first that A tick works when you tap it.</p>
+
+<section><h2><span><b>A</b>Tap</span><span id="v-a">50</span></h2><small>Tap minus and plus. This should tick. If not, turn on System Haptics in Settings, Sounds and Haptics.</small>
+  <div class="taps"><button data-d="-1">−</button><button data-d="1">+</button></div></section>
+
+<section><h2><span><b>B</b>Plain slider</span><span id="v-b">50</span></h2><small>The phone's own slider, a tick on every step.</small>
+  <input type="range" id="r-b" min="0" max="100" value="50"></section>
+
+<section><h2><span><b>C</b>Plain slider, switch flipped directly</span><span id="v-c">50</span></h2><small>Same slider, ticked another way.</small>
+  <input type="range" id="r-c" min="0" max="100" value="50"></section>
+
+<section><h2><span><b>D</b>Slider with marks</span><span id="v-d">50</span></h2><small>The phone's slider with tick marks every 10.</small>
+  <input type="range" id="r-d" min="0" max="100" value="50" step="1" list="marks"><datalist id="marks"><option value="0"><option value="10"><option value="20"><option value="30"><option value="40"><option value="50"><option value="60"><option value="70"><option value="80"><option value="90"><option value="100"></datalist></section>
+
+<section><h2><span><b>E</b>Plates slider</span><span id="v-e">50</span></h2><small>Drag anywhere on the strip, the way the app does now.</small>
+  <div class="strip" id="s-e"><i></i></div></section>
+
+<section><h2><span><b>F</b>Wheel</span><span id="v-f">60 kg</span></h2><small>Tap it and spin the wheel.</small>
+  <select id="r-f"></select></section>
+
+<label class="hp" id="hp"><input type="checkbox" switch id="hp-i" tabindex="-1"></label>
+<script>
+const hp = document.getElementById('hp'), hpi = document.getElementById('hp-i');
+hp.addEventListener('click', e => e.stopPropagation());
+const tickLabel = () => { hp.click(); hpi.blur(); };
+const tickInput = () => { hpi.click(); hpi.blur(); };
+const show = (id, v) => { document.getElementById(id).textContent = v; };
+let a = 50;
+document.querySelectorAll('.taps button').forEach(b => b.addEventListener('click', () => { a += +b.dataset.d; show('v-a', a); tickLabel(); }));
+document.getElementById('r-b').addEventListener('input', e => { show('v-b', e.target.value); tickLabel(); });
+document.getElementById('r-c').addEventListener('input', e => { show('v-c', e.target.value); tickInput(); });
+document.getElementById('r-d').addEventListener('input', e => { show('v-d', e.target.value); if(+e.target.value % 10 === 0) tickLabel(); });
+// E: the app's own way, a strip that follows the finger
+const s = document.getElementById('s-e'), m = s.querySelector('i'); let drag = null, ev = 50;
+s.addEventListener('pointerdown', e => { drag = {x: e.clientX, v: ev}; s.setPointerCapture(e.pointerId); tickLabel(); });
+s.addEventListener('pointermove', e => { if(!drag) return; const v = Math.max(0, Math.min(100, Math.round(drag.v + (e.clientX - drag.x) / s.clientWidth * 100))); if(v !== ev){ ev = v; m.style.left = v + '%'; show('v-e', v); tickLabel(); } });
+s.addEventListener('pointerup', () => { drag = null; tickLabel(); });
+document.addEventListener('touchmove', e => { if(drag) e.preventDefault(); }, {passive: false});
+const f = document.getElementById('r-f');
+for(let w = 20; w <= 140; w += 2.5) f.insertAdjacentHTML('beforeend', '<option' + (w === 60 ? ' selected' : '') + '>' + w + ' kg</option>');
+f.addEventListener('change', () => show('v-f', f.value));
+</script>
+</body>
+</html>
