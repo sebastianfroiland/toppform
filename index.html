@@ -1249,7 +1249,7 @@ const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
 const ACCENTS = {clay:['#d97757','#d97757'], aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a'], grape:['#9a5dff','#ff5fa8'], gold:['#f5a524','#ff6a3d'], mint:['#00b89c','#5ac8fa'], cherry:['#ff3b5c','#a33bff']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false};
+const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true};
 const WARM_ACTS = ['Row','Bike','SkiErg','Elliptical','Run','Walk','Mobility','Other'];
 // Machines for a cardio workout, one card each. Row and SkiErg show metres like the Concept2 screens, the rest km.
 const CARDIO_M = ['Bike','SkiErg','Row','Run','Elliptical','Walk'];
@@ -2434,7 +2434,7 @@ function finish(){
   if(!n && !cur.note && !cur.knee && !(cur.exercises || []).some(e => e.log)){ queue('delete', 'sessions', s.id); toast('Empty workout removed'); }
   else if(isCardioS(cur)){ const t = cardioTotals(cur); updateSession(s.id, Object.assign(t, {endedAt: Date.now()})); toast('Cardio saved' + (t.durationSec ? ' · ' + fmtDur(Math.round(t.durationSec / 60) * 60) : '')); }
   else { updateSession(s.id, {endedAt: s.loggedAt ? s.startedAt + Math.min(Date.now() - s.loggedAt, 3 * 3600e3) : Date.now()}); if(s.template === 'F') saveQuick(vmap('sessions').get(s.id)); toast('Workout saved · ' + plural(n, 'set')); }
-  S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.expanded.clear(); S.ui.noteFor = null;
+  S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.expanded.clear(); S.ui.noteFor = null; lockCardClear();
   for(const k of Object.keys(CT)) delete CT[k]; ctSave();
   selectTab(0);
 }
@@ -2456,7 +2456,7 @@ function openPast(d){
 function deleteSession(id){
   for(const x of setsOf(id)) queue('delete', 'sets', x.id);
   queue('delete', 'sessions', id);
-  if(S.activeId === id){ S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.noteFor = null; }
+  if(S.activeId === id){ S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.noteFor = null; lockCardClear(); }
 }
 
 /* ---------- log (calendar) ---------- */
@@ -3279,12 +3279,13 @@ function tickRest(){
 /* Rest alert: a phone notification when the rest is over. iPhone allows it for the home screen app once you say yes.
    The timer runs in the app, so the alert comes while Plates is open or just put away (Keep screen on helps). */
 const notifyOK = () => 'Notification' in window && Notification.permission === 'granted';
-async function askNotify(btn){
-  if(!('Notification' in window)){ toast('Add Plates to your home screen first'); saveSettings({notify: false}); btn.setAttribute('aria-checked', 'false'); return; }
+async function askNotify(btn, key){
+  key = key || 'notify';
+  if(!('Notification' in window)){ toast('Add Plates to your home screen first'); saveSettings({[key]: false}); btn.setAttribute('aria-checked', 'false'); return; }
   let p = Notification.permission;
   try{ if(p === 'default') p = await Notification.requestPermission(); }catch(e){}
-  if(p !== 'granted'){ toast('Allow notifications for Plates in iPhone Settings'); saveSettings({notify: false}); btn.setAttribute('aria-checked', 'false'); return; }
-  toast('Rest alerts on');
+  if(p !== 'granted'){ toast('Allow notifications for Plates in iPhone Settings'); saveSettings({[key]: false}); btn.setAttribute('aria-checked', 'false'); return; }
+  toast(key === 'lockCard' ? 'Lock screen card on' : 'Rest alerts on');
 }
 async function notifyRest(r){
   if(!ST().notify || !notifyOK()) return;
@@ -3296,6 +3297,48 @@ async function notifyRest(r){
   }catch(e){}
 }
 setInterval(() => { tickRest(); tickCardio(); }, 500);
+
+/* Lock screen card. iPhone gives web apps no Live Activities or lock screen widgets, so the closest thing is a single
+   notification that stands in for one: posted the moment you lock the phone or switch app during a workout, and
+   cleared when you come back, finish or discard. A locked phone pauses web apps, so the card shows the workout as it
+   was when you left; the clock times on it (when you started, when the rest ends) stay true while it sits there. */
+const LC_TAG = 'workout';
+let swReg = null;
+try{ navigator.serviceWorker && navigator.serviceWorker.ready.then(r => { swReg = r; if(!document.hidden) lockCardClear(); }); }catch(e){}
+function lockCardText(s){
+  const xs = (s.exercises || []).filter(e => !e.warm), sets = setsOf(s.id);
+  let done = 0, total = 0, exDone = 0, next = '';
+  for(const e of xs){
+    const n = isCardioS(s) ? (e.log ? 1 : 0) : sets.filter(x => x.exercise === e.name).length;
+    // Free sets count as three until you log more
+    const plan = isCardioS(s) ? 1 : e.skip ? n : (+e.planned || Math.max(n, 3));
+    done += Math.min(n, plan); total += plan;
+    if(e.skip || n >= plan) exDone++; else if(!next) next = e.name;
+  }
+  const pct = total ? Math.round(done / total * 100) : 0, cells = Math.round(pct / 10);
+  const min = Math.max(0, Math.round((Date.now() - (s.startedAt || Date.now())) / 60000));
+  const r = S.ui.rest, restEnd = r && !isCardioS(s) ? r.start + r.target * 1000 : 0;
+  const lines = [
+    (isCardioS(s) ? '' : plural(sets.length, 'set') + ' · ') + exDone + ' of ' + xs.length + ' ' + (isCardioS(s) ? 'machine' : 'exercise') + (xs.length === 1 ? '' : 's'),
+    restEnd > Date.now() ? 'Next set at ' + fClock.format(restEnd) + (next ? ' · ' + next : '') : next ? 'Up next · ' + next : xs.length ? 'All done · tap to finish' : 'Add your first exercise',
+    '▰'.repeat(cells) + '▱'.repeat(10 - cells) + '  ' + pct + '%'
+  ];
+  return {title: (s.title || 'Workout') + ' · ' + (min < 60 ? min + ' min' : Math.floor(min / 60) + ' h ' + (min % 60) + ' min'), body: lines.join('\n')};
+}
+let lcAt = 0;
+function lockCardShow(){
+  try{
+    if(Date.now() - lcAt < 1500) return;
+    if(!D || ST().lockCard === false || !notifyOK() || !swReg) return;
+    const s = activeSession(); if(!s || s.loggedAt) return;
+    const c = lockCardText(s); lcAt = Date.now();
+    swReg.showNotification(c.title, {body: c.body, tag: LC_TAG, renotify: false, silent: true, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: {url: './#workout'}}).catch(() => {});
+  }catch(e){}
+}
+function lockCardClear(){
+  try{ if(swReg && swReg.getNotifications) swReg.getNotifications({tag: LC_TAG}).then(ns => ns.forEach(n => n.close())).catch(() => {}); }catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if(document.hidden) lockCardShow(); else lockCardClear(); });
 
 /* ---------- sheets ---------- */
 function openSheet(mode, headHtml, bodyHtml, tall){
@@ -3607,6 +3650,7 @@ function renderSettings(){
     srow('Rest, isolation', '', sel('restI', [[45,'0:45'],[60,'1:00'],[90,'1:30'],[120,'2:00']], st.restI)) +
     srow('Sound after rest', '', sw('sound', st.sound)) +
     srow('Rest alert', 'A notification when rest is over', sw('notify', st.notify && notifyOK())) +
+    srow('Lock screen card', 'Time, sets and progress when you lock the phone', sw('lockCard', st.lockCard !== false && notifyOK())) +
     srow('Warm-up', 'Added first in every workout', sel('warm', [['', 'None']].concat(WARM_ACTS.map(a => [a, a])), st.warm)) +
     (st.warm ? srow('Warm-up time', '', sel('warmMin', [[3,'3 min'],[5,'5 min'],[8,'8 min'],[10,'10 min'],[15,'15 min']], st.warmMin)) : '') +
     srow('Jump to next exercise', 'When the last set is logged', sw('autoNext', st.autoNext !== false)) +
@@ -3721,6 +3765,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.12.0', date: '2026-10-21', items: [['lockcard', 'Lock screen card: lock the phone during a workout and see time, sets, exercises and progress']]},
   {v: '4.11.0', date: '2026-10-21', items: [['prefs', 'Exercise preferences in Settings: Love, Fine or Avoid for every exercise, with a reason if you like'], ['libtag', 'Loved and avoided exercises are marked when you add one']]},
   {v: '4.10.2', date: '2026-10-21', items: [['haptic2', 'Haptics that work on new iPhones: every button, RIR, switch and tap on a slider ticks']]},
   {v: '4.10.1', date: '2026-10-21', items: [['haptic', 'Sliders, RIR and logged sets tick on iPhone too'], ['forearms', 'Forearm and rotator cuff exercises in the library and on the body map'], ['rirtarget', 'Targets show the RIR to aim for']]},
@@ -4123,7 +4168,7 @@ document.addEventListener('click', e => {
     }
     case 'settings': openSettings(); break;
     case 'settings-close': closeSettings(); break;
-    case 'set-switch': { const k = b.dataset.k, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); saveSettings({[k]: v}); if(k === 'sound' && v){ ensureAudio(); beep(); } if(k === 'notify' && v) askNotify(b); break; }
+    case 'set-switch': { const k = b.dataset.k, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); saveSettings({[k]: v}); if(k === 'sound' && v){ ensureAudio(); beep(); } if((k === 'notify' || k === 'lockCard') && v) askNotify(b, k); if(k === 'lockCard' && !v) lockCardClear(); break; }
     case 'set-seg': { const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); saveSettings({[b.dataset.k]: b.dataset.v}); break; }
     case 'gh-connect': ghConnect(b); break;
     case 'gh-skip': S.ui.skipConnect = true; renderToday(); break;
