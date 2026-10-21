@@ -859,7 +859,12 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .last b { color: var(--text); font-weight: 600; }
 .target { margin-top: 10px; padding: 9px 12px; border-radius: 15px; background: color-mix(in srgb, var(--g1) 11%, var(--fill)); border: 1px solid color-mix(in srgb, var(--g1) 30%, var(--line)); font-size: 13.5px; }
 .target b { font-weight: 700; font-variant-numeric: tabular-nums; }
-.target span { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
+.target:has(.tg-reset) { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding-block: 6px; }
+.tg-l { min-width: 0; }
+.tg-reset { flex: none; min-height: 28px; padding: 0 11px; font-size: 13px; animation: tg-in .35s var(--spring); }
+@keyframes tg-in { from { opacity: 0; transform: scale(.7); } }
+.wdone { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.wdone button { min-height: 52px; font-size: 16px; }
 .badge { display: inline-flex; margin-top: 10px; padding: 4px 11px; border-radius: 999px; background: var(--accent-grad); color: var(--on-grad); font-size: 12px; font-weight: 600; }
 .logged { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .logged:empty { display: none; }
@@ -1044,30 +1049,21 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .coach-top .chip { min-height: 30px; padding: 0 11px; font-size: 13px; }
 .coach .report { margin-top: 10px; }
 .coach .fbmeta { margin: 8px 0 0; }
-/* Purple, the mascot, peeks over the top of the Coach Claude card with his coffee. The inner band clips him at the card's edge;
-   what he says sits outside it, so a long line can hang over the card. */
-.pp { position: relative; z-index: 2; height: 70px; margin-top: -16px; pointer-events: none; }
-.pp-clip { position: absolute; inset: 0; clip-path: inset(-150px -90px 0 -90px); }
+/* Purple, the mascot, hides behind the Coach Claude card with his hands on its edge and peeks at you now and then.
+   Head, cap and the backs of his hands sit in a box that ends at the card's edge, so they vanish behind it; his fingers
+   hang over the front. They are moved by springs in purpleTick, not by transitions, so he stretches, squashes and wobbles. */
+.pp { position: relative; z-index: 2; height: 58px; margin-top: -14px; pointer-events: none; }
 #notice:not([hidden]) ~ .pp, #connect:not([hidden]) ~ .pp { margin-top: 0; }
-.pp-btn { position: absolute; right: 22px; top: 0; width: 58px; height: 128px; padding: 0; border: 0; border-radius: 0; background: none; pointer-events: auto; transform-origin: 50% 100%; -webkit-tap-highlight-color: transparent; }
-.pp-fig { position: absolute; inset: 0; transform: translateY(105%); }
-.pp.go .pp-fig { animation: pp-rise .95s var(--spring) .2s both; }
-.pp.in .pp-fig { transform: none; }
-.pp-fig img { display: block; width: 100%; height: 100%; transform-origin: 50% 100%; animation: pp-idle 9s ease-in-out infinite; }
-.pp-btn.hop { animation: pp-hop .6s ease-out; }
-.pp-steam { position: absolute; left: 1px; top: 37px; width: 13px; height: 14px; color: var(--dim); }
-.pp-steam b { position: absolute; bottom: 0; left: 1px; width: 3px; height: 9px; border-radius: 3px; background: currentColor; opacity: 0; animation: pp-steam 2.8s ease-out infinite; }
-.pp-steam b:nth-child(2) { left: 5px; animation-delay: .95s; }
-.pp-steam b:nth-child(3) { left: 9px; animation-delay: 1.9s; }
-.pp-say { position: absolute; right: 88px; bottom: -6px; max-width: min(220px, calc(100% - 110px)); padding: 8px 12px; border-radius: 16px 16px 4px 16px; background: var(--float); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.12); font-size: 14px; line-height: 1.3; color: var(--text); transform-origin: 100% 100%; animation: pp-say .45s var(--spring) both; }
-.pp-say.out { animation: pp-out .25s ease-in both; }
-@keyframes pp-rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
-@keyframes pp-idle { 0%, 40%, 78%, 100% { transform: none; } 20%, 60% { transform: translateY(-1.5px) scaleY(1.012); } 85%, 92% { transform: rotate(-3.5deg); } }
-@keyframes pp-hop { 0%, 100% { transform: none; } 18% { transform: translateY(2px) scale(1.05, .93); } 48% { transform: translateY(-16px) scale(.96, 1.05); } 74% { transform: translateY(0) scale(1.04, .95); } }
-@keyframes pp-steam { 0% { opacity: 0; transform: translateY(0) scaleY(.6); } 25% { opacity: .55; } 100% { opacity: 0; transform: translate(2px, -16px) scaleY(1.3); } }
-@keyframes pp-say { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
-@keyframes pp-out { to { opacity: 0; transform: scale(.85); } }
-@media (prefers-reduced-motion: reduce) { .pp.go .pp-fig { animation: none; transform: none; } .pp-fig img, .pp-steam b, .pp-btn.hop { animation: none; } }
+.pp-g { position: absolute; right: 24px; top: 0; width: 96px; height: 68px; }
+.pp-clip { position: absolute; left: -20px; right: -20px; top: -70px; height: 128px; overflow: hidden; }
+.pp-head, .pp-cap { position: absolute; left: 38px; top: 73.5px; width: 62.8px; height: 63.6px; transform-origin: 55% 86%; will-change: transform; }
+.pp-cap { transform-origin: 50% 40%; }
+.pp-ht { position: absolute; top: 122px; width: 22px; height: 6px; will-change: transform; }
+.pp-ht.l { left: 28px; } .pp-ht.r { left: 86px; }
+.pp-f { position: absolute; top: 58px; width: 22px; height: 10px; transform-origin: 50% 0; will-change: transform; }
+.pp-f.l { left: 8px; } .pp-f.r { left: 66px; }
+.pp img { display: block; width: 100%; height: 100%; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+.pp-tap { position: absolute; left: 0; top: 0; width: 96px; height: 68px; padding: 0; border: 0; border-radius: 14px; background: none; pointer-events: auto; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
 .chat { display: flex; flex-direction: column; margin: 0 2px 12px; }
 .chat .thread { margin-top: 0; }
 .msg.plan { max-width: 92%; background: color-mix(in srgb, var(--g1) 10%, var(--glass)); border-color: color-mix(in srgb, var(--g1) 30%, var(--line)); margin-bottom: 8px; }
@@ -1310,7 +1306,7 @@ button.day:active { transform: scale(.94); }
     <header class="top"><h1 id="today-title">Today</h1><small><span class="status" data-s="busy"></span></small></header>
     <article class="glass card notice" id="notice" hidden></article>
     <article class="glass card" id="connect" hidden></article>
-    <div class="pp" id="pp"><div class="pp-clip"><button class="pp-btn" data-a="purple" aria-label="Purple"><span class="pp-fig"><img src="art/purple.webp" alt="" width="217" height="480" decoding="async" onerror="this.closest('.pp').hidden = true"><i class="pp-steam"><b></b><b></b><b></b></i></span></button></div></div>
+    <div class="pp" id="pp" hidden><div class="pp-g"><div class="pp-clip"><span class="pp-head"><img src="art/pp-head.webp" alt="" width="188" height="191" decoding="async" onerror="this.closest('.pp').remove()"></span><span class="pp-cap"><img src="art/pp-cap.webp" alt="" width="188" height="191" decoding="async"></span><span class="pp-ht l"><img src="art/pp-hand-top.webp" alt=""></span><span class="pp-ht r"><img src="art/pp-hand-top.webp" alt=""></span></div><span class="pp-f l"><img src="art/pp-hand-fing.webp" alt=""></span><span class="pp-f r"><img src="art/pp-hand-fing.webp" alt=""></span><button class="pp-tap" data-a="purple" aria-label="Purple"></button></div></div>
     <article class="glass card coach" id="coach"></article>
     <div class="chat" id="chat"></div>
   </div></section>
@@ -1429,6 +1425,7 @@ button.day:active { transform: scale(.94); }
         hapEl.append(i); hapEl.addEventListener('click', e => e.stopPropagation()); document.body.append(hapEl);
       }
       hapEl.click();
+      if (document.activeElement === hapEl.firstChild) hapEl.firstChild.blur();   // the tick must not take the focus
     } catch (e) {}
   };
   function spring(x, k = 300, zeta = .75) { return { x, v: 0, t: x, k, zeta }; }
@@ -1712,16 +1709,23 @@ function todaysPlan(){
   return [...D.plans.values()].filter(p => p && p.date && p.date <= t && dayDiff(t, p.date) <= 1).sort((a,b) => a.date < b.date ? 1 : -1)[0] || null;
 }
 const targetFor = name => { const p = todaysPlan(); return p && p.targets ? p.targets[name] || null : null; };
+// RIR in a plan can be a range like "1-2": the card starts on the first number
+const rirNum = v => { const m = v == null ? null : String(v).match(/\d+/); return m ? Math.min(5, +m[0]) : null; };
+/* What a card recommends: the target in Claude's plan for today, else the next step from last time. The card starts
+   on it and the Reset button on the card goes back to it. */
+function recFor(name, sid){
+  const tg = targetFor(name);
+  if(tg && tg.w != null) return {w:tg.w, r:tg.lo || tg.hi || null, rir:rirNum(tg.rir)};
+  const last = lastSession(name, sid);
+  if(!last) return {w:null, r:null, rir:null};
+  const s = last.sets[0], info = infoOf(name), step = ST().step;
+  if(ready(last)) return {w: info.bw === 'assist' ? Math.max(0,(s.weight||0)-step) : (s.weight||0)+step, r:8, rir:s.rir != null ? s.rir : null};
+  return {w:s.weight, r:s.reps, rir:s.rir != null ? s.rir : null};
+}
 function prefill(name, sid){
   const t = todaySets(name, sid);
   if(t.length){ const l = t[t.length-1]; return {w:l.weight, r:l.reps, rir:l.rir}; }
-  const tg = targetFor(name);
-  if(tg && tg.w != null) return {w:tg.w, r:tg.lo || null};
-  const last = lastSession(name, sid);
-  if(!last) return {w:null, r:null};
-  const s = last.sets[0], info = infoOf(name), step = ST().step;
-  if(ready(last)) return {w: info.bw === 'assist' ? Math.max(0,(s.weight||0)-step) : (s.weight||0)+step, r:8};
-  return {w:s.weight, r:s.reps};
+  return recFor(name, sid);
 }
 const wTxt = (w, info) => info.bw === 'bw' ? (w ? '+' + fmt(w) : 'BW') : info.bw === 'assist' ? (w ? '−' + fmt(w) : 'BW') : fmt(w);
 // RIR is reps in reserve. Older sets logged partial reps after failure instead, shown as +N.
@@ -2154,36 +2158,115 @@ function checkinStreak(){
   while(D.checkins.has(d)){ n++; d = addDays(d, -1); }
   return n;
 }
-/* Purple, the mascot: rises behind the Coach Claude card when Today comes up, and says something when tapped */
-const PP_LINES = ['Coffee first. Then plates.', 'Small steps, big plates.', 'You showed up. That\'s the hard part.', 'Nice cap, right?', 'Hydrate. Then dominate.', 'I believe in your legs.', 'One more set. I\'m watching.'];
-let ppAt = 0, ppLast = '', ppT = null;
+/* Purple, the mascot: climbs up behind the Coach Claude card when Today comes up (one hand, the other, then a careful
+   look), peeks at you now and then, drums his fingers while he waits, and when tapped jumps with fright and drops out of
+   sight: his cap flies up, hangs in the air for a moment, wobbles and falls after him. Then he climbs back.
+   Every part rides a spring (y in px from the peek position, r in degrees), and speed stretches and squashes him. */
+const PP = {at: 0, loop: null, busy: false, timers: [], raf: 0, t0: 0, mode: 'spring', hang: 0, state: 'gone'};
+const PP_REST = 40.5, PP_GONE = 68;
+const ppS = (x, k, z) => ({x, v: 0, t: x, k, z});
+const PV = {hy: ppS(PP_GONE, 170, .48), hr: ppS(0, 150, .42), cy: ppS(PP_GONE, 300, .36), cr: ppS(0, 230, .32),
+  tl: ppS(9, 320, .5), tr: ppS(9, 320, .5), fl: ppS(0, 420, .42), fr: ppS(0, 420, .42)};
+const ppEl = () => $('#pp');
+let ppN = null;
+function ppNodes(){
+  const el = ppEl(); if(!el) return null;
+  if(!ppN || !el.contains(ppN.head)) ppN = {head: el.querySelector('.pp-head'), cap: el.querySelector('.pp-cap'), tl: el.querySelector('.pp-ht.l'), tr: el.querySelector('.pp-ht.r'), fl: el.querySelector('.pp-f.l'), fr: el.querySelector('.pp-f.r')};
+  return ppN;
+}
+function ppDraw(){
+  const n = ppNodes(); if(!n) return;
+  const stretch = v => { const s = Math.max(-.08, Math.min(.12, -v / 2000)); return (1 - s * .55).toFixed(3) + ',' + (1 + s).toFixed(3); };
+  n.head.style.transform = 'translateY(' + PV.hy.x.toFixed(2) + 'px) rotate(' + PV.hr.x.toFixed(2) + 'deg) scale(' + stretch(PV.hy.v) + ')';
+  n.cap.style.transform = 'translateY(' + PV.cy.x.toFixed(2) + 'px) rotate(' + PV.cr.x.toFixed(2) + 'deg) scale(' + stretch(PV.cy.v) + ')';
+  n.tl.style.transform = 'translateY(' + PV.tl.x.toFixed(2) + 'px)';
+  n.tr.style.transform = 'translateY(' + PV.tr.x.toFixed(2) + 'px) scaleX(-1)';
+  n.fl.style.transform = 'scaleY(' + Math.max(0, PV.fl.x).toFixed(3) + ')';
+  n.fr.style.transform = 'scaleY(' + Math.max(0, PV.fr.x).toFixed(3) + ') scaleX(-1)';
+}
+function ppStep(s, dt){ const a = s.k * (s.t - s.x) - 2 * Math.sqrt(s.k) * s.z * s.v; s.v += a * dt; s.x += s.v * dt; return Math.abs(s.t - s.x) > .04 || Math.abs(s.v) > .4; }
+function purpleTick(t){
+  const dt = Math.min((t - PP.t0) / 1000, 1 / 30); PP.t0 = t;
+  let moving = false;
+  if(PP.mode === 'drop'){
+    const g = 2600;
+    PV.hy.v += g * dt; PV.hy.x += PV.hy.v * dt;
+    if(PP.hang > 0){ PP.hang -= dt; PV.cy.v *= Math.pow(.00002, dt); PV.cy.x += PV.cy.v * dt; PV.cr.t = Math.sin(t / 65) * 9 * Math.min(1, PP.hang * 3); }
+    else { PV.cy.v += g * dt; PV.cy.x += PV.cy.v * dt; PV.cr.t = 0; }
+    for(const k of ['hr', 'cr', 'tl', 'tr', 'fl', 'fr']) moving = ppStep(PV[k], dt) || moving;
+    moving = moving || PV.hy.x < 95 || PV.cy.x < 95;
+    if(PV.hy.x >= 95 && PV.cy.x >= 95){ moving = false; }
+  } else {
+    // the cap rides on the head but a beat behind it, and tips a little further than the head does
+    PV.cy.t = PV.hy.x; PV.cr.t = PV.hr.x * 1.3 + Math.max(-9, Math.min(9, PV.hy.v * .014));
+    for(const k in PV) moving = ppStep(PV[k], dt) || moving;
+  }
+  ppDraw();
+  PP.raf = moving ? requestAnimationFrame(purpleTick) : 0;
+  if(!moving && PP.mode === 'drop') ppGone();
+}
+function ppKick(){ if(!PP.raf){ PP.t0 = performance.now(); PP.raf = requestAnimationFrame(purpleTick); } }
+function ppTo(o){ for(const k in o) PV[k].t = o[k]; ppKick(); }
+function ppLater(fn, ms){ PP.timers.push(setTimeout(fn, ms)); }
+function ppClear(){ PP.timers.forEach(clearTimeout); PP.timers = []; clearTimeout(PP.loop); }
+function ppPlace(o){ for(const k in o){ PV[k].x = PV[k].t = o[k]; PV[k].v = 0; } ppDraw(); }
+function ppGone(){
+  PP.mode = 'spring'; PP.state = 'gone';
+  ppPlace({hy: PP_GONE, cy: PP_GONE, hr: 0, cr: 0, tl: 9, tr: 9, fl: 0, fr: 0});
+}
+function ppClimb(){
+  // one hand on the edge, then the other, a pull, and up comes the top of his cap
+  PP.busy = true; PP.state = 'climb';
+  ppTo({tl: 0}); ppLater(() => ppTo({fl: 1.25}), 90); ppLater(() => ppTo({fl: 1}), 260);
+  ppLater(() => ppTo({tr: 0}), 260); ppLater(() => ppTo({fr: 1.25}), 350); ppLater(() => ppTo({fr: 1}), 520);
+  ppLater(() => ppTo({tl: 1.2, tr: 1.2, fl: 1.12, fr: 1.12}), 650);          // effort: hands press, fingers grip
+  ppLater(() => ppTo({hy: PP_REST, tl: 0, tr: 0, fl: 1, fr: 1}), 760);
+  ppLater(() => { PP.busy = false; PP.state = 'rest'; ppPeek('look'); ppIdle(); }, 1500);
+}
+const PP_PEEKS = ['look', 'look', 'pop', 'lean', 'nod', 'drum'];
+function ppPeek(kind){
+  if(PP.busy || PP.state !== 'rest' || S.tab !== 0 || document.hidden) return;
+  kind = kind || PP_PEEKS[Math.floor(Math.random() * PP_PEEKS.length)];
+  PP.busy = true;
+  const back = ms => ppLater(() => { ppTo({hy: PP_REST, hr: 0}); ppLater(() => { PP.busy = false; }, 450); }, ms);
+  if(kind === 'look'){        // up, a look one way and the other, down
+    ppTo({hy: 3}); ppLater(() => ppTo({hy: 0, hr: -7}), 380); ppLater(() => ppTo({hr: 6}), 1000); ppLater(() => ppTo({hr: -1}), 1550); back(2000);
+  } else if(kind === 'pop'){  // a quick pop up, as if he heard something
+    PV.hy.k = 420; ppTo({hy: -4}); ppLater(() => { PV.hy.k = 170; }, 500); back(650);
+  } else if(kind === 'lean'){ // leans out to the side to see you better
+    ppTo({hy: 8, hr: -15}); ppLater(() => ppTo({hr: -10}), 900); back(1500);
+  } else if(kind === 'nod'){  // up, and a little nod
+    ppTo({hy: 0}); ppLater(() => ppTo({hy: 5}), 700); ppLater(() => ppTo({hy: 0}), 900); ppLater(() => ppTo({hy: 4}), 1100); ppLater(() => ppTo({hy: 0}), 1300); back(1800);
+  } else {                    // drums his fingers on the edge while he waits
+    const tap = (k, ms) => { ppLater(() => ppTo({[k]: 1.22}), ms); ppLater(() => ppTo({[k]: 1}), ms + 110); };
+    [0, 180, 360, 540].forEach((ms, i) => tap(i % 2 ? 'fr' : 'fl', ms));
+    ppLater(() => { PP.busy = false; }, 800);
+  }
+}
+function ppIdle(){ clearTimeout(PP.loop); PP.loop = setTimeout(() => { ppPeek(); ppIdle(); }, 3800 + Math.random() * 4200); }
 function purpleShow(force){
-  const el = $('#pp'); if(!el || el.hidden) return;
-  const now = Date.now(); if(!force && now - ppAt < 20000) return; ppAt = now;
-  if(reduceMotion()){ el.classList.add('in'); return; }
-  el.classList.remove('go', 'in'); void el.offsetWidth; el.classList.add('go');
+  const el = ppEl(); if(!el || PP.mode === 'drop') return;   // a jump in progress finishes and climbs back by itself
+  const now = Date.now(); if(!force && now - PP.at < 20000) return; PP.at = now;
+  ppClear(); PP.busy = false;
+  if(el.hidden){ ppGone(); el.hidden = false; }
+  if(reduceMotion()){ PP.state = 'rest'; ppPlace({hy: 0, cy: 0, hr: 0, cr: 0, tl: 0, tr: 0, fl: 1, fr: 1}); return; }
+  if(PP.state === 'gone') ppLater(ppClimb, 300);
+  else { PP.state = 'rest'; ppTo({hy: PP_REST, hr: 0, tl: 0, tr: 0, fl: 1, fr: 1}); ppLater(() => ppPeek('look'), 500); ppIdle(); }
 }
-function purpleLine(){
-  const plan = D ? todaysPlan() : null, act = D ? activeSession() : null, now = [];
-  if(act) now.push('Go get it. I\'ll hold the coffee.');
-  else if(plan && plan.suggest === 'rest') now.push('Rest day. Coffee day.');
-  else if(plan && plan.suggest === 'cardio') now.push('Cardio today. I\'ll cheer from here.');
-  else if(plan && plan.message) now.push('Today\'s plan is ready. Let\'s lift.');
-  const pool = (now.length && Math.random() < .6 ? now : PP_LINES).filter(l => l !== ppLast);
-  return ppLast = pool[Math.floor(Math.random() * pool.length)] || PP_LINES[0];
-}
-function purpleTap(b){
-  haptic();
-  b.classList.remove('hop'); void b.offsetWidth; b.classList.add('hop');
-  const el = $('#pp'), old = el.querySelector('.pp-say');
-  if(old) old.remove();
-  const say = document.createElement('div'); say.className = 'pp-say'; say.textContent = purpleLine(); el.append(say);
-  clearTimeout(ppT); ppT = setTimeout(() => { say.classList.add('out'); setTimeout(() => say.remove(), 260); }, 3200);
+function purpleTap(){
+  if(PP.state === 'gone' || PP.mode === 'drop' || reduceMotion()) return;
+  ppClear(); PP.busy = true; PP.state = 'drop'; haptic();
+  // a fright: he jumps, the cap jumps higher and stays up there while he drops out of sight
+  PP.mode = 'drop'; PP.hang = .55;
+  PV.hy.v = -330 - Math.max(0, PV.hy.x) * 4.5; PV.cy.v = PV.hy.v - 120;
+  PV.hr.t = 0; PV.tl.t = PV.tr.t = 10; PV.fl.t = PV.fr.t = 0;
+  ppKick();
+  ppLater(() => { if(PP.state === 'gone') ppClimb(); }, 2600);
 }
 document.addEventListener('visibilitychange', () => { if(!document.hidden && S.tab === 0) purpleShow(); });
 function renderToday(){
   const st = ST();
-  if(!ppAt) purpleShow(true);
+  if(!PP.at) purpleShow(true);
   $('#today-title').textContent = st.name ? 'Hi, ' + st.name : 'Today';
   renderConnect();
   renderCoach();
@@ -2331,8 +2414,7 @@ function stp(k, f, label, mode){
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
 const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span>RIR</span></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
-  [0, 1, 2, 3, 4, 5].map(n => '<button data-a="rir" data-k="' + k + '" data-v="' + n + '" aria-pressed="false">' + rirTxt(n) + '</button>').join('') + '</div>' +
-  '<p class="hint">Reps you had left in you. <b>0</b> means none, <b>2</b> means two more. Aim for 0 to 2.</p></div>';
+  [0, 1, 2, 3, 4, 5].map(n => '<button data-a="rir" data-k="' + k + '" data-v="' + n + '" aria-pressed="false">' + rirTxt(n) + '</button>').join('') + '</div></div>';
 function buildCard(ex, mode){
   const info = infoOf(ex.name), el = document.createElement('article');
   const wl = info.bw === 'bw' ? '+kg' : info.bw === 'assist' ? 'assist' : 'kg';
@@ -2356,7 +2438,10 @@ function fillCard(el, ex, s){
   const ss = r('sets'), pl = ex.planned || 0;
   if(document.activeElement !== ss){ const n = Math.max(8, pl); ss.innerHTML = opts([[0, 'Sets']].concat(Array.from({length: n}, (_, i) => [i + 1, plural(i + 1, 'set')])), pl); }
   const t = r('target');
-  if(tg){ t.hidden = false; t.innerHTML = 'Target <b>' + (tg.w != null ? esc(wTxt(tg.w, info)) + (info.bw ? '' : ' kg') + ' × ' : '') + (tg.lo ? tg.lo + (tg.hi && tg.hi !== tg.lo ? '-' + tg.hi : '') : '') + (tg.rir != null ? ' · RIR ' + esc(String(tg.rir)) : '') + '</b>' + (tg.note ? '<span>' + esc(tg.note) + '</span>' : ''); }
+  const rc = recFor(ex.name, s.id);
+  const line = tg ? (tg.w != null ? esc(wTxt(tg.w, info)) + (info.bw ? '' : ' kg') + ' × ' : '') + (tg.lo ? tg.lo + (tg.hi && tg.hi !== tg.lo ? '-' + tg.hi : '') : '') + (tg.rir != null ? ' · RIR ' + esc(String(tg.rir)) : '')
+    : rc.w != null || rc.r ? esc(wTxt(rc.w || 0, info)) + (info.bw ? '' : ' kg') + (rc.r ? ' × ' + rc.r : '') + (rc.rir != null ? ' · RIR ' + rirTxt(rc.rir) : '') : '';
+  if(line && !ex.rm){ t.hidden = false; setHTML(t, '<span class="tg-l">' + (tg ? 'Target' : 'Suggested') + ' <b>' + line + '</b></span><button class="chip tg-reset" data-a="ex-reset" data-k="' + ex.k + '" data-r="reset" hidden>Reset</button>'); }
   else t.hidden = true;
   r('last').innerHTML = last ? 'Last ' + esc(dShort(last.date)) + ': <b>' + last.sets.map(x => esc(setText(x, info))).join(' &nbsp;·&nbsp; ') + '</b>' : '';
   r('last').hidden = !last;
@@ -2390,8 +2475,27 @@ function fillCard(el, ex, s){
   el.querySelectorAll('[data-a="rir"]').forEach(b => b.setAttribute('aria-pressed', String(S.ui.rir[ex.k] === +b.dataset.v)));
   el.querySelectorAll('.stp input:not(.rng)').forEach(inp => { if(!inp.dataset.touched && inp.value === '' && document.activeElement !== inp){ const v = pf[inp.dataset.f]; if(v != null) inp.value = fmt(v); } });
   el.querySelectorAll('.rng[data-rf]').forEach(rg => { if(rg !== S.ui.sliding) syncRange(rg); });
+  recSync(ex.k);
   const sr = el.querySelector('.rng[data-sets]');
   if(sr && sr !== S.ui.sliding){ sr.value = ex.planned || 0; paintRange(sr); setsLabel(r('setsv'), ex.planned || 0); }
+}
+/* Reset shows on a card once its numbers differ from what it recommends, and puts them back */
+function recDiff(k){
+  const s = activeSession(), ex = s && s.exercises.find(e => e.k === k), el = $('#cards [data-k="' + k + '"]');
+  if(!ex || !el || timed(ex) || ex.rm) return false;
+  const rc = recFor(ex.name, s.id), w = el.querySelector('#in-' + k + '-w'), r = el.querySelector('#in-' + k + '-r');
+  const off = (inp, v) => inp && inp.dataset.touched && v != null && num(inp.value) !== v;
+  return off(w, rc.w) || off(r, rc.r) || (rc.rir != null && k in S.ui.rir && S.ui.rir[k] !== rc.rir && S.ui.rirTouched && S.ui.rirTouched.has(k));
+}
+function recSync(k){ const b = $('#cards [data-k="' + k + '"] [data-r="reset"]'); if(b) b.hidden = !recDiff(k); }
+function recReset(k){
+  const s = activeSession(), ex = s && s.exercises.find(e => e.k === k), el = $('#cards [data-k="' + k + '"]'); if(!ex || !el) return;
+  const rc = recFor(ex.name, s.id);
+  [['w', rc.w], ['r', rc.r]].forEach(([f, v]) => { const inp = el.querySelector('#in-' + k + '-' + f); if(inp && v != null){ inp.value = fmt(v); delete inp.dataset.touched; } });
+  if(rc.rir != null) S.ui.rir[k] = rc.rir; if(S.ui.rirTouched) S.ui.rirTouched.delete(k);
+  el.querySelectorAll('[data-a="rir"]').forEach(b => b.setAttribute('aria-pressed', String(S.ui.rir[k] === +b.dataset.v)));
+  el.querySelectorAll('.rng[data-rf]').forEach(rg => syncRange(rg));
+  haptic(); recSync(k);
 }
 function startSession(id, day){
   if(activeSession()){ toast('Finish the current workout first'); selectTab(1); return; }
@@ -2509,6 +2613,14 @@ function buildWarm(ex, mode){
   const box = (f, label, st, ph) => '<div class="stp"><label for="in-' + k + '-' + f + '">' + label + '</label><input id="in-' + k + '-' + f + '" data-f="' + f + '" inputmode="' + (f === 'm' ? 'text' : 'decimal') + '" autocomplete="off" placeholder="' + ph + '" enterkeyhint="done">' +
     '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-st="' + st + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
   const acts = cardio ? CARDIO_M.concat(CARDIO_M.includes(ex.name) ? [] : [ex.name]) : WARM_ACTS;
+  const head = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + delBtn(k) + '</div></div>';
+  if(!cardio){
+    // a warm-up is just done or not done: no timer, no numbers
+    el.innerHTML = head + '<div class="logged" data-r="logged"></div>' +
+      '<div data-r="entry"><div class="wdone"><button class="btn-primary" data-a="warm-done" data-k="' + k + '">Done</button><button class="btn-glass" data-a="warm-not" data-k="' + k + '">Not done</button></div></div>' +
+      '<div data-r="skipped" hidden></div><button class="btn-quiet" data-a="warm-undo" data-k="' + k + '" data-r="more" hidden style="margin-top:4px">Undo</button>';
+    return el;
+  }
   el.innerHTML = '<div class="ex-head"><div><h2>' + esc(ex.name) + '</h2><p class="sub" data-r="meta"></p></div><div class="ex-acts"><select class="sel" data-warm-act="' + k + '" aria-label="' + (cardio ? 'Machine' : 'Warm-up activity') + '">' + opts(acts.map(a => [a, a]), ex.name) + '</select>' + delBtn(k) + '</div></div>' +
     (cardio ? '' : '<p class="hint">Easy pace, just enough to get warm and loose before the first lift.</p>') +
     '<div class="ctm" data-r="timer"><div class="ctm-l"><b data-r="ct-t">0:00</b><small data-r="ct-s"></small></div>' +
@@ -2529,12 +2641,14 @@ function fillWarm(el, ex, s){
   r('meta').textContent = ex.cardio ? (ex.min ? ex.min + ' min' : 'Cardio') : 'Warm-up' + (ex.min ? ' · ' + ex.min + ' min' : '');
   const a = el.querySelector('[data-warm-act]'); if(a && document.activeElement !== a) a.value = ex.name;
   el.classList.toggle('done', done); el.classList.toggle('skipped', !!sk);
-  r('entry').hidden = done || !!sk; r('more').hidden = !done; r('timer').hidden = done || !!sk;
-  r('logged').innerHTML = ex.log && !sk ? '<span class="setchip">' + esc(warmText(ex)) + '</span>' : '';
+  const simple = !ex.cardio;
+  r('entry').hidden = done || !!sk; r('more').hidden = !done; if(r('timer')) r('timer').hidden = done || !!sk;
+  r('logged').innerHTML = ex.log && !sk ? '<span class="setchip">' + (simple ? 'Done ✓' : esc(warmText(ex))) + '</span>' : '';
   const skb = r('skipped'); skb.hidden = !sk;
-  if(sk) setHTML(skb, '<div class="skipbox"><span>Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '') + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
+  if(sk) setHTML(skb, '<div class="skipbox"><span>' + (simple ? 'Not done' : 'Skipped' + (sk.reason ? ' · ' + esc(sk.reason) : '')) + (sk.note ? '<small>' + esc(sk.note) + '</small>' : '') + '</span><button class="chip" data-a="unskip" data-k="' + ex.k + '">Undo</button></div>');
   const nt = el.querySelector('.exn');
   if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
+  if(simple) return;
   const prev = prevNotes(ex.name, s.id), np = r('nprev');
   np.hidden = !prev.length;
   if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
@@ -2608,9 +2722,10 @@ function warmDone(k){
   const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
   const m = $('#in-' + k + '-m'), d = $('#in-' + k + '-d');
   if(CT[k] && CT[k].run){ CT[k].acc += Date.now() - CT[k].start; CT[k].run = false; ctFill(k); }
-  const tsec = Math.round(ctSec(CT[k])), sec = (m.dataset.touched ? parseDur(m.value) : tsec >= 5 ? tsec : parseDur(m.value)) || (ex.min || 0) * 60, dist = num(d.value);
+  // a plain warm-up card has no fields: done means the planned minutes
+  const tsec = Math.round(ctSec(CT[k])), sec = (m && m.dataset.touched ? parseDur(m.value) : tsec >= 5 ? tsec : m ? parseDur(m.value) : null) || (ex.min || 0) * 60, dist = d ? num(d.value) : null;
   const distM = dist == null || dist <= 0 ? null : inMeters(ex.name) ? Math.round(dist) : Math.round(dist * 1000);
-  [m, d].forEach(x => { delete x.dataset.touched; x.blur(); });
+  [m, d].filter(Boolean).forEach(x => { delete x.dataset.touched; x.blur(); });
   delete CT[k]; ctSave();
   S.ui.expanded.delete(k);
   updateSession(s.id, {exercises: s.exercises.map(e => e.k === k ? Object.assign({}, e, {log: {sec: sec || null, distM}}) : e)});
@@ -4648,7 +4763,8 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
-  {v: '4.17.0', date: '2026-10-21', items: [['purple', 'Purple peeks over the Coach Claude card with his coffee. Tap him'], ['tabbar', 'The tab bar no longer blinks away while you scroll']]},
+  {v: '4.18.0', date: '2026-10-21', items: [['purple', 'Purple hides behind the Coach Claude card, peeks at you and drums his fingers. Tap him'], ['tabbar', 'The tab bar stays put: a haptic tick no longer counts as typing'], ['prefill', 'Every card starts on the recommended weight, reps and RIR, with no tips under it'], ['reset', 'Reset on a card puts the recommended numbers back after you change them'], ['warm', 'Warm-up is just Done or Not done, no timer']]},
+  {v: '4.17.0', date: '2026-10-21', items: [['purple', 'Purple peeks over the Coach Claude card with his coffee'], ['tabbar', 'The tab bar no longer blinks away while you scroll']]},
   {v: '4.16.0', date: '2026-10-21', items: [['fist', 'Food photos use your fist beside the plate, so you can hold the phone close and at a slight angle'], ['snap', 'Snap-a-meal'], ['progress', 'Records and Body share one Progress tab, five tabs in all'], ['goalbar', 'A progress bar with a percentage under every goal, and one for all goals']]},
   {v: '4.15.0', date: '2026-10-21', items: [['social', 'Social in the side menu: a feed like Strava with your workouts, posts and photos, kudos and comments'], ['groups', 'Groups with a weekly board, and your own profile with eight weeks of training'], ['samples', 'Sample athletes and groups until friends can join']]},
   {v: '4.14.0', date: '2026-10-21', items: [['foodphoto', 'Food is photo only: snap the plate with your hand beside it and Claude works out foods, portions and calories'], ['camera', 'A guided camera with the plate circle, your hand outline and a level'], ['hand', 'Measure your hand once, the ruler for portion sizes, under Settings, Coach'], ['range', 'Every meal shows a likely range and how sure Claude is']]},
@@ -4929,17 +5045,18 @@ document.addEventListener('click', e => {
       // the time on a cardio card is minutes and seconds, so its buttons move it a minute at a time
       if(b.dataset.f === 'm') inp.value = mmss(Math.max(0, Math.round(((parseDur(inp.value) || 0) + 60 * (+b.dataset.d)) / 60) * 60));
       else inp.value = fmt(Math.max(0, Math.round(((num(inp.value) || 0) + step * (+b.dataset.d)) * 100) / 100));
-      inp.dataset.touched = '1'; haptic();
+      inp.dataset.touched = '1'; haptic(); recSync(b.dataset.k);
       { const el = inp.closest('.ex.warm'), s = activeSession(), ex = el && s && s.exercises.find(e => e.k === el.dataset.k); if(ex) paintPace(el, ex); }
       break;
     }
     case 'log': logSet(b.dataset.k); break;
     case 'swap': openLib('swap', b.dataset.k); break;
     case 'ex-del': armDelete(b); break;
-    case 'rir': { const k = b.dataset.k, v = +b.dataset.v; S.ui.rir[k] = S.ui.rir[k] === v ? null : v; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(S.ui.rir[k] === +x.dataset.v))); haptic(); break; }
+    case 'rir': { const k = b.dataset.k, v = +b.dataset.v; S.ui.rir[k] = S.ui.rir[k] === v ? null : v; (S.ui.rirTouched || (S.ui.rirTouched = new Set())).add(k); b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(S.ui.rir[k] === +x.dataset.v))); haptic(); recSync(k); break; }
+    case 'ex-reset': recReset(b.dataset.k); break;
     case 'workouts': openWorkouts(); break;
     case 'side': openSide(); break;
-    case 'purple': purpleTap(b); break;
+    case 'purple': purpleTap(); break;
     case 'side-close': break;
     case 'side-tab': selectTab(+b.dataset.i); break;
     case 'week-day': S.ui.calDay = b.dataset.d; S.ui.calMonth = b.dataset.d.slice(0, 7); selectTab(2); break;
@@ -5077,7 +5194,9 @@ document.addEventListener('click', e => {
     case 'cp-start': startCardio(); break;
     case 'cardio-log': closeSheet(); setTimeout(() => openCardio({}), 0); break;
     case 'cadd': cardioAdd(b.dataset.n); break;
-    case 'warm-done': warmDone(b.dataset.k); break;
+    case 'warm-done': warmDone(b.dataset.k); haptic(); break;
+    case 'warm-not': setSkip(b.dataset.k, {reason: '', note: ''}); haptic(); scrollNext(b.dataset.k); break;
+    case 'warm-undo': { const s = activeSession(); if(s) updateSession(s.id, {exercises: s.exercises.map(e => { if(e.k !== b.dataset.k) return e; const c = Object.assign({}, e); delete c.log; return c; })}); S.ui.expanded.delete(b.dataset.k); break; }
     case 'skip-why': { const on = b.getAttribute('aria-pressed') !== 'true'; b.parentElement.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b && on))); if(S.ui.skip) S.ui.skip.reason = on ? b.dataset.v : ''; break; }
     case 'skip-save': saveSkip(); break;
     case 'unskip': setSkip(b.dataset.k, null); break;
@@ -5187,13 +5306,14 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('input', e => {
   const t = e.target;
-  if(t.matches && t.matches('.stp input')){ t.dataset.touched = '1'; const el = t.closest('.ex.warm'), s = el && activeSession(), ex = s && s.exercises.find(x => x.k === el.dataset.k); if(ex) paintPace(el, ex); }
+  if(t.matches && t.matches('.stp input')){ t.dataset.touched = '1'; const el = t.closest('.ex.warm'), s = el && activeSession(), ex = s && s.exercises.find(x => x.k === el.dataset.k); if(ex) paintPace(el, ex); const card = t.closest('.ex'); if(card && !el) recSync(card.dataset.k); }
   if(t.id === 's-note'){ clearTimeout(noteT); noteT = setTimeout(saveNote, 800); }
   if(t.id === 'rd-name' && S.ui.rd) S.ui.rd.name = t.value;
 });
 /* iOS pans the whole page up when the keyboard opens and sometimes leaves it there, which shows up as a dark strip at the bottom. Put it back. */
 let kbT = null;
-const typingField = el => !!(el && el.matches && el.matches('input:not([type=date]):not([type=range]):not([readonly]), textarea'));
+// only fields you type in count: a checkbox (like the hidden switch that makes the iPhone tick) never hides the tab bar
+const typingField = el => !!(el && el.matches && el.matches('textarea:not([readonly]), input:not([readonly]):is(:not([type]), [type=text], [type=search], [type=email], [type=number], [type=tel], [type=url], [type=password])'));
 function resetScroll(){ if(window.scrollY || document.documentElement.scrollTop || document.body.scrollTop){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; } }
 /* The keyboard covers the bottom of the page and the page itself does not shrink, so a field low on the page (like the
    reply to Claude) ends up behind it. Measure the keyboard, give the page that much room underneath, and scroll the
