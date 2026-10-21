@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.17.0"
+VERSION = "4.18.0"
 
 HEAD = """<!doctype html>
 <html lang="en">
@@ -36,7 +36,7 @@ TAIL = "\n</body>\n</html>\n"
 
 SW = """// Plates service worker: the app opens offline. The GitHub API always goes straight to the network.
 const CACHE = 'toppform-__VERSION__';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './art/purple.webp'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', __ART__];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
@@ -112,12 +112,14 @@ def icon(size, inset=0.0):
 def build():
     (DIST / "icons").mkdir(parents=True, exist_ok=True)
     (DIST / "art").mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(ROOT / "purple.webp", DIST / "art" / "purple.webp")   # Purple, the mascot on Today
+    art = sorted(ROOT.glob("*.webp"))   # Purple, the mascot on Today, in parts
+    for f in art:
+        shutil.copyfile(f, DIST / "art" / f.name)
     body = (ROOT / "app.html").read_text(encoding="utf-8")
     body = re.sub(r"^<title>.*?</title>\s*", "", body, flags=re.S)
     body = re.sub(r'^<meta name="claude:viewport-fit-sides"[^>]*>\s*', "", body)
     (DIST / "index.html").write_text(HEAD + body + TAIL, encoding="utf-8")
-    (DIST / "sw.js").write_text(SW.replace("__VERSION__", VERSION), encoding="utf-8")
+    (DIST / "sw.js").write_text(SW.replace("__VERSION__", VERSION).replace("__ART__", ", ".join("'./art/" + f.name + "'" for f in art)), encoding="utf-8")
     (DIST / "manifest.webmanifest").write_text(json.dumps(MANIFEST, ensure_ascii=False, indent=2), encoding="utf-8")
     (DIST / ".nojekyll").write_text("", encoding="utf-8")
     icon(192).save(DIST / "icons" / "icon-192.png")
