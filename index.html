@@ -980,6 +980,23 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .logged:empty { display: none; }
 .setchip { min-height: 34px; padding: 0 12px; border-radius: 999px; background: var(--fill-2); border: 0; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 7px; }
 .setchip i { font-style: normal; font-size: 11px; color: var(--dim); font-weight: 600; }
+button.setchip { color: var(--text); transition: transform .3s var(--spring), background .2s; }
+.setchip.new { animation: chipIn .5s var(--spring) both; }
+@keyframes chipIn { from { transform: scale(.55); opacity: 0; } }
+/* Records and Body, and the day on Food, ease in when you switch instead of jumping */
+.pg-rec, .pg-body { animation: pgIn .32s var(--ease) both; }
+@keyframes pgIn { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .setchip.new, .pg-rec, .pg-body { animation: none; } }
+button.setchip:active { transform: scale(.94); background: color-mix(in srgb, var(--g1) 18%, var(--fill-2)); }
+/* edit a set */
+.se { display: flex; flex-direction: column; gap: 14px; }
+.se-g { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.se-st { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 16px; background: var(--fill); border: 1px solid var(--line); }
+.se-st .ib { flex: none; width: 40px; height: 44px; border-radius: 12px; border: 0; background: var(--glass); color: var(--text); font-size: 22px; font-weight: 500; display: grid; place-items: center; padding: 0; transition: transform .3s var(--spring); }
+.se-st .ib:active { transform: scale(.9); }
+.se-st .field { flex: 1; min-width: 0; width: 100%; height: 44px; padding: 0; border: 0; background: none; box-shadow: none; text-align: center; font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.se-st span { flex: none; margin: 0 2px 0 -4px; color: var(--dim); font-size: 13px; }
+.se .btn-quiet { margin-top: -6px; }
 .setchip.armed i { color: inherit; }
 .steppers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 12px; }
 .stp { min-width: 0; padding: 7px 5px 5px; border-radius: 19px; background: var(--fill); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; }
@@ -2278,13 +2295,19 @@ function syncFit(){
   fitCards();
   drawLiftChart();
 }
-// each flashcard fits its box the same way, so a long name, a tip or an extra line never makes it scroll
+// each flashcard fits its box the same way, so a long name, a tip or an extra line never makes it scroll. Fitting
+// measures the card several times, which is slow on a phone, so only the card you look at and its neighbours are
+// fitted, and only when their content or the space for them changed since the last time.
 function fitCards(){
-  const wrap = $('#cards'), on = wrap.classList.contains('deck-on');
-  for(const el of wrap.querySelectorAll(':scope > .ex')){
-    if(!on || el.offsetParent === null){ el.classList.remove('snug', 'tight'); el.style.zoom = ''; continue; }
+  const wrap = $('#cards'), on = wrap.classList.contains('deck-on'), cur = S.ui.deckI || 0, box = wrap.clientWidth + 'x' + wrap.clientHeight;
+  [...wrap.querySelectorAll(':scope > .ex')].forEach((el, j) => {
+    if(!on || el.offsetParent === null){ if(el._fit){ el.classList.remove('snug', 'tight'); el.style.zoom = ''; el._fit = null; } return; }
+    if(Math.abs(j - cur) > 1) return;
+    const sig = box + '|' + el.className.replace(/\b(snug|tight)\b/g, '') + '|' + el.innerHTML.length;
+    if(el._fit === sig) return;
     fitBox(el, () => el.scrollHeight > el.clientHeight + 1, true);
-  }
+    el._fit = box + '|' + el.className.replace(/\b(snug|tight)\b/g, '') + '|' + el.innerHTML.length;
+  });
 }
 addEventListener('resize', () => { if(D) syncFit(); });
 function refresh(){
@@ -2622,7 +2645,7 @@ function fillCard(el, ex, s){
   const tag = r('tag');
   if(!tg && today.length === 0 && ready(last)){ tag.hidden = false; tag.textContent = info.bw === 'assist' ? '↓ Less assistance today' : '↑ Add weight today'; }
   else tag.hidden = true;
-  r('logged').innerHTML = today.map(x => { const a = S.ui.armed === x.id; return '<button class="setchip' + (a ? ' armed' : '') + '" data-a="set" data-id="' + esc(x.id) + '"' + (a ? ' aria-label="Tap again to delete"' : '') + '><i>' + x.n + '</i>' + (a ? 'Delete?' : esc(setText(x, info))) + '</button>'; }).join('');
+  setHTML(r('logged'), today.map(x => '<button class="setchip' + (x.id === S.ui.newSet && Date.now() - S.ui.newSetAt < 1200 ? ' new' : '') + '" data-a="set" data-id="' + esc(x.id) + '" aria-label="Set ' + x.n + ', ' + esc(setText(x, info)) + '. Tap to change it"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join(''));
   const sk = ex.skip, done = !sk && ex.planned > 0 && today.length >= ex.planned && !S.ui.expanded.has(ex.k);
   el.classList.toggle('done', done); el.classList.toggle('skipped', !!sk);
   r('entry').hidden = done || !!sk; r('more').hidden = !done;
@@ -2696,6 +2719,7 @@ function logSet(k){
   ensureAudio();
   ['w','r'].forEach(f => { delete g(f).dataset.touched; g(f).blur(); });
   if(S.ui.rirTouched) S.ui.rirTouched.delete(k);
+  S.ui.newSet = set.id; S.ui.newSetAt = Date.now();
   queue('set', 'sets', set.id, set);
   haptic();
   if(!s.loggedAt) startRest(restPlan(ex, s), ex.name);
@@ -3056,7 +3080,7 @@ document.addEventListener('pointerup', endOvPress);
 document.addEventListener('pointercancel', endOvPress);
 function deckGo(i, smooth){
   const wrap = $('#cards'), el = wrap.querySelectorAll('.ex')[i]; if(!el) return;
-  S.ui.deckI = i;
+  S.ui.deckI = i; fitCards();
   wrap.scrollTo({left: el.offsetLeft - (wrap.clientWidth - el.offsetWidth) / 2, behavior: smooth && !reduceMotion() ? 'smooth' : 'auto'});
   const s = activeSession(); if(s) renderDeck(s);
 }
@@ -3065,7 +3089,7 @@ $('#cards').addEventListener('scroll', () => {
   const wrap = $('#cards'); if(!wrap.classList.contains('deck-on')) return;
   const first = wrap.querySelector('.ex'); if(!first) return;
   const i = Math.round(wrap.scrollLeft / (first.offsetWidth + 12));
-  if(i !== S.ui.deckI){ S.ui.deckI = i; const s = activeSession(); if(s) renderDeck(s); }
+  if(i !== S.ui.deckI){ S.ui.deckI = i; const s = activeSession(); if(s) renderDeck(s); fitCards(); }
 }, {passive: true});
 let noteT = null;
 function saveNote(){
@@ -4092,6 +4116,7 @@ function renderLifts(){
     '<p class="hint">Your main lifts. The big number is your estimated max for one rep. Tap a lift to see your progress.</p>' +
     (rows ? '<div style="margin-top:4px">' + rows + '</div>' : '<p class="sub" style="margin-top:8px">Log your first sets and your key lifts show up here.</p>'));
 }
+const softIn = (...els) => { if(reduceMotion()) return; for(const el of els) if(el && el.animate) el.animate([{opacity: .3}, {opacity: 1}], {duration: 260, easing: 'cubic-bezier(.32,.72,0,1)'}); };
 const seg2 = (a, pairs, cur) => { const i = Math.max(0, pairs.findIndex(p => p[0] === cur)); return '<div class="sg" style="--n:' + pairs.length + ';--i:' + i + '">' + pairs.map(([v, l]) => '<button data-a="' + a + '" data-v="' + esc(v) + '" class="' + (v === cur ? 'on' : '') + '">' + esc(l) + '</button>').join('') + '</div>'; };
 /* A segmented switch that slides to the new choice instead of being drawn again, so the drop animates */
 function segSync(el, a, pairs, cur){
@@ -4795,7 +4820,7 @@ function openDetail(id){
   const rows = order.map(name => { const xs = sets.filter(x => x.exercise === name).sort((a, b) => a.n - b.n), info = infoOf(name), ex = (s.exercises || []).find(e => e.name === name);
     if(!xs.length && timed(ex) && ex.log && !ex.skip) return '<div class="exr"><b>' + esc(name) + '</b>' + (ex.warm ? ' <small class="sub">warm-up</small>' : '') + (ex.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.note) + '</p>' : '') + '<div class="logged" style="margin-top:8px"><span class="setchip">' + esc(warmText(ex)) + '</span></div></div>';
     if(!xs.length) return ex && ex.skip ? '<div class="exr"><b>' + esc(name) + '</b> <small class="sub">skipped' + (ex.skip.reason ? ' · ' + esc(ex.skip.reason) : '') + '</small>' + (ex.skip.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.skip.note) + '</p>' : '') + '</div>' : '';
-    return '<div class="exr"><b>' + esc(name) + '</b>' + (ex && ex.from ? ' <small class="sub">(swapped from ' + esc(ex.from) + ')</small>' : '') + (ex && (ex.feel || ex.setup) ? '<p class="sub" style="margin-top:4px">' + esc([ex.feel ? (FEEL.find(f => f[0] === ex.feel) || [, ex.feel])[1] : '', ex.setup ? 'Setup: ' + ex.setup : ''].filter(Boolean).join(' · ')) + '</p>' : '') + (ex && ex.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.note) + '</p>' : '') + '<div class="logged" style="margin-top:8px">' + xs.map(x => '<span class="setchip"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</span>').join('') + '</div></div>'; }).join('');
+    return '<div class="exr"><b>' + esc(name) + '</b>' + (ex && ex.from ? ' <small class="sub">(swapped from ' + esc(ex.from) + ')</small>' : '') + (ex && (ex.feel || ex.setup) ? '<p class="sub" style="margin-top:4px">' + esc([ex.feel ? (FEEL.find(f => f[0] === ex.feel) || [, ex.feel])[1] : '', ex.setup ? 'Setup: ' + ex.setup : ''].filter(Boolean).join(' · ')) + '</p>' : '') + (ex && ex.note ? '<p class="sub" style="margin-top:4px">' + esc(ex.note) + '</p>' : '') + '<div class="logged" style="margin-top:8px">' + xs.map(x => '<button class="setchip" data-a="set" data-id="' + esc(x.id) + '" data-back="' + esc(id) + '"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join('') + '</div></div>'; }).join('');
   let body = rows ? '<div style="display:flex;flex-direction:column;gap:12px">' + rows + '</div>' : '<p class="sub">' + (isCardioS(s) ? 'Nothing logged' : 'No sets logged') + '</p>';
   if(s.knee) body += '<p class="sub" style="display:flex;align-items:center;gap:8px"><span class="dot ' + esc(s.knee) + '"></span>Knee and foot: ' + esc(KNEE[s.knee] || s.knee) + '</p>';
   if(s.note) body += '<p class="note">' + esc(s.note) + '</p>';
@@ -4810,7 +4835,7 @@ function openExHistory(name){
   for(const x of D.sets){ if(x.exercise !== name || seen.has(x.sessionId)) continue; seen.add(x.sessionId); sess.push(x.sessionId); if(sess.length >= 15) break; }
   const pr = strengthPRs().find(p => p.name === name);
   const rows = sess.map(sid => { const xs = setsOf(sid).filter(x => x.exercise === name).sort((a, b) => a.n - b.n);
-    return '<div class="exr"><b>' + esc(dShort(xs[0].date)) + '</b><div class="logged" style="margin-top:8px">' + xs.map(x => '<span class="setchip"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</span>').join('') + '</div></div>'; }).join('');
+    return '<div class="exr"><b>' + esc(dShort(xs[0].date)) + '</b><div class="logged" style="margin-top:8px">' + xs.map(x => '<button class="setchip" data-a="set" data-id="' + esc(x.id) + '"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join('') + '</div></div>'; }).join('');
   let top = '';
   if(pr){
     let lastW = null; const shown = [];
@@ -5203,6 +5228,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.28.0', date: '2026-10-21', items: [['setedit428', 'Tap a logged set to change its weight, reps or RIR, or to delete it, also on earlier days in Log'], ['fast428', 'Logging a set is about twice as fast, so the card answers right away'], ['smooth428', 'New sets pop in, and Records, Body and Food ease in when you switch'], ['tick428', 'The slider ticks when you let go after a drag']]},
   {v: '4.27.0', date: '2026-10-21', items: [['prog427', 'Progress made new: a ring for each goal, your lifts as chips with the goals first, and a dashed goal line on the curve'], ['goal427', 'Tap a goal to see where you are, where you are going and your curve'], ['body427', 'Body has a period switch and three plain numbers: workouts, sets and sleep'], ['food427', 'Food is calmer: a week strip, one calorie ring split by protein, carbs and fat, and the calories beside each meal'], ['guide427', 'How to snap sits behind the question mark'], ['next427', 'A workout you already did today is not offered again'], ['fix427', 'Fixes: set numbers after a delete, cardio kept when you finish without Done, 1RM tests without RIR, no rest timer when you log a past day, and the minus in Overview works']]},
   {v: '4.26.0', date: '2026-10-21', items: [['restcard', 'The rest is on the card: it waits with the planned time and starts by itself when you log a set'], ['restroom2', 'No rest bar over the cards, so they get the room']]},
   {v: '4.25.1', date: '2026-10-21', items: [['gunnarclosed', 'Gunnar keeps his eyes closed, calm as he is painted']]},
@@ -5359,7 +5385,7 @@ let rgDrag = null;
 const dragVal = (d, x) => d.v0 + (x - d.x0) / Math.max(1, d.w - RTH) * (+d.rg.max - +d.rg.min) * d.f;
 document.addEventListener('pointerdown', e => {
   const hz = e.target.closest && e.target.closest('.hz-r'), rg = hz ? hz.parentElement.querySelector('.rng') : e.target.closest && e.target.closest('.rng'); if(!rg) return;
-  S.ui.sliding = rg; rgDrag = {rg, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, f: 1, v0: +rg.value, x0: e.clientX, w: rg.getBoundingClientRect().width};
+  S.ui.sliding = rg; rgDrag = {rg, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, f: 1, v0: +rg.value, x0: e.clientX, w: rg.getBoundingClientRect().width, start: +rg.value};
 });
 document.addEventListener('pointermove', e => {
   const d = rgDrag; if(!d || e.pointerId !== d.id) return;
@@ -5391,6 +5417,8 @@ function endRange(){
 document.addEventListener('pointerup', e => {
   const d = endRange(); if(!d) return;
   if(!d.moved) rangeNudge(d.rg, e.clientX);
+  // iPhone gives a web page no ticks while a finger drags, but letting go is a real touch, so it ticks once there
+  else if(+d.rg.value !== d.start){ LG.tapAt = -1e9; haptic(); }
   d.rg.dispatchEvent(new Event('change', {bubbles: true}));
 });
 document.addEventListener('pointercancel', endRange);
@@ -5440,6 +5468,34 @@ function saveExField(k, f, val){
   if((shown || '') === (val || '')) return;
   updateSession(s.id, {exercises: s.exercises.map(e => { if(e.k !== k) return e; const c = Object.assign({}, e); if(val) c[f] = val; else if(f === 'setup') c.setup = ''; else delete c[f]; return c; })});
 }
+/* Edit a set: a tap on a logged set opens its weight, reps and RIR, so a set logged by mistake or with the wrong
+   numbers can be put right or deleted, during the workout and later from Log. The later sets move up when one goes. */
+function openSetEdit(id, back){
+  const x = D.sets.find(y => y.id === id); if(!x) return;
+  const info = infoOf(x.exercise), wl = info.bw === 'assist' ? 'Assistance' : info.bw ? 'Added weight' : 'Weight';
+  S.ui.se = {id, back: back || null, rir: x.rir != null ? x.rir : null};
+  const stp = (f, label, v, unit) => '<div><label class="lab" for="se-' + f + '">' + label + '</label><div class="se-st"><button class="ib" data-a="se-pm" data-f="' + f + '" data-d="-1" aria-label="Less ' + label.toLowerCase() + '">−</button>' +
+    '<input id="se-' + f + '" class="field" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" enterkeyhint="done" value="' + fmt(v) + '">' + (unit ? '<span>' + unit + '</span>' : '') +
+    '<button class="ib" data-a="se-pm" data-f="' + f + '" data-d="1" aria-label="More ' + label.toLowerCase() + '">+</button></div></div>';
+  openSheet('setedit', shTop('Set ' + (x.n || 1), x.exercise + ' · ' + (x.date === todayISO() ? 'today' : dShort(x.date))),
+    '<div class="se"><div class="se-g">' + stp('w', wl, x.weight || 0, 'kg') + stp('r', 'Reps', x.reps || 0, '') + '</div>' +
+    '<div><p class="lab">Reps in reserve</p><div class="rir-b" role="group" aria-label="Reps in reserve">' + [0, 1, 2, 3, 4, 5].map(n => '<button data-a="se-rir" data-v="' + n + '" aria-pressed="' + (x.rir === n) + '">' + rirTxt(n) + '</button>').join('') + '</div></div>' +
+    '<button class="btn-primary wide" data-a="se-save">Save</button><button class="btn-quiet danger" data-a="se-del" id="se-del">Delete set</button></div>', false);
+}
+function setEditDone(E){ S.ui.se = null; if(E && E.back && vmap('sessions').get(E.back)) openDetail(E.back); else closeSheet(); }
+function saveSetEdit(){
+  const E = S.ui.se, x = E && D.sets.find(y => y.id === E.id); if(!x) return;
+  const w = Math.max(0, num($('#se-w').value) || 0), reps = Math.max(0, Math.round(num($('#se-r').value) || 0));
+  if(reps <= 0){ toast('Add the reps first'); return; }
+  const c = Object.assign({}, x, {weight: Math.round(w * 100) / 100, reps, rir: E.rir, editedAt: Date.now()});
+  if(c.weight !== (x.weight || 0) || c.reps !== x.reps || c.rir !== (x.rir != null ? x.rir : null)){ queue('set', 'sets', x.id, c); toast('Set ' + (x.n || 1) + ' changed'); }
+  haptic(); setEditDone(E);
+}
+function deleteSet(id){
+  const x = D.sets.find(y => y.id === id), later = x ? todaySets(x.exercise, x.sessionId).filter(y => y.id !== id && (y.n || 0) > (x.n || 0)) : [];
+  queue('delete', 'sets', id); for(const y of later) queue('set', 'sets', y.id, Object.assign({}, y, {n: y.n - 1}));
+}
+
 /* How an exercise felt, and its setup (seat, grip, cable height), so Claude can read both in the evening review.
    The setup carries over from the last time you did the exercise. */
 const FEEL = [['love', 'Loved it'], ['good', 'Good'], ['meh', 'Meh'], ['bad', 'Disliked']];
@@ -5514,7 +5570,6 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if(!b) return;
   const a = b.dataset.a;
   if(b.closest('#side') && !a.startsWith('so-')) closeSide();
-  if(S.ui.armed && !(a === 'set' && b.dataset.id === S.ui.armed)){ S.ui.armed = null; renderWorkout(); }
   switch(a){
     case 'quick': startSession(null); break;
     case 'start': startSession(b.dataset.id || null); break;
@@ -5548,7 +5603,7 @@ document.addEventListener('click', e => {
     case 'week-day': S.ui.calDay = b.dataset.d; S.ui.calMonth = b.dataset.d.slice(0, 7); selectTab(2); break;
     case 'reviews': openReviews(); break;
     case 'fig-side': turnFig(b.dataset.v === 'b'); haptic(); break;
-    case 'period': S.ui.period = b.dataset.v; ls.set('tl.period', b.dataset.v); renderBodyPage(); syncFit(); requestAnimationFrame(syncFit); haptic(); break;
+    case 'period': S.ui.period = b.dataset.v; ls.set('tl.period', b.dataset.v); renderBodyPage(); syncFit(); requestAnimationFrame(syncFit); softIn($('#pg-stats'), $('#body-card'), $('#bw-card')); haptic(); break;
     case 'muscle-pick': pickMuscle(b.dataset.m); break;
     case 'muscle': { if(Date.now() - (S.ui.figMoved || 0) < 400) break; const m = b.dataset.m, n = (S.ui.muscles || {})[m] || 0; toast(REGIONS[m][0] + ' · ' + (n ? plural(Math.max(1, Math.round(n)), 'set') : 'no sets')); haptic(); break; }
     case 'lift-open': S.ui.liftOpen = S.ui.liftOpen === b.dataset.n ? null : b.dataset.n; renderLifts(); break;
@@ -5632,8 +5687,8 @@ document.addEventListener('click', e => {
     case 'ob-next': { const o = S.ui.ob; if(!o) break; if(o.step >= 4) finishOb(); else { o.step++; renderOb(); } break; }
     case 'ob-back': { const o = S.ui.ob; if(o && o.step){ o.step--; renderOb(); } break; }
     case 'ob-skip': saveSettings({onboarded: true}); S.ui.ob = null; closeSheet(); break;
-    case 'food-day': { const d = addDays(S.ui.foodDay || todayISO(), +b.dataset.d); S.ui.foodDay = d > todayISO() ? todayISO() : d; renderFood(); haptic(); break; }
-    case 'food-go': if(b.dataset.d <= todayISO()){ S.ui.foodDay = b.dataset.d; renderFood(); haptic(); } break;
+    case 'food-day': { const d = addDays(S.ui.foodDay || todayISO(), +b.dataset.d); S.ui.foodDay = d > todayISO() ? todayISO() : d; renderFood(); softIn($('#food-week'), $('#food-day'), $('#food-list')); haptic(); break; }
+    case 'food-go': if(b.dataset.d <= todayISO() && b.dataset.d !== (S.ui.foodDay || todayISO())){ S.ui.foodDay = b.dataset.d; renderFood(); softIn($('#food-day'), $('#food-list')); haptic(); } break;
     case 'food-snap': if(!(D.food || []).length && !ls.get('tl.fguide')) openFoodHelp(); else openCam('meal'); break;
     case 'food-help': openFoodHelp(); break;
     case 'food-cam': openCam('meal'); closeSheet(); break;
@@ -5701,14 +5756,14 @@ document.addEventListener('click', e => {
     case 'deck-go': { if(S.ui.ovEdit || Date.now() - (S.ui.ovPressAt || 0) < 500) break; const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
     case 'deck-ov': S.ui.overview = !S.ui.overview; S.ui.ovEdit = false; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
     case 'exhist': openExHistory(b.dataset.n); break;
-    case 'set': {
-      const id = b.dataset.id;
-      if(S.ui.armed === id){
-        S.ui.armed = null; const x = D.sets.find(y => y.id === id), later = x ? todaySets(x.exercise, x.sessionId).filter(y => y.id !== id && (y.n || 0) > (x.n || 0)) : [];
-        queue('delete', 'sets', id); for(const y of later) queue('set', 'sets', y.id, Object.assign({}, y, {n: y.n - 1}));
-        toast('Set deleted');
-      }
-      else { S.ui.armed = id; renderWorkout(); setTimeout(() => { if(S.ui.armed === id){ S.ui.armed = null; renderWorkout(); } }, 3500); }
+    case 'set': openSetEdit(b.dataset.id, b.dataset.back); haptic(); break;
+    case 'se-pm': { const inp = $('#se-' + b.dataset.f); if(!inp) break; const st = b.dataset.f === 'w' ? ST().step : 1; inp.value = fmt(Math.max(0, Math.round(((num(inp.value) || 0) + st * (+b.dataset.d)) * 100) / 100)); haptic(); break; }
+    case 'se-rir': { const E = S.ui.se; if(!E) break; const v = +b.dataset.v; E.rir = E.rir === v ? null : v; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(E.rir === +x.dataset.v))); haptic(); break; }
+    case 'se-save': saveSetEdit(); break;
+    case 'se-del': {
+      const E = S.ui.se; if(!E) break;
+      if(S.ui.armedAct === 'sedel:' + E.id){ disarmAct(); deleteSet(E.id); toast('Set deleted'); setEditDone(E); }
+      else armButton('se-del', 'sedel:' + E.id, 'Delete set', 'Tap again to delete');
       break;
     }
     case 'finish': finish(); break;
