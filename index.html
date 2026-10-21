@@ -935,9 +935,10 @@ body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .npi { flex: 0 0 auto; max-width: 80%; scroll-snap-align: start; padding: 7px 12px; border-radius: 14px; background: var(--fill); border: 1px solid var(--line); font-size: 13.5px; line-height: 1.35; }
 .npi small { display: block; color: var(--dim); font-size: 11.5px; font-weight: 600; }
 .field.exs { height: 40px; margin-top: 10px; border-radius: 13px; padding: 0 13px; }
-.feel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
-.feel small { flex: 1 0 100%; color: var(--dim); font-size: 12px; font-weight: 600; }
-.feel .chip { min-height: 32px; padding: 0 11px; font-size: 13px; }
+/* the rating: four equal buttons across the card, in line with the RIR row and Log set above */
+.feel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-top: 12px; }
+.feel small { grid-column: 1 / -1; color: var(--dim); font-size: 12px; font-weight: 600; }
+.feel .chip { width: 100%; min-width: 0; min-height: 38px; padding: 0 4px; font-size: 13.5px; white-space: nowrap; }
 textarea.field.exn { display: block; min-height: 40px; height: 40px; margin-top: 10px; padding: 9px 13px; border-radius: 13px; resize: none; overflow: hidden; }
 /* 1RM test: the ladder from warm-up to PR attempt */
 .ladder { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 10px -18px 0; padding: 0 18px; }
@@ -2444,6 +2445,8 @@ function stp(k, f, label, mode){
   return '<div class="stp"><label for="' + id + '">' + label + '</label><input id="' + id + '" data-f="' + f + '" inputmode="' + (f === 'w' ? 'decimal' : 'numeric') + '" autocomplete="off" placeholder="0" enterkeyhint="done">' +
     '<div class="pm"><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-d="-1" aria-label="Less ' + label + '">−</button><button data-a="pm" data-k="' + k + '" data-f="' + f + '" data-d="1" aria-label="More ' + label + '">+</button></div></div>';
 }
+// Sebastian does not do supersets, so a hint that asks for one is never shown, whatever the plan says
+const hintOf = h => h && !/super\s?set/i.test(h) ? h : '';
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
 const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span class="rir-u">RIR</span><button class="chip tg-reset" data-a="ex-reset" data-k="' + k + '" data-r="reset" hidden>Reset</button></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
@@ -2467,7 +2470,7 @@ function buildCard(ex, mode){
 function fillCard(el, ex, s){
   const info = infoOf(ex.name), today = todaySets(ex.name, s.id), last = lastSession(ex.name, s.id), tg = targetFor(ex.name);
   const r = n => el.querySelector('[data-r="' + n + '"]');
-  r('meta').textContent = (SLOTS[info.slot] || 'Custom') + (ex.hint ? ' · ' + ex.hint : '');
+  r('meta').textContent = (SLOTS[info.slot] || 'Custom') + (hintOf(ex.hint) ? ' · ' + hintOf(ex.hint) : '');
   const ss = r('sets'), pl = ex.planned || 0;
   if(document.activeElement !== ss){ const n = Math.max(8, pl); ss.innerHTML = opts([[0, 'Sets']].concat(Array.from({length: n}, (_, i) => [i + 1, plural(i + 1, 'set')])), pl); }
   r('last').innerHTML = last ? 'Last ' + esc(dShort(last.date)) + ': <b>' + last.sets.map(x => esc(setText(x, info))).join(' &nbsp;·&nbsp; ') + '</b>' : '';
@@ -2485,7 +2488,7 @@ function fillCard(el, ex, s){
   const nt = el.querySelector('.exn');
   if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
   // how it went is for after the last set: while sets are left, the rating and an empty note step aside so the card fits
-  const left = !sk && ex.planned > 0 && today.length < ex.planned;
+  const left = !sk && ((ex.planned > 0 && today.length < ex.planned) || S.ui.expanded.has(ex.k));
   if(nt) nt.hidden = left && !ex.note && document.activeElement !== nt;
   const su = el.querySelector('.exs'), setup = ex.setup != null ? ex.setup : lastSetup(ex.name, s.id);
   if(su && document.activeElement !== su && su.value !== setup) su.value = setup;
@@ -2532,7 +2535,7 @@ function startSession(id, day){
   const r = id ? routineById(id) : null, now = Date.now(), sid = newId();
   const past = !!day && day < todayISO(), date = past ? day : todayISO();
   const s = {id:sid, kind:'styrke', template: r ? r.id : 'F', title: r ? r.name : 'Quick Workout', date, startedAt: past ? new Date(date + 'T12:00:00').getTime() : now, endedAt:null, knee:null, rpe:null, note:'',
-    exercises: r ? (r.items || []).map(x => ({k:newId(), name:x.name, planned:x.sets || 1, hint:x.hint || ''})) : [], updatedAt:now};
+    exercises: r ? (r.items || []).map(x => ({k:newId(), name:x.name, planned:x.sets || 1, hint:hintOf(x.hint)})) : [], updatedAt:now};
   if(past) s.loggedAt = now;
   if(ST().warm && !past) s.exercises.unshift(warmEx(ST().warm));
   S.activeId = sid; ls.set('tl.active', sid); S.ui.expanded.clear(); S.ui.deckI = 0; S.ui.overview = false;
@@ -4366,7 +4369,7 @@ function libRemove(){
 function openRoutinePreview(id){
   const r = routineById(id); if(!r) return;
   const f = D.folders.find(x => x.id === r.folder);
-  const rows = (r.items || []).map(x => '<div class="li" style="cursor:default"><span>' + esc(x.name) + (x.hint ? '<br><small style="text-align:left">' + esc(x.hint) + '</small>' : '') + '</span><small>' + plural(x.sets || 1, 'set') + '</small></div>').join('');
+  const rows = (r.items || []).map(x => '<div class="li" style="cursor:default"><span>' + esc(x.name) + (hintOf(x.hint) ? '<br><small style="text-align:left">' + esc(hintOf(x.hint)) + '</small>' : '') + '</span><small>' + plural(x.sets || 1, 'set') + '</small></div>').join('');
   openSheet('preview', shTop(r.name, f ? f.name : 'My Workouts'),
     '<div class="lgroup">' + (rows || '<p class="sub">No exercises yet</p>') + '</div>' +
     '<button class="btn-primary wide" data-a="start" data-id="' + esc(r.id) + '">Start workout</button>' +
@@ -4885,6 +4888,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.21.2', date: '2026-10-21', items: [['nosuperset', 'No supersets: Claude no longer plans them and the app never shows one'], ['feelrow', 'Loved it, Good, Meh and Disliked sit as four even buttons across the card']]},
   {v: '4.21.1', date: '2026-10-21', items: [['fitcard', 'The whole flashcard fits during rest: How was it and the note show after the last set'], ['restroom', 'Cards use the room above the rest bar']]},
   {v: '4.21.0', date: '2026-10-21', items: [['gunnarwave', 'Tap Gentle Gunnar: he lifts his hand and waves while butterflies flutter out, and one lands on his beanie'], ['butterflies', 'Two butterflies keep Gunnar company while his box is open']]},
   {v: '4.20.1', date: '2026-10-21', items: [['warmslide', 'Warm-up and cardio use the same sliders as the exercises when Weight and reps is set to Slide'], ['warmact', 'The warm-up activity picker shows again with sliders on']]},
