@@ -934,6 +934,45 @@ button.day:active { transform: scale(.94); }
 .stars button.on { color: var(--g1); }
 .stars button:active { transform: scale(.85); }
 
+/* exercise preferences: Love, Fine or Avoid per exercise, with an optional short reason */
+.xp-bar { position: sticky; top: -2px; z-index: 2; margin: 0 -14px; padding: 12px 14px 10px; background: var(--glass); display: flex; flex-direction: column; gap: 10px; }
+.xp-bar .sg { width: 100%; }
+.xp-bar .sg button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.xp-bar .sg svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.xp-bar .sg em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.xp-grp > .lab { margin: 14px 6px 0; }
+.xp { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 2px 4px 2px 6px; border-top: 1px solid var(--line); }
+.xp-grp > .lab + .xp { border-top: 0; }
+.xp-name { flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: center; border: 0; background: none; padding: 6px 0; text-align: left; }
+.xp-name b { display: block; font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .25s; }
+.xp-name small { display: block; font-size: 12.5px; color: var(--dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xp-name small:empty { display: none; }
+.xp[data-p="love"] .xp-name small { color: var(--g1); }
+.xp[data-p="avoid"] .xp-name b { color: var(--dim); }
+.xp[data-p="avoid"] .xp-name small { color: var(--down); }
+.xp.open .xp-name b { color: var(--text); }
+.xp-seg { flex: none; position: relative; display: grid; grid-template-columns: repeat(3, 38px); padding: 3px; border-radius: 13px; background: var(--fill); }
+.xp-seg::before { content: ''; position: absolute; top: 3px; bottom: 3px; left: 3px; width: 38px; border-radius: 10px; background: var(--drop); transform: translateX(calc(var(--i, 1) * 100%)); transition: transform .5s var(--spring), background .3s; }
+.xp[data-p="love"] .xp-seg::before { background: var(--g1); }
+.xp[data-p="avoid"] .xp-seg::before { background: var(--down); }
+.xp-seg button { position: relative; height: 34px; border: 0; background: none; padding: 0; display: grid; place-items: center; color: var(--dim); transition: color .25s, transform .3s var(--spring); }
+.xp-seg button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: fill .25s; }
+.xp-seg button.on { color: var(--text); }
+.xp[data-p="love"] .xp-seg button.on, .xp[data-p="avoid"] .xp-seg button.on { color: #fff; }
+.xp[data-p="love"] .xp-seg button.on svg { fill: currentColor; }
+.xp-seg button:active { transform: scale(.86); }
+.xp-seg button.pop svg { animation: xpPop .5s var(--spring); }
+@keyframes xpPop { 35% { transform: scale(1.4); } }
+.xp-why { padding: 0 4px 14px 6px; animation: panelIn .4s var(--ease); }
+.xp-why .field { height: 44px; }
+.xp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.xp-chips button { border: 0; border-radius: 999px; padding: 7px 12px; background: var(--fill-2); font-size: 13px; transition: background .2s, color .2s, transform .3s var(--spring); }
+.xp-chips button:active { transform: scale(.94); }
+.xp-chips button.on { background: color-mix(in srgb, var(--g1) 18%, var(--fill)); color: var(--g1); font-weight: 600; }
+.xp-empty { text-align: center; color: var(--dim); padding: 44px 16px; font-size: 14px; line-height: 1.5; }
+.li small.love { color: var(--g1); }
+.li small.avoid { color: var(--down); }
+
 @media (prefers-reduced-motion: reduce) { .blob, .cards.deck-on .ex, .ovt, .ovw.editing .ovt, .bodymap .mu.hot { animation: none; } .par, .sheet, .settings, .tabbar { transition: none; } }
 @media (prefers-reduced-transparency: reduce) { :root { --glass: color-mix(in srgb, var(--bg) 92%, transparent); } }
 @media (max-width: 360px) { .stp input { font-size: 27px; } .tabbar { width: calc(100% - 24px); } .tabbar a { font-size: 9px; } }
@@ -1040,6 +1079,7 @@ button.day:active { transform: scale(.94); }
     <div class="set-nav" id="setNav" role="tablist" aria-label="Sections">
       <button class="on" data-p="general" role="tab">General</button>
       <button data-p="workout" role="tab">Workout</button>
+      <button data-p="exercises" role="tab">Exercises</button>
       <button data-p="look" role="tab">Look</button>
       <button data-p="feedback" role="tab">Feedback</button>
       <button data-p="updates" role="tab">Updates</button>
@@ -3291,7 +3331,7 @@ function libInUse(){
   if(L.mode === 'routine') return new Set((S.ui.rd ? S.ui.rd.items : []).map(x => x.name));
   const s = activeSession(); return new Set(s ? s.exercises.map(e => e.name) : []);
 }
-const libItem = (x, inUse) => '<button class="li" data-a="lib-pick" data-n="' + esc(x.name) + '"><span>' + esc(x.name) + '</span><small>' + (inUse.has(x.name) ? 'added' : '') + '</small></button>';
+const libItem = (x, inUse) => { const p = xpOf(x.name).p; return '<button class="li" data-a="lib-pick" data-n="' + esc(x.name) + '"><span>' + esc(x.name) + '</span><small class="' + (inUse.has(x.name) ? '' : p) + '">' + (inUse.has(x.name) ? 'added' : p === 'fine' ? '' : XP_NAME[p]) + '</small></button>'; };
 function renderLibRes(){
   const L = S.ui.lib; if(!L) return;
   const q = norm(L.q), inUse = libInUse();
@@ -3573,6 +3613,7 @@ function renderSettings(){
     srow('Keep screen on', 'While a workout runs', sw('awake', st.awake !== false)) +
     srow('Vibration', 'On taps and saved sets', sw('haptics', st.haptics !== false)) +
     srow('Suggest next workout', 'From workouts in rotation', sw('rotation', st.rotation));
+  p.exercises = '<div id="xp-panel"></div>';
   p.look = srow('Theme', '', seg('theme', [['system','Auto'],['light','Light'],['dark','Dark']], st.theme)) +
     srow('Text size', '', seg('text', [['S','Small'],['M','Medium'],['L','Large']], st.text)) +
     srow('Font', '', seg('font', [['system','Plain'],['rounded','Round'],['serif','Serif'],['mono','Mono']], st.font)) +
@@ -3588,7 +3629,7 @@ function renderSettings(){
     srow('Export', 'CSV', '<button class="btn-glass btn-small" data-a="export">Download</button>') +
     srow('Copy for Claude', 'Last 30 days as text', '<button class="btn-glass btn-small" data-a="copy-summary">Copy</button>');
   setHTML($('#setPanels'), Object.keys(p).map(k => '<div class="set-panel' + (k === S.ui.setPanel ? ' on' : '') + '" data-p="' + k + '">' + p[k] + '</div>').join(''));
-  renderFeedbackPanel(); renderUpdates();
+  renderFeedbackPanel(); renderUpdates(); renderXP();
   if(S.ui.setPanel === 'feedback') markAppRead(); else renderBadges();
 }
 /* Feedback about the app itself: bugs, ideas and wishes. Claude answers in the same thread in the evening review. */
@@ -3597,9 +3638,90 @@ function renderFeedbackPanel(){
   setHTML(el, '<div style="padding:12px 6px 4px"><p class="hint" style="margin:0 0 10px">Bugs, ideas and wishes for the app go here. Claude reads them in the evening review and answers in this thread.</p>' + composerHtml('app') + threadHtml('app', true) + '</div>');
   hydratePhotos();
 }
+/* Exercise preferences: Love, Fine or Avoid for each exercise in the library, with an optional short reason.
+   Saved in meta.exPrefs as {name: {p, why, at}}; Fine without a reason is the default and is not stored.
+   Claude honours them when it picks exercises in the evening review. */
+const XP_KEYS = ['love', 'fine', 'avoid'];
+const XP_NAME = {love: 'Love', fine: 'Fine', avoid: 'Avoid'};
+const XP_ICON = {
+  love: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>',
+  fine: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 12.5 3.6 3.6 7.4-8"/></svg>',
+  avoid: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m6.5 6.5 11 11"/></svg>'
+};
+const XP_WHY = {
+  love: ['Feels great', 'Great pump', 'Easy to set up', 'Strong on it'],
+  fine: ['Machine often taken', 'Slow to set up'],
+  avoid: ['Machine often taken', 'Hurts lower back', 'Hurts knees', 'Hurts shoulder', 'No equipment', 'Boring']
+};
+const xpAll = () => D.meta.exPrefs || {};
+const xpOf = name => Object.assign({p: 'fine', why: ''}, xpAll()[name]);
+const xpSub = v => v.why ? esc(v.why) : v.p !== 'fine' ? 'Add a reason' : '';
+function xpSave(name, patch){
+  const all = Object.assign({}, xpAll()), v = Object.assign(xpOf(name), patch);
+  const why = String(v.why || '').trim().slice(0, 60);
+  if(v.p === 'fine' && !why) delete all[name];
+  else all[name] = Object.assign({p: v.p}, why ? {why} : {}, {at: todayISO()});
+  saveMeta({exPrefs: all});
+}
+function xpFilterHtml(){
+  const c = {love: 0, avoid: 0}; for(const x of D.lib){ const p = xpOf(x.name).p; if(p in c) c[p]++; }
+  const pairs = [['all', 'All', D.lib.length], ['love', 'Love', c.love], ['avoid', 'Avoid', c.avoid]], f = S.ui.xpF || 'all';
+  return '<div class="sg" id="xp-f" style="--n:3;--i:' + Math.max(0, pairs.findIndex(x => x[0] === f)) + '">' + pairs.map(([v, l, n]) =>
+    '<button data-a="xp-filter" data-v="' + v + '" class="' + (v === f ? 'on' : '') + '">' + (XP_ICON[v] || '') + l + ' <em>' + n + '</em></button>').join('') + '</div>';
+}
+function renderXP(){
+  const el = $('#xp-panel'); if(!el) return;
+  setHTML(el, '<div class="xp-bar"><div id="xp-fw">' + xpFilterHtml() + '</div>' +
+    '<input id="xp-q" class="field" type="search" placeholder="Search exercises" autocomplete="off" autocorrect="off" aria-label="Search exercises" value="' + esc(S.ui.xpQ || '') + '"></div>' +
+    '<p class="hint" style="margin:4px 6px 0">Claude plans your workouts around these.</p><div id="xp-list"></div>');
+  renderXPList();
+}
+const xpWhyHtml = (name, v) => '<div class="xp-why"><input class="field" data-xpwhy="' + esc(name) + '" maxlength="60" placeholder="Why, optional" autocomplete="off" aria-label="Reason" value="' + esc(v.why) + '">' +
+  '<div class="xp-chips">' + XP_WHY[v.p].map(t => '<button data-a="xp-why" data-t="' + esc(t) + '" class="' + (t === v.why ? 'on' : '') + '">' + esc(t) + '</button>').join('') + '</div></div>';
+function xpRow(x){
+  const v = xpOf(x.name), open = S.ui.xpOpen === x.name;
+  return '<div class="xp' + (open ? ' open' : '') + '" data-p="' + v.p + '" data-n="' + esc(x.name) + '"><button class="xp-name" data-a="xp-open" aria-expanded="' + open + '"><b>' + esc(x.name) + '</b><small>' + xpSub(v) + '</small></button>' +
+    '<div class="xp-seg" role="radiogroup" aria-label="' + esc(x.name) + '" style="--i:' + XP_KEYS.indexOf(v.p) + '">' + XP_KEYS.map(k =>
+      '<button data-a="xp-set" data-v="' + k + '" role="radio" aria-checked="' + (k === v.p) + '" aria-label="' + XP_NAME[k] + '" class="' + (k === v.p ? 'on' : '') + '">' + XP_ICON[k] + '</button>').join('') + '</div></div>' +
+    (open ? xpWhyHtml(x.name, v) : '');
+}
+function renderXPList(){
+  const el = $('#xp-list'); if(!el) return;
+  const q = norm(S.ui.xpQ), f = S.ui.xpF || 'all';
+  const list = D.lib.filter(x => (!q || norm(x.name).includes(q)) && (f === 'all' || xpOf(x.name).p === f)).sort((a, b) => a.name.localeCompare(b.name));
+  if(!list.length){ setHTML(el, '<p class="xp-empty">' + (q ? 'No exercises match' : f === 'love' ? 'Tap the heart on the exercises you love' : 'Tap the stop sign on the exercises you want to skip') + '</p>'); return; }
+  const groups = {}; for(const x of list) (groups[x.slot] = groups[x.slot] || []).push(x);
+  setHTML(el, Object.keys(SLOTS).filter(k => groups[k]).map(k => '<div class="xp-grp"><p class="lab">' + SLOTS[k] + '</p>' + groups[k].map(xpRow).join('') + '</div>').join(''));
+}
+// Paint one row in place so the pill can slide instead of the list being redrawn
+function xpPaint(row){
+  const name = row.dataset.n, v = xpOf(name), seg = row.querySelector('.xp-seg');
+  row.dataset.p = v.p; seg.style.setProperty('--i', XP_KEYS.indexOf(v.p));
+  seg.querySelectorAll('button').forEach(b => { const on = b.dataset.v === v.p; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
+  row.querySelector('.xp-name small').innerHTML = xpSub(v);
+  const why = row.nextElementSibling;
+  if(why && why.classList.contains('xp-why')){ const inp = why.querySelector('input'); if(document.activeElement !== inp) inp.value = v.why;
+    why.querySelector('.xp-chips').innerHTML = XP_WHY[v.p].map(t => '<button data-a="xp-why" data-t="' + esc(t) + '" class="' + (t === v.why ? 'on' : '') + '">' + esc(t) + '</button>').join(''); }
+  setHTML($('#xp-fw'), xpFilterHtml());
+}
+function xpSet(b){
+  const row = b.closest('.xp'), name = row.dataset.n, was = xpOf(name), p = was.p === b.dataset.v ? 'fine' : b.dataset.v;
+  // a preset reason that belongs to the old mark goes with it; a reason typed by hand stays
+  const why = XP_WHY[was.p].includes(was.why) && !XP_WHY[p].includes(was.why) ? '' : was.why;
+  xpSave(name, {p, why}); xpPaint(row); haptic();
+  const on = row.querySelector('.xp-seg button.on'); if(on && on.dataset.v !== 'fine'){ on.classList.remove('pop'); void on.offsetWidth; on.classList.add('pop'); }
+}
+let xpT = null;
+document.addEventListener('input', e => {
+  const t = e.target;
+  if(t.id === 'xp-q'){ S.ui.xpQ = t.value; renderXPList(); return; }
+  if(t.dataset && t.dataset.xpwhy != null){ const name = t.dataset.xpwhy; clearTimeout(xpT);
+    xpT = setTimeout(() => { xpSave(name, {why: t.value}); const row = t.closest('.xp-why').previousElementSibling; if(row) xpPaint(row); }, 600); }
+});
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.11.0', date: '2026-10-21', items: [['prefs', 'Exercise preferences in Settings: Love, Fine or Avoid for every exercise, with a reason if you like'], ['libtag', 'Loved and avoided exercises are marked when you add one']]},
   {v: '4.10.2', date: '2026-10-21', items: [['haptic2', 'Haptics that work on new iPhones: every button, RIR, switch and tap on a slider ticks']]},
   {v: '4.10.1', date: '2026-10-21', items: [['haptic', 'Sliders, RIR and logged sets tick on iPhone too'], ['forearms', 'Forearm and rotator cuff exercises in the library and on the body map'], ['rirtarget', 'Targets show the RIR to aim for']]},
   {v: '4.10.0', date: '2026-10-19', items: [['cardio', 'Cardio workouts with a card per machine, a timer that counts down and the pace from your distance'], ['skierg', 'SkiErg added, in metres like the rower'], ['pins', 'Choose the lifts on Records yourself, cardio distances like a 3 km run too'], ['search', 'Lift lists in A to Z order with search'], ['ruler', 'Sliders look like a ruler, and dragging down slows them more gently'], ['fit', 'Every page and flashcard fits the screen, tightening itself when there is a lot on it']]},
@@ -3910,6 +4032,11 @@ document.addEventListener('click', e => {
       else armButton('goal-del', 'goal:' + id, 'Delete goal', 'Tap again to delete');
       break;
     }
+    case 'xp-set': xpSet(b); break;
+    case 'xp-open': { const n = b.closest('.xp').dataset.n; S.ui.xpOpen = S.ui.xpOpen === n ? null : n; renderXPList(); haptic(); break; }
+    case 'xp-why': { const box = b.closest('.xp-why'), row = box.previousElementSibling, inp = box.querySelector('input'), t = b.dataset.t;
+      clearTimeout(xpT); inp.value = inp.value.trim() === t ? '' : t; xpSave(row.dataset.n, {why: inp.value}); xpPaint(row); haptic(); break; }
+    case 'xp-filter': S.ui.xpF = b.dataset.v; S.ui.xpOpen = null; setHTML($('#xp-fw'), xpFilterHtml()); renderXPList(); $('#setPanels').scrollTop = 0; haptic(); break;
     case 'rate': { const k = b.dataset.key, v = +b.dataset.v, cur = (D.meta.ratings || {})[k] || 0, nv = cur === v ? 0 : v; b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', +x.dataset.v <= nv)); rate(k, v); break; }
     case 'add-ex': if(isCardioS(activeSession())) openCardioAdd(); else openLib('add', null); break;
     case 'more': S.ui.expanded.add(b.dataset.k); renderWorkout(); break;
@@ -4084,7 +4211,7 @@ addEventListener('scroll', () => { if(!typingField(document.activeElement)) rese
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && $('#setModal').classList.contains('open')) closeSettings();
   if(e.key === 'Escape' && $('#side').classList.contains('open')) closeSide();
-  if(e.key === 'Enter' && e.target.matches && e.target.matches('.stp input, #c-dur, #c-dist, #ci-kg, .field.small, #fd-name, #rd-name, .exs')){ e.preventDefault(); e.target.blur(); }
+  if(e.key === 'Enter' && e.target.matches && e.target.matches('.stp input, #c-dur, #c-dist, #ci-kg, .field.small, #fd-name, #rd-name, .exs, #xp-q, [data-xpwhy]')){ e.preventDefault(); e.target.blur(); }
 });
 $('#s-note').addEventListener('blur', saveNote);
 $('#setModal').inert = true;
