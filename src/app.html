@@ -563,6 +563,8 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .pk-list .pin-h:first-child { margin-top: 6px; }
 .vin.fit .scrolly { flex: 1 1 auto; min-height: 48px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 body.resting .vin { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 170px); }
+/* a page that fits the screen only needs to clear the rest bar itself (68 px up, about 54 tall), so the flashcard keeps that room */
+body.resting .vin.fit { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 134px); }
 
 /* ---------- tab bar ---------- */
 .tabbar { position: fixed; z-index: 20; left: 0; right: 0; margin: 0 auto; width: calc(100% - 40px); max-width: 400px; bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 8px); display: flex; padding: 4px; border-radius: 999px; user-select: none; -webkit-user-select: none; touch-action: none; transition: transform .35s var(--ease), opacity .25s; }
@@ -2466,10 +2468,13 @@ function fillCard(el, ex, s){
   r('logbtn').textContent = 'Log set ' + (today.length + 1) + (ex.planned && today.length < ex.planned ? ' of ' + ex.planned : '');
   const nt = el.querySelector('.exn');
   if(nt && document.activeElement !== nt && nt.value !== (ex.note || '')){ nt.value = ex.note || ''; growNote(nt); }
+  // how it went is for after the last set: while sets are left, the rating and an empty note step aside so the card fits
+  const left = !sk && ex.planned > 0 && today.length < ex.planned;
+  if(nt) nt.hidden = left && !ex.note && document.activeElement !== nt;
   const su = el.querySelector('.exs'), setup = ex.setup != null ? ex.setup : lastSetup(ex.name, s.id);
   if(su && document.activeElement !== su && su.value !== setup) su.value = setup;
   r('feel').querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.v === ex.feel)));
-  r('feel').hidden = !!sk;
+  r('feel').hidden = !!sk || (left && !ex.feel);
   const prev = prevNotes(ex.name, s.id), np = r('nprev');
   np.hidden = !prev.length;
   if(prev.length) setHTML(np, prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join(''));
@@ -4864,6 +4869,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.21.1', date: '2026-10-21', items: [['fitcard', 'The whole flashcard fits during rest: How was it and the note show after the last set'], ['restroom', 'Cards use the room above the rest bar']]},
   {v: '4.21.0', date: '2026-10-21', items: [['gunnarwave', 'Tap Gentle Gunnar: he lifts his hand and waves while butterflies flutter out, and one lands on his beanie'], ['butterflies', 'Two butterflies keep Gunnar company while his box is open']]},
   {v: '4.20.1', date: '2026-10-21', items: [['warmslide', 'Warm-up and cardio use the same sliders as the exercises when Weight and reps is set to Slide'], ['warmact', 'The warm-up activity picker shows again with sliders on']]},
   {v: '4.20.0', date: '2026-10-21', items: [['warmlog', 'Warm-up logs time and distance from the machine, with the pace and how it compares with last time'], ['warmfeel', 'Rate the warm-up: Easy, Good or Hard'], ['notarget', 'No Target box on the cards. Reset sits by RIR once you change the numbers']]},
