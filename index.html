@@ -156,38 +156,121 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .fd-nav b { font-size: 15px; }
 .fd-nav .ib { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--fill); color: var(--text); display: grid; place-items: center; padding: 0; }
 .fd-nav .ib:disabled { opacity: .3; }
-.fd-nav .ib svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.fd-nav .ib svg, .fg-open .chev { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .fk { display: flex; align-items: baseline; gap: 8px; }
 .fk b { font-size: 38px; font-weight: 650; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .fk span { color: var(--dim); font-size: 14px; }
+.frange { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; font-variant-numeric: tabular-nums; }
 .fms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
 .fm { padding: 9px 10px 10px; border-radius: 14px; background: var(--fill); min-width: 0; }
 .fm small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); }
 .fm b { font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .fm b em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--dim); }
 .fm .gbar { margin-top: 6px; }
+.fwait-n { margin: 10px 0 0; font-size: 13px; color: var(--g1); font-weight: 600; }
+.fsnap { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.fsnap svg { width: 20px; height: 20px; }
+.food-guide.closed { padding: 0; }
+.fg-open { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: 0; background: none; color: var(--text); font-size: 15px; font-weight: 600; text-align: left; }
+.fg-open > svg:first-child { width: 20px; height: 20px; color: var(--g1); }
+.fg-open span { flex: 1; }
+.fg-hide { border: 0; background: none; padding: 6px 2px; color: var(--dim); font-size: 14px; font-weight: 600; }
+.fg-open .chev { color: var(--dim); }
+.fg { display: grid; grid-template-columns: 1.75fr 1fr; gap: 10px; margin: 10px 0 4px; }
+.fg svg, .hc-art svg { width: 100%; height: auto; display: block; }
+.fg-table { fill: var(--fill); }
+.fg-plate { fill: color-mix(in srgb, var(--text) 9%, transparent); stroke: color-mix(in srgb, var(--text) 28%, transparent); stroke-width: 1.5; }
+.fg-rim { fill: none; stroke: color-mix(in srgb, var(--text) 16%, transparent); stroke-width: 1.2; }
+.fg-f1 { fill: #ecdfc3; } .fg-f2 { fill: #c4895c; } .fg-f3 { fill: #6c9a58; }
+.fg-hand { fill: var(--g1); opacity: .78; }
+.fg-card { fill: color-mix(in srgb, var(--text) 16%, transparent); stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: 1.2; }
+.fg-chip { fill: #d9b45f; }
+.fg-line { stroke: var(--dim); stroke-width: 2; stroke-linecap: round; }
+.fg-phone { fill: var(--text); }
+.fg-dash { stroke: var(--g1); stroke-width: 1.6; stroke-dasharray: 4 4; fill: none; }
+.fg-arrow { stroke: var(--g1); stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fg-dim { stroke: var(--dim); stroke-width: 1.2; fill: none; }
+.fg-t { fill: var(--dim); font-size: 11px; font-weight: 650; font-family: inherit; }
+.fg-tips { margin: 10px 0 2px; padding: 0; list-style: none; counter-reset: t; display: flex; flex-direction: column; gap: 8px; }
+.fg-tips li { counter-increment: t; display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.35; color: var(--dim); }
+.fg-tips li::before { content: counter(t); flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--g1); color: #fff; font-size: 11.5px; font-weight: 700; display: grid; place-items: center; margin-top: 1px; }
+.fg-tips b { color: var(--text); font-weight: 650; }
 .fi { display: flex; gap: 12px; align-items: center; width: 100%; padding: 10px 0; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; }
-.fi:first-of-type { border-top: 0; }
-.fph { flex: none; width: 54px; height: 54px; border-radius: 15px; overflow: hidden; background: var(--fill); display: grid; place-items: center; color: var(--dim); }
+.food-list .hd + .fi { border-top: 0; }
+.fph { position: relative; flex: none; width: 54px; height: 54px; border-radius: 15px; overflow: hidden; background: var(--fill); display: grid; place-items: center; color: var(--dim); }
 .fph img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fph svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.fdot { position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--g1); box-shadow: 0 0 0 2px #fff; animation: fpulse 1.6s ease-in-out infinite; }
+@keyframes fpulse { 50% { transform: scale(.7); opacity: .6; } }
 .ft { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .ft small { font-size: 12px; color: var(--dim); }
 .ft b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ft em { font-style: normal; font-size: 12.5px; color: var(--dim); }
-.food-list .btn-primary { margin-top: 12px; }
 .food-sheet { display: flex; flex-direction: column; gap: 14px; }
 .food-sheet > .sg { width: 100%; display: grid; }
-.fd-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.fd-nums label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.fd-nums small { font-size: 11.5px; color: var(--dim); text-align: center; }
-.fd-nums .field { text-align: center; padding-left: 4px; padding-right: 4px; font-size: 16px; }
-.fd-phs { display: flex; flex-wrap: wrap; gap: 8px; }
-.fd-p { position: relative; width: 76px; height: 76px; border-radius: 15px; overflow: hidden; background: var(--fill); }
-.fd-p img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.fd-p button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: 0; padding: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 15px; line-height: 1; }
-.fd-add { width: 76px; height: 76px; border-radius: 15px; border: 1.5px dashed var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--dim); font-size: 12px; cursor: pointer; }
-.fd-add svg { width: 22px; height: 22px; }
+.fd-big { border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--fill); }
+.fd-big img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fits { display: flex; flex-direction: column; }
+.fit { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.fit:first-child { border-top: 0; }
+.fit span small { display: block; color: var(--dim); font-size: 12.5px; margin-top: 1px; }
+.fit b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fit.tot { font-weight: 700; border-top: 1.5px solid var(--text); }
+.fmac { margin: 0; color: var(--dim); font-size: 13.5px; }
+.fconf { margin: 0; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 650; }
+.fconf i { width: 9px; height: 9px; border-radius: 50%; background: #d9a441; }
+.fconf[data-c="high"] i { background: #4fb878; } .fconf[data-c="low"] i { background: #d0644f; }
+.fnote { margin: 0; font-size: 14px; line-height: 1.45; color: var(--dim); }
+.fwait { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 16px; background: var(--fill); border-left: 3px solid var(--g1); }
+.fwait span { color: var(--dim); font-size: 14px; line-height: 1.4; }
+.fwait.bad { border-left-color: #d0644f; }
+/* hand calibration */
+.hc { display: flex; flex-direction: column; gap: 10px; }
+.hc-art { border-radius: 18px; overflow: hidden; }
+.hc-now { margin: 0; font-size: 14px; font-weight: 650; color: var(--g1); }
+.hc .btn-primary { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.hc .btn-primary svg { width: 20px; height: 20px; }
+.hc-type { padding-top: 4px; }
+/* guided camera */
+.cam { position: fixed; inset: 0; z-index: 55; background: #000; color: #fff; display: flex; flex-direction: column; overflow: hidden; }
+.cam[hidden] { display: none; }
+.cam video, .cam #cam-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam #cam-img { display: none; }
+.cam.confirm #cam-img { display: block; }
+.cam.nocam video { display: none; }
+.cam-guide { position: absolute; inset: 0; pointer-events: none; }
+.cam-plate, .cam-card { position: absolute; display: grid; place-items: center; border: 2.5px dashed rgba(255,255,255,.88); box-shadow: 0 0 0 1px rgba(0,0,0,.25), inset 0 0 0 1px rgba(0,0,0,.25); }
+.cam-plate { left: 4vw; top: 21%; width: 63vw; aspect-ratio: 1; border-radius: 50%; }
+.cam-card { display: none; right: 9vw; top: 40%; width: 34vw; aspect-ratio: 85.6 / 54; border-radius: 3vw; }
+.cam-plate span, .cam-card span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.42); }
+.cam-hand { position: absolute; right: 3vw; top: 19%; width: 26vw; height: auto; fill: #fff; stroke: none; }
+.cam-hand g { opacity: .34; }
+.cam.left .cam-plate { left: auto; right: 4vw; }
+.cam.left .cam-hand { right: auto; left: 3vw; transform: scaleX(-1); }
+.cam[data-mode="hand"] .cam-plate { display: none; }
+.cam[data-mode="hand"] .cam-card { display: grid; }
+.cam[data-mode="hand"] .cam-hand { right: auto; left: 12vw; top: 24%; width: 32vw; }
+.cam.left[data-mode="hand"] .cam-hand { left: auto; right: 12vw; }
+.cam.left[data-mode="hand"] .cam-card { right: auto; left: 9vw; }
+.cam-top { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 26px; background: linear-gradient(rgba(0,0,0,.6), transparent); }
+.cam-top p { flex: 1; margin: 0; text-align: center; font-size: 14.5px; font-weight: 600; line-height: 1.3; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.cam-ib { flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; background: rgba(255,255,255,.18); color: #fff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.cam-ib svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.cam-level { position: absolute; z-index: 2; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 132px); transform: translateX(-50%); display: none; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; background: rgba(0,0,0,.45); font-size: 13px; font-weight: 600; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.cam-level.on { display: flex; }
+.cam-level b { position: relative; width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,.75); }
+.cam-level b i { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px; border-radius: 50%; background: #fff; transition: transform .12s linear; }
+.cam-level.ok b { border-color: #6fdc8c; } .cam-level.ok b i { background: #6fdc8c; } .cam-level.ok span { color: #6fdc8c; }
+.cam-bot { margin-top: auto; position: relative; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 26px 22px calc(env(safe-area-inset-bottom, 0px) + 22px); background: linear-gradient(transparent, rgba(0,0,0,.65)); }
+.cam-alt { justify-self: start; font-size: 13px; font-weight: 600; padding: 9px 12px; border-radius: 999px; background: rgba(255,255,255,.16); cursor: pointer; }
+.cam-shutter { width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff; padding: 0; background: #fff; box-shadow: inset 0 0 0 4px #000; transition: transform .2s var(--spring); }
+.cam-shutter:active { transform: scale(.9); }
+.cam.nocam .cam-shutter { opacity: .3; pointer-events: none; }
+.cam.nocam .cam-alt { background: var(--g1); }
+.cam-ok { display: none; position: relative; z-index: 2; margin-top: auto; gap: 10px; padding: 26px 18px calc(env(safe-area-inset-bottom, 0px) + 22px); background: linear-gradient(transparent, rgba(0,0,0,.65)); }
+.cam-ok button { flex: 1; }
+.cam.confirm .cam-guide, .cam.confirm .cam-level, .cam.confirm .cam-bot { display: none; }
+.cam.confirm .cam-ok { display: flex; }
 /* iPhone haptics: an invisible label with a hidden switch over each button and slider (see hzScan) */
 .hz { position: absolute; inset: 0; z-index: 3; border-radius: inherit; -webkit-tap-highlight-color: transparent; }
 :where(button:has(> .hz)) { position: relative; }
@@ -1123,6 +1206,7 @@ button.day:active { transform: scale(.94); }
   <section class="view" id="v-food" aria-label="Food"><div class="vin">
     <header class="top"><h1>Food</h1><small><span class="status" data-s="busy"></span></small></header>
     <article class="glass card" id="food-day"></article>
+    <article class="glass card food-guide" id="food-guide"></article>
     <article class="glass card food-list" id="food-list"></article>
   </div></section>
 </div>
@@ -1336,7 +1420,7 @@ const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
 const ACCENTS = {clay:['#d97757','#d97757'], aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a'], grape:['#9a5dff','#ff5fa8'], gold:['#f5a524','#ff6a3d'], mint:['#00b89c','#5ac8fa'], cherry:['#ff3b5c','#a33bff']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true, trainer:'', onboarded:false, kcal:0, protein:0};
+const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true, trainer:'', onboarded:false, kcal:0, protein:0, handSide:'right'};
 const WARM_ACTS = ['Row','Bike','SkiErg','Elliptical','Run','Walk','Mobility','Other'];
 // Machines for a cardio workout, one card each. Row and SkiErg show metres like the Concept2 screens, the rest km.
 const CARDIO_M = ['Bike','SkiErg','Row','Run','Elliptical','Walk'];
@@ -3015,9 +3099,10 @@ function openOnboard(){
 function renderOb(){
   const o = S.ui.ob, el = $('#ob'); if(!o || !el) return;
   const steps = [
-    ['Welcome to Plates', 'Four quick steps, then Claude plans your first week.',
+    ['Welcome to Plates', 'Five quick steps, then Claude plans your first week.',
       '<div><label class="lab" for="ob-name">What should Claude call you?</label><input id="ob-name" class="field" data-ob="name" autocomplete="given-name" placeholder="First name" value="' + esc(o.name) + '" enterkeyhint="next"></div>'],
     ['Pick your trainer', 'You can switch any time in Settings, Coach.', trainerHtml(o.trainer)],
+    ['Measure your hand', 'Your hand is the ruler in food photos, so Claude can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
     ['What do you like?', 'Tap once to love an exercise, twice to avoid it.',
       '<div class="obx">' + OB_LIFTS.map(n => '<button data-a="ob-x" data-n="' + esc(n) + '" data-p="' + o.prefs[n] + '"><i class="l">' + XP_ICON.love + '</i><i class="x">' + XP_ICON.avoid + '</i>' + esc(n) + '</button>').join('') + '</div>'],
     ['Your goals', 'One of each kind, all optional. Claude words them clearly tonight.',
@@ -3051,78 +3136,204 @@ function finishOb(){
   S.ui.ob = null; closeSheet(); toast('All set · Claude plans around this tonight');
 }
 
-/* Food: meals with a photo, a few words, or both. Numbers are optional; Claude estimates calories and macros in the
-   evening review for meals without them (marked est). Totals for the day against your targets from Settings, Coach. */
+/* Food: photo only. You snap the plate with your hand flat beside it, and the hand is the ruler: Claude knows its
+   size from the one-time calibration (meta.hand) and uses it to judge the plate, the portions and the calories. The
+   analysis runs in the evening review for now (status pending, then done or unclear), so it can later be swapped for a
+   model on the phone without touching this page. Every result carries a range and a confidence, never fake precision. */
 const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 const FOOD_IC = '<svg viewBox="0 0 24 24"><path d="M7 3v18M4.5 3v5.5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2.2 1-3.7 3.6-3.7 7.4 0 2 1.4 3.1 3.7 3.1"/></svg>';
 const CAM_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 const mealNow = () => { const h = new Date().getHours(); return h < 10 ? 'Breakfast' : h < 15 ? 'Lunch' : h < 21 ? 'Dinner' : 'Snack'; };
 const foodOn = d => (D.food || []).filter(f => f.date === d);
 const kNum = n => Math.round(n).toLocaleString('en-US');
-function foodSum(xs){ const t = {kcal: 0, p: 0, c: 0, f: 0, open: 0}; for(const x of xs){ if(x.kcal == null) t.open++; for(const k of ['kcal', 'p', 'c', 'f']) t[k] += +x[k] || 0; } return t; }
+const foodState = x => x.status || (x.kcal != null ? 'done' : 'pending');
+const CONF = {high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence'};
+function foodSum(xs){
+  const t = {kcal: 0, p: 0, c: 0, f: 0, lo: 0, hi: 0, open: 0, done: 0};
+  for(const x of xs){
+    if(foodState(x) !== 'done' || x.kcal == null){ if(foodState(x) === 'pending') t.open++; continue; }
+    t.done++; for(const k of ['kcal', 'p', 'c', 'f']) t[k] += +x[k] || 0;
+    t.lo += +(x.kcalLo != null ? x.kcalLo : x.kcal) || 0; t.hi += +(x.kcalHi != null ? x.kcalHi : x.kcal) || 0;
+  }
+  return t;
+}
+// The hand you lay beside the plate: a hand and its forearm from above, fingers up, thumb toward the plate
+const HAND_SHAPES = '<rect x="14" y="60" width="52" height="54" rx="18"/><rect x="14" y="16" width="11" height="58" rx="5.5"/><rect x="27" y="6" width="11" height="68" rx="5.5"/>' +
+  '<rect x="40" y="12" width="11" height="62" rx="5.5"/><rect x="53" y="28" width="10" height="46" rx="5"/><rect x="9" y="62" width="12" height="44" rx="6" transform="rotate(-22 21 104)"/><rect x="21" y="100" width="38" height="70" rx="14"/>';
+const GUIDE_TOP = '<svg viewBox="0 0 220 150" aria-hidden="true"><rect x="1" y="1" width="218" height="148" rx="18" class="fg-table"/>' +
+  '<circle cx="86" cy="75" r="56" class="fg-plate"/><circle cx="86" cy="75" r="42" class="fg-rim"/>' +
+  '<path d="M58 62c6-14 28-15 32-2s-6 19-19 17-17-5-13-15z" class="fg-f1"/><path d="M95 50c11-5 24 2 23 13s-11 15-21 12-11-20-2-25z" class="fg-f2"/>' +
+  '<circle cx="90" cy="97" r="9" class="fg-f3"/><circle cx="103" cy="92" r="7" class="fg-f3"/><circle cx="78" cy="99" r="7" class="fg-f3"/>' +
+  '<g class="fg-hand" transform="translate(150 18) scale(.78)">' + HAND_SHAPES + '</g>' +
+  '<text x="86" y="146" class="fg-t" text-anchor="middle">Plate</text><text x="181" y="14" class="fg-t" text-anchor="middle">Hand</text></svg>';
+const GUIDE_SIDE = '<svg viewBox="0 0 120 150" aria-hidden="true"><path d="M6 134h108" class="fg-line"/><path d="M24 129h50l-5 5H29z" class="fg-plate"/>' +
+  '<rect x="30" y="12" width="38" height="7" rx="3" class="fg-phone"/><path d="M49 24v98" class="fg-dash"/><path d="m44 116 5 7 5-7" class="fg-arrow"/>' +
+  '<path d="M90 16v114M85 16h10M85 130h10" class="fg-dim"/><text x="99" y="70" class="fg-t">45</text><text x="99" y="82" class="fg-t">cm</text></svg>';
+const GUIDE_CARD = '<svg viewBox="0 0 220 130" aria-hidden="true"><rect x="1" y="1" width="218" height="128" rx="18" class="fg-table"/>' +
+  '<g class="fg-hand" transform="translate(26 6) scale(.68)">' + HAND_SHAPES + '</g>' +
+  '<rect x="128" y="44" width="68" height="43" rx="5" class="fg-card"/><rect x="136" y="56" width="11" height="9" rx="2" class="fg-chip"/>' +
+  '<text x="76" y="118" class="fg-t">Hand flat</text><text x="162" y="104" class="fg-t" text-anchor="middle">Any bank card</text></svg>';
+function foodGuideHtml(open){
+  if(!open) return '<button class="fg-open" data-a="food-guide">' + CAM_IC + '<span>How to snap a meal</span><svg class="chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>';
+  return '<div class="hd"><h2>How to snap</h2><button class="fg-hide" data-a="food-guide">Hide</button></div>' +
+    '<div class="fg">' + GUIDE_TOP + GUIDE_SIDE + '</div>' +
+    '<ol class="fg-tips"><li><span><b>Plate in the middle,</b> the whole rim in view.</span></li><li><span><b>Hand flat beside it,</b> fingers together, wrist and some forearm in view.</span></li>' +
+    '<li><span><b>Phone straight above,</b> about 45 cm up, in good light.</span></li></ol>';
+}
 function renderFood(){
   if(!$('#food-day')) return;
   const d = S.ui.foodDay || todayISO(), xs = foodOn(d), t = foodSum(xs), st = ST(), kT = +st.kcal || 0, pT = +st.protein || 0;
   const bar = (v, max) => '<div class="gbar"><i style="width:' + Math.min(100, Math.round(v / max * 100)) + '%"></i></div>';
   const mac = (name, v, max) => '<div class="fm"><small>' + name + '</small><b>' + Math.round(v) + '<em> ' + (max ? '/ ' + max + ' g' : 'g') + '</em></b>' + (max ? bar(v, max) : '') + '</div>';
   const arrow = dir => '<svg viewBox="0 0 24 24"><path d="' + (dir < 0 ? 'm14.5 6-6 6 6 6' : 'm9.5 6 6 6-6 6') + '"/></svg>';
+  const range = t.done && Math.round(t.hi - t.lo) > 0 ? '<small class="frange">Likely ' + kNum(t.lo) + ' to ' + kNum(t.hi) + '</small>' : '';
   setHTML($('#food-day'), '<div class="fd-nav"><button class="ib" data-a="food-day" data-d="-1" aria-label="Previous day">' + arrow(-1) + '</button><b>' + (d === todayISO() ? 'Today' : esc(dDay(d))) + '</b>' +
     '<button class="ib" data-a="food-day" data-d="1" aria-label="Next day"' + (d >= todayISO() ? ' disabled' : '') + '>' + arrow(1) + '</button></div>' +
-    '<div class="fk"><b>' + kNum(t.kcal) + '</b><span>' + (kT ? 'of ' + kNum(kT) + ' kcal' : 'kcal') + '</span></div>' + (kT ? bar(t.kcal, kT) : '') +
+    '<div class="fk"><b>' + (t.done ? '≈ ' : '') + kNum(t.kcal) + '</b><span>' + (kT ? 'of ' + kNum(kT) + ' kcal' : 'kcal') + '</span></div>' + range + (kT ? bar(t.kcal, kT) : '') +
     '<div class="fms">' + mac('Protein', t.p, pT) + mac('Carbs', t.c, 0) + mac('Fat', t.f, 0) + '</div>' +
-    (t.open ? '<p class="hint" style="margin:10px 0 0">' + plural(t.open, 'meal') + ' without numbers. Claude estimates ' + (t.open === 1 ? 'it' : 'them') + ' tonight from your words and photos.</p>' : ''));
-  const rows = xs.map(x => '<button class="fi" data-a="food-edit" data-id="' + esc(x.id) + '"><span class="fph' + (x.photos && x.photos.length ? '' : ' none') + '">' + (x.photos && x.photos.length ? photoTag(x.photos[0]) : FOOD_IC) + '</span>' +
-    '<span class="ft"><small>' + esc(x.meal || 'Meal') + ' · ' + fClock.format(x.ts || Date.now()) + '</small><b>' + esc(x.text || 'Photo') + '</b><em>' +
-    (x.kcal != null ? kNum(x.kcal) + ' kcal · ' + Math.round(+x.p || 0) + ' g protein' + (x.est ? ' · estimated' : '') : 'Claude estimates tonight') + '</em></span></button>').join('');
+    (t.open ? '<p class="fwait-n">' + plural(t.open, 'photo') + ' waiting for Claude tonight</p>' : '') +
+    '<button class="btn-primary wide fsnap" data-a="food-snap">' + CAM_IC + 'Snap a meal</button>');
+  const guideOpen = ls.get('tl.fguide') ? ls.get('tl.fguide') === '1' : (D.food || []).length < 3;
+  setHTML($('#food-guide'), foodGuideHtml(guideOpen));
+  $('#food-guide').classList.toggle('closed', !guideOpen);
+  const rows = xs.map(x => {
+    const s = foodState(x), names = (x.items || []).map(i => i.name).filter(Boolean);
+    const title = s === 'done' ? (names.length ? names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '') : x.text || 'Meal') : s === 'unclear' ? 'Could not read this photo' : 'Waiting for Claude';
+    const sub = s === 'done' && x.kcal != null ? '≈ ' + kNum(x.kcal) + ' kcal · ' + Math.round(+x.p || 0) + ' g protein' : s === 'unclear' ? 'Tap to see why' : 'Analysed in tonight’s review';
+    return '<button class="fi" data-a="food-open" data-id="' + esc(x.id) + '"><span class="fph' + (x.photos && x.photos.length ? '' : ' none') + '">' + (x.photos && x.photos.length ? photoTag(x.photos[0]) : FOOD_IC) +
+      (s === 'pending' ? '<i class="fdot"></i>' : '') + '</span><span class="ft"><small>' + esc(x.meal || 'Meal') + ' · ' + fClock.format(x.ts || Date.now()) + '</small><b>' + esc(title) + '</b><em>' + sub + '</em></span></button>';
+  }).join('');
   setHTML($('#food-list'), '<div class="hd"><h2>Meals</h2><small>' + (xs.length ? plural(xs.length, 'meal') : '') + '</small></div>' +
-    (rows || '<p class="sub" style="margin:6px 0 2px">Nothing logged ' + (d === todayISO() ? 'today' : 'this day') + '. Snap a photo or write what you ate.</p>') +
-    '<button class="btn-primary wide" data-a="food-new">+ Add food</button>');
+    (rows || '<p class="sub" style="margin:6px 0 2px">Nothing logged ' + (d === todayISO() ? 'today' : 'this day') + '. Snap your plate with your hand beside it.</p>'));
   hydratePhotos();
 }
 function openFood(id){
-  const x = id ? (D.food || []).find(f => f.id === id) : null, d = x ? x.date : S.ui.foodDay || todayISO();
-  S.ui.fd = {id: x ? x.id : null, photos: x ? (x.photos || []).slice() : [], meal: x ? x.meal : mealNow()};
-  const v = k => x && x[k] != null ? esc(String(Math.round(x[k]))) : '';
-  openSheet('food', shTop(x ? 'Edit meal' : 'Add food', d === todayISO() ? 'Today' : dDay(d)),
-    '<div class="food-sheet">' + seg2('fd-meal', MEALS.map(m => [m, m]), S.ui.fd.meal) +
-    '<div><label class="lab" for="fd-text">What did you eat?</label><textarea id="fd-text" class="field" rows="2" placeholder="Chicken, rice and broccoli, about 200 g chicken">' + esc(x ? x.text || '' : '') + '</textarea></div>' +
-    '<div id="fd-ph"></div>' +
-    '<div><p class="lab">Numbers, optional</p><div class="fd-nums">' + [['kcal', 'kcal'], ['p', 'Protein'], ['c', 'Carbs'], ['f', 'Fat']].map(([k, l]) =>
-      '<label><small>' + l + '</small><input class="field" id="fd-' + k + '" inputmode="decimal" autocomplete="off" value="' + v(k) + '"></label>').join('') + '</div>' +
-    (lvlNew() ? '<p class="hint" style="margin:6px 2px 0">Leave them empty and Claude estimates them tonight. Protein, carbs and fat are in grams.</p>' : '') + '</div>' +
-    '<button class="btn-primary wide" data-a="food-save">Save</button>' +
-    (x ? '<button class="btn-quiet danger" data-a="food-del" id="food-del">Delete meal</button>' : '') + '</div>', false);
-  renderFdPhotos();
-}
-function renderFdPhotos(){
-  const el = $('#fd-ph'), F = S.ui.fd; if(!el || !F) return;
-  el.innerHTML = '<div class="fd-phs">' + F.photos.map((ph, i) => '<span class="fd-p">' + photoTag(ph) + '<button data-a="fd-ph-del" data-i="' + i + '" aria-label="Remove photo">×</button></span>').join('') +
-    (F.photos.length < 3 ? '<label class="fd-add">' + CAM_IC + '<span>Photo</span><input type="file" accept="image/*" multiple data-fdphoto hidden></label>' : '') + '</div>';
+  const x = (D.food || []).find(f => f.id === id); if(!x) return;
+  S.ui.fd = {id};
+  const s = foodState(x), its = x.items || [];
+  let body = '';
+  if(s === 'done'){
+    body = '<div class="fits">' + its.map(i => '<div class="fit"><span>' + esc(i.name) + (i.g ? '<small>≈ ' + Math.round(i.g) + ' g' + (i.note ? ' · ' + esc(i.note) : '') + '</small>' : '') + '</span><b>' + (i.kcal != null ? kNum(i.kcal) : '') + '</b></div>').join('') +
+      '<div class="fit tot"><span>Total' + (x.kcalLo != null && x.kcalHi != null ? '<small>Likely ' + kNum(x.kcalLo) + ' to ' + kNum(x.kcalHi) + ' kcal</small>' : '') + '</span><b>≈ ' + kNum(x.kcal || 0) + ' kcal</b></div></div>' +
+      '<p class="fmac">' + Math.round(+x.p || 0) + ' g protein · ' + Math.round(+x.c || 0) + ' g carbs · ' + Math.round(+x.f || 0) + ' g fat</p>' +
+      (x.conf ? '<p class="fconf" data-c="' + esc(x.conf) + '"><i></i>' + (CONF[x.conf] || x.conf) + '</p>' : '') + (x.note ? '<p class="fnote">' + esc(x.note) + '</p>' : '');
+  } else if(s === 'unclear') body = '<div class="fwait bad"><b>Claude could not read this photo</b><span>' + esc(x.note || 'Try again with the whole plate and your hand in view.') + '</span></div>';
+  else body = '<div class="fwait"><b>Waiting for Claude</b><span>Analysed in tonight’s review, with your hand as the ruler. You get the foods, portions, calories and how sure Claude is.</span></div>';
+  openSheet('food', shTop(x.meal || 'Meal', (x.date === todayISO() ? 'Today' : dDay(x.date)) + ' · ' + fClock.format(x.ts || Date.now())),
+    '<div class="food-sheet">' + (x.photos && x.photos.length ? '<div class="fd-big">' + photoTag(x.photos[0]) + '</div>' : '') + seg2('fd-meal', MEALS.map(m => [m, m]), x.meal) + body +
+    '<button class="btn-quiet danger" data-a="food-del" id="food-del">Delete meal</button></div>', true);
   hydratePhotos();
 }
-async function addFoodPhotos(files){
-  const F = S.ui.fd; if(!F) return;
-  for(const f of [...files].slice(0, 3 - F.photos.length)){ try{ F.photos.push(await shrinkPhoto(f, S.backend === 'gh' ? 1280 : 720)); }catch(e){ toast('Could not read that photo'); } }
-  renderFdPhotos();
+function storePhoto(id, url){
+  if(S.backend !== 'gh') return url;
+  const path = 'data/photos/' + id + '.jpg';
+  S.pending.push({op: 'put', col: 'photos', id, data: {b64: url.split(',')[1]}}); photoCache[path] = url; savePending();
+  return path;
 }
-function saveFood(){
-  const F = S.ui.fd; if(!F) return;
-  const text = $('#fd-text').value.replace(/\s+/g, ' ').trim().slice(0, 300);
-  if(!text && !F.photos.length){ toast('Write what you ate or add a photo'); $('#fd-text').focus(); return; }
-  const old = F.id ? (D.food || []).find(f => f.id === F.id) : null, id = F.id || newId(), date = old ? old.date : S.ui.foodDay || todayISO();
-  const nums = {}; for(const k of ['kcal', 'p', 'c', 'f']){ const v = num($('#fd-' + k).value); nums[k] = v != null && v >= 0 ? v : null; }
-  const photos = F.photos.map((ph, i) => {
-    if(!ph.startsWith('data:') || S.backend !== 'gh') return ph;
-    const pid = id + '-' + Date.now().toString(36) + i, path = 'data/photos/' + pid + '.jpg';
-    S.pending.push({op: 'put', col: 'photos', id: pid, data: {b64: ph.split(',')[1]}}); photoCache[path] = ph; return path;
-  });
-  if(photos.some((ph, i) => ph !== F.photos[i])) savePending();
-  const r = v => v == null ? null : Math.round(v);
-  const same = old && ['kcal', 'p', 'c', 'f'].every(k => r(old[k]) === r(nums[k]));
-  const doc = Object.assign({}, old || {}, {id, date, ts: old ? old.ts : date === todayISO() ? Date.now() : new Date(date + 'T12:00:00').getTime(), meal: F.meal, text, photos}, same ? {} : Object.assign(nums, {est: false}), {createdAt: old ? old.createdAt || Date.now() : Date.now(), updatedAt: Date.now()});
-  for(const k of ['kcal', 'p', 'c', 'f']) if(doc[k] == null) delete doc[k];
-  if(!same && doc.kcal == null) delete doc.est;
-  queue('set', 'food', id, doc); S.ui.fd = null; closeSheet(); toast(old ? 'Meal saved' : 'Meal added');
+function saveFoodShot(url){
+  const id = newId(), date = S.ui.foodDay || todayISO(), now = Date.now();
+  queue('set', 'food', id, {id, date, ts: date === todayISO() ? now : new Date(date + 'T12:00:00').getTime(), meal: mealNow(), photos: [storePhoto(id + '-0', url)],
+    hand: ST().handSide === 'left' ? 'left' : 'right', status: 'pending', createdAt: now, updatedAt: now});
+  toast('Saved · Claude reads it tonight');
+}
+
+/* Hand calibration: once, so Claude knows the size of the ruler in every food photo. Either a photo of the hand flat
+   next to a bank card (a standard 85.6 by 54 mm), which Claude measures tonight, or two numbers from a tape measure. */
+const handOf = () => D.meta.hand || null;
+function handText(){
+  const h = handOf(); if(!h) return 'Not set';
+  if(h.lengthCm) return fmt(h.lengthCm) + ' cm long · ' + fmt(h.widthCm || 0) + ' cm wide';
+  return h.status === 'unclear' ? 'Photo unclear, try again' : 'Photo saved · Claude measures it tonight';
+}
+function handCalHtml(){
+  const h = handOf();
+  return '<div class="hc"><div class="hc-art">' + GUIDE_CARD + '</div>' +
+    '<p class="hc-now"' + (h ? '' : ' hidden') + '>' + (h && h.lengthCm ? '✓ ' : '') + esc(handText()) + '</p>' +
+    '<button class="btn-primary wide" data-a="hand-snap">' + CAM_IC + (h ? 'Snap again' : 'Snap hand and card') + '</button>' +
+    '<button class="btn-quiet" data-a="hand-type">I measured it myself</button>' +
+    '<div class="hc-type" hidden><div class="g2"><div><label class="lab" for="hc-len">Hand length</label><div class="unit"><input id="hc-len" class="field" inputmode="decimal" autocomplete="off" placeholder="19" value="' + (h && h.lengthCm ? fmt(h.lengthCm) : '') + '"><span>cm</span></div></div>' +
+    '<div><label class="lab" for="hc-wid">Palm width</label><div class="unit"><input id="hc-wid" class="field" inputmode="decimal" autocomplete="off" placeholder="8.5" value="' + (h && h.widthCm ? fmt(h.widthCm) : '') + '"><span>cm</span></div></div></div>' +
+    '<p class="sub" style="margin:6px 2px 10px">Length from the wrist crease to the tip of the middle finger. Width across the knuckles.</p>' +
+    '<button class="btn-glass wide" data-a="hand-save">Save</button></div></div>';
+}
+function openHandCal(){ openSheet('hand', shTop('Your hand', 'The ruler in your food photos'), handCalHtml(), false); }
+function paintHandCal(){ document.querySelectorAll('.hc').forEach(el => { const box = el.parentElement, open = !el.querySelector('.hc-type').hidden; box.innerHTML = handCalHtml(); if(open) box.querySelector('.hc-type').hidden = false; }); }
+function saveHandShot(url){
+  saveMeta({hand: {photo: storePhoto('hand-' + newId(), url), side: ST().handSide === 'left' ? 'left' : 'right', status: 'pending', at: todayISO()}});
+  toast('Saved · Claude measures your hand tonight'); paintHandCal();
+}
+function saveHandTyped(){
+  const len = num($('#hc-len').value), wid = num($('#hc-wid').value);
+  if(!len || len < 12 || len > 26){ toast('Hand length is usually 16 to 22 cm'); $('#hc-len').focus(); return; }
+  if(!wid || wid < 5 || wid > 13){ toast('Palm width is usually 7 to 10 cm'); $('#hc-wid').focus(); return; }
+  saveMeta({hand: {lengthCm: len, widthCm: wid, from: 'tape', side: ST().handSide === 'left' ? 'left' : 'right', status: 'done', at: todayISO()}});
+  toast('Hand saved'); paintHandCal();
+}
+
+/* The guided camera: a live view with the plate circle and the hand drawn where they belong, a level that turns green
+   when the phone is flat above the table, and a check before the photo is used. Falls back to the camera app. */
+const CAMS = {stream: null, mode: 'meal', shot: null, tiltOn: false};
+function camEl(){
+  let el = $('#cam'); if(el) return el;
+  el = document.createElement('div'); el.className = 'cam'; el.id = 'cam'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Camera');
+  el.innerHTML = '<video id="cam-v" playsinline muted autoplay></video><img id="cam-img" alt="Your photo">' +
+    '<div class="cam-guide" aria-hidden="true"><i class="cam-plate"><span>Plate</span></i><i class="cam-card"><span>Card</span></i>' +
+    '<svg class="cam-hand" viewBox="0 0 70 172"><g>' + HAND_SHAPES + '</g></svg></div>' +
+    '<div class="cam-top"><button class="cam-ib" data-a="cam-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button><p id="cam-tip"></p>' +
+    '<button class="cam-ib" data-a="cam-flip" aria-label="Switch hand side"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg></button></div>' +
+    '<div class="cam-level" id="cam-level"><b><i></i></b><span>Hold flat above</span></div>' +
+    '<div class="cam-bot"><label class="cam-alt"><input type="file" accept="image/*" capture="environment" data-camfile hidden>Camera app</label>' +
+    '<button class="cam-shutter" data-a="cam-shot" aria-label="Take photo"></button><span></span></div>' +
+    '<div class="cam-ok"><button class="btn-glass" data-a="cam-retake">Retake</button><button class="btn-primary" data-a="cam-use">Use photo</button></div>';
+  document.body.append(el);
+  return el;
+}
+function camTilt(e){
+  const lv = $('#cam-level'); if(!lv || e.beta == null) return;
+  const b = Math.max(-30, Math.min(30, e.beta)), g = Math.max(-30, Math.min(30, e.gamma || 0)), ok = Math.abs(b) < 9 && Math.abs(g) < 9;
+  lv.classList.add('on'); lv.classList.toggle('ok', ok);
+  lv.querySelector('i').style.transform = 'translate(' + (g / 30 * 8).toFixed(1) + 'px,' + (b / 30 * 8).toFixed(1) + 'px)';
+  lv.querySelector('span').textContent = ok ? 'Level' : 'Hold flat above';
+}
+function openCam(mode){
+  const el = camEl();
+  CAMS.mode = mode; CAMS.shot = null;
+  el.dataset.mode = mode; el.classList.toggle('left', ST().handSide === 'left'); el.classList.remove('confirm', 'nocam'); el.hidden = false;
+  $('#cam-tip').textContent = mode === 'hand' ? 'Hand flat, fingers together, a bank card beside it' : 'Plate in the circle, your hand flat beside it';
+  document.body.classList.add('cam-open');
+  // iPhone asks once for motion access, and only straight from a tap
+  try{
+    const add = () => { if(!CAMS.tiltOn){ CAMS.tiltOn = true; addEventListener('deviceorientation', camTilt); } };
+    if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().then(r => { if(r === 'granted') add(); }).catch(() => {});
+    else if(window.DeviceOrientationEvent) add();
+  }catch(e){}
+  camStart();
+}
+async function camStart(){
+  const el = $('#cam'), v = $('#cam-v');
+  try{
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw 0;
+    if(!CAMS.stream) CAMS.stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: 'environment'}, width: {ideal: 1920}, height: {ideal: 1440}}, audio: false});
+    v.srcObject = CAMS.stream; await v.play().catch(() => {});
+  }catch(e){ el.classList.add('nocam'); $('#cam-tip').textContent = 'No camera access here. Use the camera app below and set it up the same way.'; }
+}
+function closeCam(){
+  const el = $('#cam'); if(!el) return;
+  if(CAMS.stream){ CAMS.stream.getTracks().forEach(t => t.stop()); CAMS.stream = null; }
+  if(CAMS.tiltOn){ CAMS.tiltOn = false; removeEventListener('deviceorientation', camTilt); }
+  el.hidden = true; el.classList.remove('confirm'); $('#cam-level').classList.remove('on', 'ok'); document.body.classList.remove('cam-open'); CAMS.shot = null;
+}
+function camShow(url){ CAMS.shot = url; $('#cam-img').src = url; $('#cam').classList.add('confirm'); }
+function camShot(){
+  const v = $('#cam-v'); if(!v || !v.videoWidth){ toast('The camera is not ready yet'); return; }
+  const k = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement('canvas');
+  c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  camShow(c.toDataURL('image/jpeg', .86)); haptic();
+}
+function camUse(){
+  const url = CAMS.shot; if(!url) return;
+  const mode = CAMS.mode; closeCam();
+  if(mode === 'hand') saveHandShot(url); else saveFoodShot(url);
 }
 
 /* Records: only the key lifts (your goals first, then the compound lifts you do most). Each one opens into a chart
@@ -3506,7 +3717,7 @@ function sendMsg(re){
   toast('Sent · Claude answers tonight');
 }
 document.addEventListener('input', e => { const t = e.target, o = S.ui.ob; if(o && t.dataset){ if(t.dataset.ob === 'name') o.name = t.value; if(t.dataset.obg) o.goals[t.dataset.obg] = t.value; } });
-document.addEventListener('change', e => { const t = e.target; if(t.dataset && t.dataset.fdphoto != null && t.files && t.files.length){ addFoodPhotos(t.files); t.value = ''; } });
+document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.camfile != null && t.files && t.files.length){ const f = t.files[0]; t.value = ''; try{ camShow(await shrinkPhoto(f, 1600)); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target; if(t.dataset && t.dataset.msgtext != null){ S.ui.draftText[t.dataset.msgtext] = t.value; growNote(t); } });
 document.addEventListener('change', e => { const t = e.target; if(t.dataset && t.dataset.msgphoto != null && t.files && t.files.length){ addPhotos(t.dataset.msgphoto, t.files); t.value = ''; } });
 
@@ -3930,6 +4141,8 @@ function renderSettings(){
     srow('Tips', 'Explanations on cards, like what RIR means', seg('level', [['new','Show'],['pro','Hide']], st.level === 'pro' ? 'pro' : 'new')) +
     srow('Exercise likes', nl || na ? nl + ' loved · ' + na + ' avoided' : 'Love or avoid exercises', '<button class="btn-glass btn-small" data-a="set-panel" data-p="exercises">Edit</button>') +
     srow('Goals', goals().length + ' of 3', '<button class="btn-glass btn-small" data-a="coach-goals">Edit</button>') +
+    srow('Hand size', esc(handText()), '<button class="btn-glass btn-small" data-a="hand-cal">' + (handOf() ? 'Redo' : 'Set') + '</button>') +
+    srow('Hand in food photos', '', seg('handSide', [['left','Left'],['right','Right']], st.handSide === 'left' ? 'left' : 'right')) +
     srow('Calories a day', 'For the Food page', sel('kcal', [[0, 'Not set']].concat(Array.from({length: 25}, (_, i) => [1600 + i * 100, (1600 + i * 100).toLocaleString('en-US')])), st.kcal || 0)) +
     srow('Protein a day', '', sel('protein', [[0, 'Not set']].concat(Array.from({length: 19}, (_, i) => [80 + i * 10, (80 + i * 10) + ' g'])), st.protein || 0)) +
     srow('Setup', 'The welcome steps again', '<button class="btn-glass btn-small" data-a="ob-open">Start</button>');
@@ -4054,6 +4267,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.14.0', date: '2026-10-21', items: [['foodphoto', 'Food is photo only: snap the plate with your hand beside it and Claude works out foods, portions and calories'], ['camera', 'A guided camera with the plate circle, your hand outline and a level'], ['hand', 'Measure your hand once, the ruler for portion sizes, under Settings, Coach'], ['range', 'Every meal shows a likely range and how sure Claude is']]},
   {v: '4.13.0', date: '2026-10-21', items: [['food', 'Food page: log meals with a photo or a few words, and Claude estimates calories and macros'], ['goaltypes', 'Three kinds of goal: strength, endurance and health'], ['trainers', 'Pick a trainer, Guide, Builder or Elite, under Settings, Coach'], ['welcome', 'Welcome steps for a new account: trainer, exercises you love and goals']]},
   {v: '4.12.0', date: '2026-10-21', items: [['lockcard', 'Lock screen card: lock the phone during a workout and see time, sets, exercises and progress']]},
   {v: '4.11.0', date: '2026-10-21', items: [['prefs', 'Exercise preferences in Settings: Love, Fine or Avoid for every exercise, with a reason if you like'], ['libtag', 'Loved and avoided exercises are marked when you add one']]},
@@ -4373,15 +4587,27 @@ document.addEventListener('click', e => {
     case 'coach-goals': closeSettings(); selectTab(4); break;
     case 'ob-open': closeSettings(); setTimeout(openOnboard, 250); break;
     case 'ob-x': { const o = S.ui.ob, n = b.dataset.n; if(!o) break; const nx = {fine: 'love', love: 'avoid', avoid: 'fine'}[o.prefs[n]] || 'love'; o.prefs[n] = nx; b.dataset.p = nx; break; }
-    case 'ob-next': { const o = S.ui.ob; if(!o) break; if(o.step >= 3) finishOb(); else { o.step++; renderOb(); } break; }
+    case 'ob-next': { const o = S.ui.ob; if(!o) break; if(o.step >= 4) finishOb(); else { o.step++; renderOb(); } break; }
     case 'ob-back': { const o = S.ui.ob; if(o && o.step){ o.step--; renderOb(); } break; }
     case 'ob-skip': saveSettings({onboarded: true}); S.ui.ob = null; closeSheet(); break;
     case 'food-day': { const d = addDays(S.ui.foodDay || todayISO(), +b.dataset.d); S.ui.foodDay = d > todayISO() ? todayISO() : d; renderFood(); break; }
-    case 'food-new': openFood(null); break;
-    case 'food-edit': openFood(b.dataset.id); break;
-    case 'food-save': saveFood(); break;
-    case 'fd-meal': { if(S.ui.fd) S.ui.fd.meal = b.dataset.v; const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); break; }
-    case 'fd-ph-del': { const F = S.ui.fd; if(F){ F.photos.splice(+b.dataset.i, 1); renderFdPhotos(); } break; }
+    case 'food-snap': openCam('meal'); break;
+    case 'food-open': openFood(b.dataset.id); break;
+    case 'food-guide': { const open = $('#food-guide').classList.contains('closed'); ls.set('tl.fguide', open ? '1' : '0'); renderFood(); break; }
+    case 'fd-meal': {
+      const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b));
+      const x = S.ui.fd && (D.food || []).find(f => f.id === S.ui.fd.id); if(x && x.meal !== b.dataset.v) queue('set', 'food', x.id, Object.assign({}, x, {meal: b.dataset.v, updatedAt: Date.now()}));
+      break;
+    }
+    case 'cam-close': closeCam(); break;
+    case 'cam-shot': camShot(); break;
+    case 'cam-retake': CAMS.shot = null; $('#cam').classList.remove('confirm'); break;
+    case 'cam-use': camUse(); break;
+    case 'cam-flip': { const left = ST().handSide !== 'left'; saveSettings({handSide: left ? 'left' : 'right'}); $('#cam').classList.toggle('left', left); haptic(); break; }
+    case 'hand-cal': closeSettings(); setTimeout(openHandCal, 250); break;
+    case 'hand-snap': openCam('hand'); break;
+    case 'hand-type': { const box = b.closest('.hc').querySelector('.hc-type'); box.hidden = !box.hidden; if(!box.hidden) setTimeout(() => $('#hc-len').focus(), 50); break; }
+    case 'hand-save': saveHandTyped(); break;
     case 'food-del': {
       const id = S.ui.fd && S.ui.fd.id; if(!id) break;
       if(S.ui.armedAct === 'food:' + id){ disarmAct(); queue('delete', 'food', id); S.ui.fd = null; closeSheet(); toast('Meal deleted'); }
