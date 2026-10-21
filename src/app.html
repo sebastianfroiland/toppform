@@ -1236,6 +1236,28 @@ button.day:active { transform: scale(.94); }
 .rng::-moz-range-thumb { width: 6px; height: 34px; border-radius: 3px; background: var(--g1); box-shadow: none; }
 
 /* cardio and warm-up cards: a timer with big digits, a round start button and a thin bar */
+/* the rest on each exercise card: waiting with the planned time until you log a set, then counting with a bar */
+.rst { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; grid-template-areas: "l t b x" "bar bar bar bar"; align-items: center; column-gap: 8px; row-gap: 10px; margin-top: 12px; padding: 10px 10px 12px 16px; border-radius: 20px; background: var(--fill); border: 1px solid var(--line); }
+.rst.idle { row-gap: 0; padding-bottom: 10px; }
+.rst-l { grid-area: l; display: flex; flex-direction: column; min-width: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); line-height: 1.25; }
+.rst-l span { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rst-t { grid-area: t; font-size: 26px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; padding: 1px 9px; border-radius: 999px; line-height: 1.2; transition: background .3s, color .3s; }
+.rst-t small { font-size: 13px; font-weight: 600; color: var(--dim); margin-left: 3px; letter-spacing: 0; }
+.rst.idle .rst-t { color: var(--dim); font-size: 22px; }
+.rst.over .rst-t { background: var(--accent-grad); color: var(--on-grad); }
+.rst.over .rst-t small { color: inherit; opacity: .8; }
+.rst > .ib { width: 38px; height: 38px; background: var(--fill-2); color: var(--text); }
+.rst > .ib[data-a="sound"] { grid-area: b; }
+.rst > .ib[data-a="rest-close"] { grid-area: x; }
+.rst > .ib svg { width: 17px; height: 17px; }
+.rst-bar { grid-area: bar; height: 5px; border-radius: 3px; background: var(--fill-2); overflow: hidden; }
+.rst-bar i { display: block; height: 100%; width: 0; background: var(--accent-grad); transition: width .5s linear; }
+.rst.idle .rst-bar { display: none; }
+.ex.tight .rst { margin-top: 8px; padding-top: 7px; padding-bottom: 9px; }
+.ex.snug .rst.idle .rst-l span { display: none; }
+.ex.tight .rst.idle { padding-top: 4px; padding-bottom: 4px; }
+.ex.tight .rst > .ib { width: 34px; height: 34px; }
+.ex.tight .rst-t { font-size: 22px; }
 .ctm { display: grid; grid-template-columns: 1fr auto auto; grid-template-areas: "t x go" "bar bar bar"; align-items: center; column-gap: 10px; row-gap: 12px; margin-top: 12px; padding: 14px 14px 14px 18px; border-radius: 20px; background: var(--fill); border: 1px solid var(--line); }
 .ctm-l { grid-area: t; display: flex; flex-direction: column; min-width: 0; }
 .ctm-l b { font-size: 46px; line-height: 1; font-weight: 600; letter-spacing: -.035em; font-variant-numeric: tabular-nums; transition: color .3s; }
@@ -2460,6 +2482,10 @@ function stp(k, f, label, mode){
 }
 // Sebastian does not do supersets, so a hint that asks for one is never shown, whatever the plan says
 const hintOf = h => h && !/super\s?set/i.test(h) ? h : '';
+// the rest, right on the card: it waits with the planned time and starts by itself when you log a set
+const REST_BOX = '<div class="rst idle" data-r="rest"><div class="rst-l">Rest<span data-r="rst-n"></span></div><div class="rst-t" data-r="rst-t">0:00</div>' +
+  '<button class="ib" data-a="sound" aria-label="Sound when rest is over" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button><button class="ib" data-a="rest-close" data-r="rst-x" aria-label="Stop the rest" hidden><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button><span class="rst-bar"><i data-r="rst-bar"></i></span></div>';
+const restPlan = (ex, s) => s && s.template === 'T' ? 180 : infoOf(ex.name).kind === 'b' ? ST().restB : ST().restI;
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
 const BUBBLE = '<svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>';
@@ -2483,7 +2509,7 @@ function buildCard(ex, mode){
     (mode === 'slide' ? '<div class="stp"><label for="sets-' + ex.k + '">sets</label><output id="sets-' + ex.k + '" data-r="setsv"></output><input type="range" class="rng" data-sets="' + ex.k + '" min="0" max="10" step="1" value="0" aria-label="Sets"></div>' : '') +
     stp(ex.k, 'w', wl, mode) + stp(ex.k, 'r', 'reps', mode) + '</div>' + (ex.rm ? '' : rirRow(ex.k)) +
     '<div class="logrow"><button class="btn-primary" data-a="log" data-k="' + ex.k + '" data-r="logbtn">Log set</button><button class="btn-glass" data-a="skip" data-k="' + ex.k + '">Skip</button></div></div><div data-r="skipped" hidden></div>' +
-    '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>';
+    '<button class="btn-quiet" data-a="more" data-k="' + ex.k + '" data-r="more" hidden style="margin-top:4px">Log another set</button>' + REST_BOX;
   return el;
 }
 function fillCard(el, ex, s){
@@ -2519,6 +2545,7 @@ function fillCard(el, ex, s){
   el.querySelectorAll('.stp input:not(.rng)').forEach(inp => { if(!inp.dataset.touched && inp.value === '' && document.activeElement !== inp){ const v = pf[inp.dataset.f]; if(v != null) inp.value = fmt(v); } });
   el.querySelectorAll('.rng[data-rf]').forEach(rg => { if(rg !== S.ui.sliding) syncRange(rg); });
   recSync(ex.k);
+  paintRestBoxes(s, !!S.ui.rest && Date.now() - S.ui.rest.start < 20*60e3);
   const sr = el.querySelector('.rng[data-sets]');
   if(sr && sr !== S.ui.sliding){ sr.value = ex.planned || 0; paintRange(sr); setsLabel(r('setsv'), ex.planned || 0); }
 }
@@ -2571,7 +2598,7 @@ function logSet(k){
   ['w','r'].forEach(f => { delete g(f).dataset.touched; g(f).blur(); });
   queue('set', 'sets', set.id, set);
   haptic();
-  startRest(s.template === 'T' ? 180 : info.kind === 'b' ? ST().restB : ST().restI, ex.name);
+  startRest(restPlan(ex, s), ex.name);
   const rec = !prevScores.length || score(w, reps, info) > Math.max.apply(null, prevScores) + 1e-9;
   if(rec){ S.ui.prNew = true; $('#pr-dot').hidden = false; }
   if(prevScores.length && rec) toast('New record');
@@ -4232,17 +4259,42 @@ function beep(){
 function startRest(target, name, label){ S.ui.rest = {start:Date.now(), target, name, label: label || '', alerted:false}; ls.set('tl.rest', JSON.stringify(S.ui.rest)); tickRest(); }
 function stopRest(){ S.ui.rest = null; ls.del('tl.rest'); tickRest(); }
 function tickRest(){
-  const r = S.ui.rest, el = $('#rest');
-  const show = !!r && S.tab === 1 && !!(D && activeSession()) && Date.now() - r.start < 20*60e3;
+  const r = S.ui.rest, el = $('#rest'), s = D && activeSession();
+  const running = !!r && !!s && Date.now() - r.start < 20*60e3;
+  // with flashcards the rest lives on the card itself, so the bar at the bottom only shows in the list view
+  const inCards = running && $('#cards').classList.contains('deck-on');
+  const show = running && S.tab === 1 && !inCards;
   if(el.hidden === show) el.hidden = !show;
   document.body.classList.toggle('resting', show);
-  $('#sound-btn').setAttribute('aria-pressed', String(!!(D && ST().sound)));
-  if(!show) return;
+  const snd = String(!!(D && ST().sound));
+  document.querySelectorAll('[data-a="sound"]').forEach(b => { if(b.getAttribute('aria-pressed') !== snd) b.setAttribute('aria-pressed', snd); });
+  paintRestBoxes(s, running);
+  if(!show){ if(running) restAlert(r); return; }
   const e = (Date.now() - r.start) / 1000;
   $('#rest-t').textContent = mmss(e); $('#rest-g').textContent = '/ ' + mmss(r.target); $('#rest-n').textContent = r.name || ''; $('#rest-l').textContent = r.label || 'Rest';
   $('#rest-bar').style.width = Math.min(100, e / r.target * 100) + '%';
   const over = e >= r.target; el.classList.toggle('over', over);
-  if(over && !r.alerted){ r.alerted = true; ls.set('tl.rest', JSON.stringify(r)); try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(x){} beep(); if(e - r.target < 6) notifyRest(r); }
+  restAlert(r);
+}
+function restAlert(r){
+  const e = (Date.now() - r.start) / 1000;
+  if(e >= r.target && !r.alerted){ r.alerted = true; ls.set('tl.rest', JSON.stringify(r)); try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(x){} beep(); if(e - r.target < 6) notifyRest(r); }
+}
+// every exercise card shows the rest: the planned time while it waits, the running time and a bar once you log a set
+function paintRestBoxes(s, running){
+  const r = S.ui.rest, e = running ? (Date.now() - r.start) / 1000 : 0;
+  document.querySelectorAll('#cards .ex [data-r="rest"]').forEach(box => {
+    const card = box.closest('.ex'), ex = s && s.exercises.find(x => x.k === card.dataset.k); if(!ex) return;
+    const q = n => box.querySelector('[data-r="' + n + '"]');
+    box.hidden = !!ex.skip;
+    box.classList.toggle('idle', !running); box.classList.toggle('over', running && e >= r.target);
+    const t = running ? mmss(e) + '<small>/ ' + mmss(r.target) + '</small>' : mmss(restPlan(ex, s));
+    if(q('rst-t').innerHTML !== t) q('rst-t').innerHTML = t;
+    const n = running ? (r.name && r.name !== ex.name ? r.name : '') : 'Starts when you log a set';
+    if(q('rst-n').textContent !== n) q('rst-n').textContent = n;
+    q('rst-x').hidden = !running;
+    q('rst-bar').style.width = running ? Math.min(100, e / r.target * 100) + '%' : '0';
+  });
 }
 /* Rest alert: a phone notification when the rest is over. iPhone allows it for the home screen app once you say yes.
    The timer runs in the app, so the alert comes while Plates is open or just put away (Keep screen on helps). */
@@ -4918,6 +4970,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.26.0', date: '2026-10-21', items: [['restcard', 'The rest is on the card: it waits with the planned time and starts by itself when you log a set'], ['restroom2', 'No rest bar over the cards, so they get the room']]},
   {v: '4.25.1', date: '2026-10-21', items: [['gunnarclosed', 'Gunnar keeps his eyes closed, calm as he is painted']]},
   {v: '4.25.0', date: '2026-10-21', items: [['gunnarcalm', 'Gunnar no longer waves: he keeps his eyes closed and opens them when you tap him'], ['gunnareyes2', 'Proper eyes for Gunnar, white round the pupil']]},
   {v: '4.24.2', date: '2026-10-21', items: [['openhand', 'Gunnar waves properly: elbow at his side, forearm up and an open hand, palm to you']]},
