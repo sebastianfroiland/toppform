@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.24.1"
+VERSION = "4.24.2"
 
 HEAD = """<!doctype html>
 <html lang="en">

@@ -116,19 +116,22 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cp-ghost { fill: color-mix(in srgb, var(--dim) 20%, transparent); }
 .cps.picked .cp:not(.on) .cp-fig { height: 250px; top: 7px; }
 .cps.picked .cp.on .cp-fig { height: min(calc(100% - 22px), 360px); top: 12px; animation: cpHop .75s var(--spring), cpBreathe 4.8s ease-in-out .75s infinite; }
-/* Gunnar in layers, back to front: his body; the body for the wave (that forearm painted over) with the forearm that
-   swings up from his left elbow (.gn-a1); his open eyes; his other forearm with the pink hand and cuff (.gn-o), so the
-   waving arm starts out under it; and the big hand (.gn-a2), which swings with the forearm and waves at the wrist.
-   Both swing layers fill the figure and turn about the elbow */
+/* Gunnar in layers, back to front: his body; the body for the wave, with that forearm painted over (.gn-w); the waving
+   forearm, authored raised with the elbow at his side (.gn-a1); his open eyes; his other forearm with the pink hand
+   and cuff (.gn-o); his big hand as it rests on his arm (.gn-h); and the open waving hand under its cuff (.gn-a2).
+   Both arm layers fill the figure and turn about the elbow: from lying across his belly up to the wave and back, while
+   the open hand waves at the wrist. The wave layers cross-fade with the resting ones */
 .cp-fig { will-change: transform, rotate, scale; }
-.cp-fig > .gn-w, .cp-fig > .gn-a1 { opacity: 0; transition: opacity .1s; }
-.cp-fig.waving > .gn-w, .cp-fig.waving > .gn-a1 { opacity: 1; }
-.cp-fig > .gn-a1, .cp-fig > .gn-a2 { transform-origin: 11.79% 50.76%; will-change: transform; }
+.cp-fig > .gn-w, .cp-fig > .gn-a1, .cp-fig > .gn-a2 { opacity: 0; transition: opacity .15s; }
+.cp-fig.waving > .gn-w, .cp-fig.waving > .gn-a1, .cp-fig.waving > .gn-a2 { opacity: 1; }
+.cp-fig > .gn-a1, .cp-fig > .gn-a2 { transform-origin: 11.79% 46.35%; will-change: transform; }
 .gn-a1 > img, .gn-a2 > img { position: absolute; display: block; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
-.gn-a1 > .gn-arm { left: 3.28%; top: 40.01%; width: 49.33%; height: 14.09%; }
-/* the waving arm's cuff sits over the hand, so the hand comes out of the sleeve instead of from a thin point; it fades
-   in as the arm leaves the other forearm, where it would double the cuff that is there at rest */
-.gn-a2 > .gn-cf { left: 37.54%; top: 39.25%; width: 18.77%; height: 8.11%; opacity: 0; }
+.gn-a1 > .gn-arm { left: 3.59%; top: 31.02%; width: 19.38%; height: 18.34%; }
+.cp-fig > .gn-o { left: 22.67%; top: 40.53%; width: 52.41%; height: 10.96%; }
+.cp-fig > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transition: opacity .15s; }
+.cp-fig.waving > .gn-h { opacity: 0; }
+.gn-a2 > .gn-oh { left: 7.28%; top: 20.79%; width: 23.28%; height: 11.92%; transform-origin: 36.51% 89.91%; will-change: transform; }
+.gn-a2 > .gn-cf { left: 6.56%; top: 29.49%; width: 18.97%; height: 6.34%; }
 .cp-fig > .gn-o { left: 22.67%; top: 40.53%; width: 52.41%; height: 10.96%; }
 .gn-a2 > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transform-origin: 1% 54.23%; will-change: transform; }
 /* his open eyes, laid over the closed ones while he waves or looks at a butterfly on his nose; they open and close
@@ -3448,7 +3451,7 @@ function saveGoal(id){
    without a portrait yet shows a soft silhouette. */
 const TRAINERS = [
   {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', hand: 'art/coach-gunnar-hand.webp', eyes: 'art/coach-gunnar-eyes.webp',
-    wave: 'art/coach-gunnar-wave.webp', arm: 'art/coach-gunnar-arm.webp', over: 'art/coach-gunnar-over.webp', cuff: 'art/coach-gunnar-cuff.webp',
+    wave: 'art/coach-gunnar-wave.webp', arm: 'art/coach-gunnar-arm.webp', over: 'art/coach-gunnar-over.webp', cuff: 'art/coach-gunnar-cuff.webp', open: 'art/coach-gunnar-open.webp',
     about: 'Calm, patient and proud of every set. He keeps things simple and never rushes you.',
     how: 'Machines and simple lifts, one tip on every card and small steps up.',
     fits: 'New lifters, or anyone back after a break.',
@@ -3468,7 +3471,7 @@ const coachPick = (cur, picked, cls) => '<div class="cps' + (picked ? ' picked' 
   const on = picked && t.id === cur;
   const img = (src, c) => '<img' + (c ? ' class="' + c + '"' : '') + ' src="' + src + '" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
   return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art"><span class="cp-fig"' + (t.art ? '' : ' style="--ar: 40 / 100"') + '>' +
-    (t.art ? img(t.art) + (t.hand ? img(t.wave, 'gn-w') + '<span class="gn-a1">' + img(t.arm, 'gn-arm') + '</span>' + img(t.eyes, 'gn-e') + img(t.over, 'gn-o') + '<span class="gn-a2">' + img(t.hand, 'gn-h') + img(t.cuff, 'gn-cf') + '</span>' : '') : COACH_GHOST) + '</span></span>' + (t.hand ? '<span class="bfs" aria-hidden="true"></span>' : '') +
+    (t.art ? img(t.art) + (t.hand ? img(t.wave, 'gn-w') + '<span class="gn-a1">' + img(t.arm, 'gn-arm') + '</span>' + img(t.eyes, 'gn-e') + img(t.over, 'gn-o') + img(t.hand, 'gn-h') + '<span class="gn-a2">' + img(t.open, 'gn-oh') + img(t.cuff, 'gn-cf') + '</span>' : '') : COACH_GHOST) + '</span></span>' + (t.hand ? '<span class="bfs" aria-hidden="true"></span>' : '') +
     '<span class="cp-tx"><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.about + '</small><span class="cp-more">' +
     [['Trains', t.how], ['Best for', t.fits], ['Messages', t.talk]].filter(r => r[1]).map(r => '<span><i>' + r[0] + '</i>' + r[1] + '</span>').join('') + '</span></span></button>';
 }).join('') + '</div>';
@@ -3499,20 +3502,20 @@ function bfAdd(g){
     th: left ? Math.PI : 0, dir: Math.random() < .5 ? -1 : 1, sp: .5 + Math.random() * .35, mode: 'fly', until: 0, sc: .9 + Math.random() * .25, glideAt: performance.now() + 1500 + Math.random() * 3000, glideEnd: 0};
   GN.bfs.push(b); return b;
 }
-// a wave is one smooth motion worked out from the clock every frame: the whole forearm swings up from the elbow, the
-// hand waves to and fro at the wrist (more than the arm moves), and it all comes back down. A tap waves big; on his
-// own he waves a little smaller
+// a wave is one smooth motion worked out from the clock every frame: the forearm swings up from lying across his
+// belly (58 degrees from the raised pose) to the raised pose, the open hand waves to and fro at the wrist while the
+// forearm rocks a little, and it all comes back down. A tap waves big; on his own he waves a little smaller
 function gnWave(now, big){
-  GN.wave = {t0: now, dur: big ? 2200 : 1600, arm: big ? -44 : -41, wrist: big ? -48 : -45, amp: big ? 1 : .75, hz: 2.6};
+  GN.wave = {t0: now, dur: big ? 2300 : 1700, amp: big ? 1 : .7, hz: 2.6};
   GN.waveAt = now + 9000 + Math.random() * 6000;
 }
 function wavePose(t){
   const w = GN.wave; if(!w) return null;
   const e = t - w.t0; if(e >= w.dur){ GN.wave = null; return null; }
-  const up = Math.min(1, e / 300), down = Math.min(1, (w.dur - e) / 340), env0 = Math.min(up, down), env = env0 * env0 * (3 - 2 * env0);
-  const ph = Math.sin((e - 220) / 1000 * w.hz * 2 * Math.PI) * Math.min(1, Math.max(0, (e - 220) / 300)) * w.amp;
-  // the swing stays inside his picture: further out and the fingertips leave the box
-  return {arm: env * (w.arm + 2.5 * ph), wrist: env * (w.wrist + 7.5 * ph)};
+  const up = Math.min(1, e / 360), down = Math.min(1, (w.dur - e) / 380), env0 = Math.min(up, down), env = env0 * env0 * (3 - 2 * env0);
+  const ph = Math.sin((e - 300) / 1000 * w.hz * 2 * Math.PI) * Math.min(1, Math.max(0, (e - 300) / 300)) * w.amp;
+  // the rocking stays inside his picture: further left and the fingertips leave the box
+  return {arm: (1 - env) * 58 + env * (3 + 4 * ph), wrist: env * (3 + 9 * ph)};
 }
 function gnPlay(card){
   if(reduceMotion()) return;
@@ -3531,7 +3534,7 @@ function gnTick(t){
   const card = gnCard();
   if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.wave = null; GN.last = 0; GN.waveAt = GN.noseAt = 0; GN.geo = null; return; }
   bfDefine();
-  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.hand = card.querySelector('.gn-h'); GN.a1 = card.querySelector('.gn-a1'); GN.a2 = card.querySelector('.gn-a2'); GN.cuff = card.querySelector('.gn-cf'); GN.geo = null; GN.lean = GN.sc = ''; GN.eyes = GN.waving = false; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
+  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.hand = card.querySelector('.gn-oh'); GN.a1 = card.querySelector('.gn-a1'); GN.a2 = card.querySelector('.gn-a2');  GN.geo = null; GN.lean = GN.sc = ''; GN.eyes = GN.waving = false; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
   if(!GN.waveAt) GN.waveAt = t + 6000 + Math.random() * 4000;
   if(!GN.noseAt) GN.noseAt = t + 9000 + Math.random() * 6000;
   const dt = Math.min(.034, Math.max(.001, (t - (GN.last || t - 16)) / 1000)); GN.last = t;
@@ -3549,18 +3552,17 @@ function gnTick(t){
     GN.noseAt = t + 14000 + Math.random() * 8000;
   }
   // the arm and hand, his lean into the wave, and his eyes, open while he waves or looks at a butterfly on his nose
-  const pose = wavePose(t), ha = pose ? pose.arm : 0;
+  const pose = wavePose(t), ha = pose ? pose.arm : 0, lift = pose ? 58 - pose.arm : 0;
   if(!!pose !== GN.waving){ GN.waving = !!pose; fig.classList.toggle('waving', GN.waving); }
   const at = ha ? 'rotate(' + ha.toFixed(2) + 'deg)' : '';
   if(GN.a1) GN.a1.style.transform = at; if(GN.a2) GN.a2.style.transform = at;
   if(GN.hand) GN.hand.style.transform = pose && pose.wrist ? 'rotate(' + pose.wrist.toFixed(2) + 'deg)' : '';
-  if(GN.cuff) GN.cuff.style.opacity = ha ? Math.min(1, Math.abs(ha) / 14).toFixed(2) : '';
   const eyes = !!GN.wave || GN.bfs.some(b => b.mode === 'perch');
   if(eyes !== GN.eyes){ GN.eyes = eyes; fig.classList.toggle('eyes', eyes); }
   // the sniff: two quick little breaths in while a butterfly sits on his nose
   let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / 240; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
   GN.sniffs = GN.sniffs.filter(s0 => t - s0 < 400);
-  const lean = ha ? (ha * .022).toFixed(3) + 'deg' : '', scl = sn ? (1 + .012 * sn).toFixed(4) + ' ' + (1 - .018 * sn).toFixed(4) : '';
+  const lean = lift ? (-lift * .02).toFixed(3) + 'deg' : '', scl = sn ? (1 + .012 * sn).toFixed(4) + ' ' + (1 - .018 * sn).toFixed(4) : '';
   if(lean !== GN.lean){ GN.lean = lean; fig.style.rotate = lean; }
   if(scl !== GN.sc){ GN.sc = scl; fig.style.scale = scl; }
   for(const b of GN.bfs){
@@ -4962,6 +4964,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.24.2', date: '2026-10-21', items: [['openhand', 'Gunnar waves properly: elbow at his side, forearm up and an open hand, palm to you']]},
   {v: '4.24.1', date: '2026-10-21', items: [['gunnareyes', 'Gunnar\'s open eyes smile now'], ['wrist', 'His waving hand comes out of the sleeve, no more thin wrist']]},
   {v: '4.24.0', date: '2026-10-21', items: [['wavearm', 'Gunnar waves with his whole arm: it swings up from the elbow and his hand waves beside his face']]},
   {v: '4.23.0', date: '2026-10-21', items: [['gunnarwave2', 'Gunnar waves bigger and smoother when tapped, and now and then on his own'], ['eyes', 'Gunnar opens his eyes while he waves'], ['sniff', 'A butterfly sometimes lands on Gunnar\'s nose and he sniffs it'], ['wings', 'Butterflies beat their wings in 3D, glide and rest']]},
