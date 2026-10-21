@@ -117,18 +117,32 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .gsheet[data-t="strength"] .gf-strength, .gsheet[data-t="endurance"] .gf-endurance, .gsheet[data-t="health"] .gf-health { display: flex; }
 .gsheet .sel { width: 100%; }
 .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-/* trainers */
-.trs { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 10px; }
-.tr { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; padding: 12px; border-radius: 18px; background: var(--fill); border: 1.5px solid transparent; transition: border-color .25s, background .25s, transform .3s var(--spring); }
-.tr:active { transform: scale(.98); }
-.tr.on { border-color: var(--g1); background: color-mix(in srgb, var(--g1) 9%, var(--fill)); }
-.tr i { flex: none; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--fill-2); color: var(--g1); transition: background .25s, color .25s; }
-.tr.on i { background: var(--g1); color: #fff; }
-.tr i svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.tr span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.tr b { font-size: 16px; }
-.tr em { font-style: normal; font-size: 12px; font-weight: 650; color: var(--g1); }
-.tr small { font-size: 13px; line-height: 1.35; color: var(--dim); margin-top: 2px; }
+/* the coach picker: three equal boxes, and the one you tap grows and squeezes the other two, all on one screen */
+.ob.fill { flex: 1 1 auto; min-height: 0; }
+.cps { flex: 1 1 auto; min-height: 336px; display: flex; flex-direction: column; gap: 8px; }
+.cps.inset { flex: none; height: 486px; margin: 8px 0 10px; }
+.cp { flex: 1 1 0; min-height: 0; position: relative; display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 0 10px; width: 100%; padding: 0 14px 0 0; text-align: left; border-radius: 22px; background: var(--fill); border: 1.5px solid transparent; overflow: hidden; transition: flex-grow .6s var(--spring), border-color .25s, background .25s; }
+.cps.picked .cp { flex-grow: .46; min-height: 58px; }
+/* on a small phone or with large text the open box keeps all its text and the sheet scrolls instead */
+.cps.picked, .cps.picked .cp.on { min-height: -webkit-min-content; min-height: min-content; }
+.cps.picked .cp.on { flex-grow: 2.7; border-color: var(--g1); background: color-mix(in srgb, var(--g1) 8%, var(--fill)); }
+.cp-art { position: relative; align-self: stretch; overflow: hidden; pointer-events: none; }
+.cp-art img, .cp-art .cp-ghost { position: absolute; left: 50%; top: 12px; height: 330px; width: auto; aspect-ratio: 329 / 840; translate: -50% 0; transform-origin: 50% 100%; transition: height .6s var(--spring), top .6s var(--spring); -webkit-user-select: none; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+.cp-ghost { fill: color-mix(in srgb, var(--dim) 20%, transparent); aspect-ratio: 40 / 100; }
+.cps.picked .cp:not(.on) .cp-art :is(img, .cp-ghost) { height: 250px; top: 7px; }
+.cps.picked .cp.on .cp-art :is(img, .cp-ghost) { height: min(calc(100% - 22px), 360px); top: 12px; animation: cpHop .75s var(--spring), cpBreathe 4.8s ease-in-out .75s infinite; }
+@keyframes cpHop { 0% { transform: none; } 30% { transform: translateY(-9px) scale(.97, 1.04); } 62% { transform: translateY(1px) scale(1.03, .97); } 100% { transform: none; } }
+@keyframes cpBreathe { 50% { transform: scale(1.012, 1.008); } }
+.cp-tx { display: flex; flex-direction: column; min-width: 0; padding: 14px 0 12px; }
+.cp-tx b { font-family: ui-serif, "New York", Georgia, serif; font-weight: 500; font-size: 19px; line-height: 1.15; }
+.cp-tx em { font-style: normal; font-size: 12.5px; font-weight: 650; color: var(--g1); margin-top: 2px; }
+.cp-tx small { font-size: 13px; line-height: 1.35; color: var(--dim); margin-top: 7px; transition: opacity .25s; }
+.cps.picked .cp:not(.on) .cp-tx small { opacity: 0; }
+.cp-more { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .35s var(--ease); }
+.cps.picked .cp.on .cp-more { opacity: 1; transform: none; transition-delay: .2s; }
+.cp-more span { font-size: 13px; line-height: 1.35; }
+.cp-more i { display: block; font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); margin-bottom: 1px; }
+@media (prefers-reduced-motion: reduce) { .cp, .cp-art img, .cp-art .cp-ghost, .cp-more { transition: none; } .cps.picked .cp.on .cp-art :is(img, .cp-ghost) { animation: none; } }
 /* welcome steps */
 .ob { display: flex; flex-direction: column; gap: 16px; padding-bottom: 6px; }
 .ob-step { animation: obIn .45s var(--ease) both; }
@@ -3380,18 +3394,33 @@ function saveGoal(id){
   closeSheet(); toast(old ? 'Goal saved' : 'Goal added');
 }
 
-/* Trainers: three coaching styles by experience. The choice sets the tips level in the app, and Claude plans and
-   writes in that trainer's style in the evening review. */
+/* Trainers: three coaches by experience, each a character painted like Purple. The choice sets the tips level in the
+   app, and Claude plans and writes in that coach's voice in the evening review (data README, Trainers). A coach
+   without a portrait yet shows a soft silhouette. */
 const TRAINERS = [
-  {id: 'guide', name: 'Guide', who: 'New to the gym', text: 'Machines and simple lifts, a tip on every card and steady, safe progress.', level: 'new',
-    ic: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>'},
-  {id: 'builder', name: 'Builder', who: 'Training for a while', text: 'Muscle and strength through progressive overload, RIR targets and few words.', level: 'pro',
-    ic: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>'},
-  {id: 'elite', name: 'Elite', who: 'Years under the bar', text: 'Hard sets, heavy top sets and changes every week. Short and direct.', level: 'pro',
-    ic: '<path d="M13 2.5 5 13.5h6l-1 8 8-11h-6z"/>'}
+  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp',
+    about: 'Calm, patient and proud of every set. He keeps things simple and never rushes you.',
+    how: 'Machines and simple lifts, one tip on every card and small steps up.',
+    fits: 'New lifters, or anyone back after a break.',
+    talk: 'A note each morning and evening. Never more.'},
+  {id: 'builder', name: 'Bulky Bjørn', who: 'Training for a while', level: 'pro',
+    about: 'Steady and focused. Here to help you grow, one set at a time.',
+    how: 'Progressive overload with RIR targets and short, clear notes.',
+    fits: 'You know the main lifts and want more muscle and strength.'},
+  {id: 'elite', name: 'Iron Ingrid', who: 'Years under the bar', level: 'pro',
+    about: 'Sharp and direct. She expects your best set every time.',
+    how: 'Heavy top sets, hard sets and changes every week.',
+    fits: 'Years of training and you want a real push.'}
 ];
 const trainerId = () => ST().trainer || (ST().level === 'pro' ? 'builder' : 'guide');
-const trainerHtml = cur => '<div class="trs" role="radiogroup" aria-label="Trainer">' + TRAINERS.map(t => '<button class="tr' + (t.id === cur ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + (t.id === cur) + '"><i><svg viewBox="0 0 24 24">' + t.ic + '</svg></i><span><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.text + '</small></span></button>').join('') + '</div>';
+const COACH_GHOST = '<svg class="cp-ghost" viewBox="0 0 40 100" aria-hidden="true"><circle cx="20" cy="13" r="9.5"/><path d="M5 40c0-9 6-14 15-14s15 5 15 14v24c0 3-2 5-4 5v27c0 2-1.5 3-3.5 3h-15c-2 0-3.5-1-3.5-3V69c-2 0-4-2-4-5z"/></svg>';
+const coachPick = (cur, picked, cls) => '<div class="cps' + (picked ? ' picked' : '') + (cls ? ' ' + cls : '') + '" role="radiogroup" aria-label="Coach">' + TRAINERS.map(t => {
+  const on = picked && t.id === cur;
+  return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art">' +
+    (t.art ? '<img src="' + t.art + '" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">' : COACH_GHOST) + '</span>' +
+    '<span class="cp-tx"><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.about + '</small><span class="cp-more">' +
+    [['Trains', t.how], ['Best for', t.fits], ['Messages', t.talk]].filter(r => r[1]).map(r => '<span><i>' + r[0] + '</i>' + r[1] + '</span>').join('') + '</span></span></button>';
+}).join('') + '</div>';
 
 /* Welcome steps for a new account: name, trainer, exercises you love or avoid, and a goal of each kind. They save to
    the same places as Settings, Coach, so everything can be changed there later. */
@@ -3403,7 +3432,7 @@ function maybeOnboard(){ if(!S.ui.obAuto && needOnboard()){ S.ui.obAuto = true; 
 function openOnboard(){
   const xp = xpAll(), gs = {strength: '', endurance: '', health: ''};
   for(const g of goals()){ const t = goalType(g); if(!gs[t]) gs[t] = g.text; }
-  S.ui.ob = {step: 0, name: ST().name || '', trainer: trainerId(), prefs: Object.fromEntries(OB_LIFTS.map(n => [n, xp[n] ? xp[n].p : 'fine'])), goals: gs, had: Object.assign({}, gs)};
+  S.ui.ob = {step: 0, name: ST().name || '', trainer: trainerId(), picked: !!ST().trainer, prefs: Object.fromEntries(OB_LIFTS.map(n => [n, xp[n] ? xp[n].p : 'fine'])), goals: gs, had: Object.assign({}, gs)};
   openSheet('ob', '<div id="ob-head"></div>', '<div class="ob" id="ob"></div>', true);
   renderOb();
 }
@@ -3412,7 +3441,7 @@ function renderOb(){
   const steps = [
     ['Welcome to Plates', 'Five quick steps, then Claude plans your first week.',
       '<div><label class="lab" for="ob-name">What should Claude call you?</label><input id="ob-name" class="field" data-ob="name" autocomplete="given-name" placeholder="First name" value="' + esc(o.name) + '" enterkeyhint="next"></div>'],
-    ['Pick your trainer', 'You can switch any time in Settings, Coach.', trainerHtml(o.trainer)],
+    ['Pick your coach', 'Tap one to meet them. You can switch any time in Settings, Coach.', coachPick(o.trainer, o.picked)],
     ['Measure your fist', 'Your fist is the ruler in food photos, so Claude can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
     ['What do you like?', 'Tap once to love an exercise, twice to avoid it.',
       '<div class="obx">' + OB_LIFTS.map(n => '<button data-a="ob-x" data-n="' + esc(n) + '" data-p="' + o.prefs[n] + '"><i class="l">' + XP_ICON.love + '</i><i class="x">' + XP_ICON.avoid + '</i>' + esc(n) + '</button>').join('') + '</div>'],
@@ -3421,9 +3450,10 @@ function renderOb(){
   ];
   const [h, sub, body] = steps[o.step], last = o.step === steps.length - 1;
   $('#ob-head').innerHTML = '<div class="ob-dots">' + steps.map((_, i) => '<i class="' + (i === o.step ? 'on' : i < o.step ? 'done' : '') + '"></i>').join('') + '</div>';
+  el.classList.toggle('fill', o.step === 1);
   el.innerHTML = '<div class="ob-step"><h2>' + h + '</h2><p class="sub">' + sub + '</p></div>' + body +
     '<div class="ob-nav">' + (o.step ? '<button class="btn-glass" data-a="ob-back">Back</button>' : '<button class="btn-glass" data-a="ob-skip">Skip</button>') +
-    '<button class="btn-primary" data-a="ob-next">' + (last ? 'Finish' : 'Next') + '</button></div>';
+    '<button class="btn-primary" data-a="ob-next"' + (o.step === 1 && !o.picked ? ' disabled' : '') + '>' + (last ? 'Finish' : 'Next') + '</button></div>';
   $('#sheet-body').scrollTop = 0;
 }
 function finishOb(){
@@ -4633,7 +4663,7 @@ function renderSettings(){
     srow('Length', '', sel('weeks', [[0,'No end date'],[8,'8 weeks'],[12,'12 weeks'],[16,'16 weeks'],[26,'26 weeks'],[52,'52 weeks']], st.weeks)) +
     srow('Weekly goal', 'Strength sessions', sel('goal', [1,2,3,4,5,6,7].map(n => [n, String(n)]), st.goal));
   const nx = Object.values(xpAll()), nl = nx.filter(v => v.p === 'love').length, na = nx.filter(v => v.p === 'avoid').length;
-  p.coach = '<p class="hint" style="margin:12px 6px 4px">Your trainer sets how Claude plans your workouts and talks to you.</p>' + trainerHtml(trainerId()) +
+  p.coach = '<p class="hint" style="margin:12px 6px 4px">Your coach sets how Claude plans your workouts and talks to you.</p>' + coachPick(trainerId(), true, 'inset') +
     srow('Tips', 'Explanations on cards, like what RIR means', seg('level', [['new','Show'],['pro','Hide']], st.level === 'pro' ? 'pro' : 'new')) +
     srow('Exercise likes', nl || na ? nl + ' loved · ' + na + ' avoided' : 'Love or avoid exercises', '<button class="btn-glass btn-small" data-a="set-panel" data-p="exercises">Edit</button>') +
     srow('Goals', goals().length + ' of 3', '<button class="btn-glass btn-small" data-a="coach-goals">Edit</button>') +
@@ -4763,6 +4793,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.19.0', date: '2026-10-21', items: [['coaches', 'Meet the coaches: tap one and it steps forward to say how it trains and who it suits'], ['gunnar', 'Gentle Gunnar, the calm coach for new lifters, with his own portrait'], ['setcoach', 'The same coach boxes in Settings, Coach']]},
   {v: '4.18.0', date: '2026-10-21', items: [['purple', 'Purple hides behind the Coach Claude card, peeks at you and drums his fingers. Tap him'], ['tabbar', 'The tab bar stays put: a haptic tick no longer counts as typing'], ['prefill', 'Every card starts on the recommended weight, reps and RIR, with no tips under it'], ['reset', 'Reset on a card puts the recommended numbers back after you change them'], ['warm', 'Warm-up is just Done or Not done, no timer']]},
   {v: '4.17.0', date: '2026-10-21', items: [['purple', 'Purple peeks over the Coach Claude card with his coffee'], ['tabbar', 'The tab bar no longer blinks away while you scroll']]},
   {v: '4.16.0', date: '2026-10-21', items: [['fist', 'Food photos use your fist beside the plate, so you can hold the phone close and at a slight angle'], ['snap', 'Snap-a-meal'], ['progress', 'Records and Body share one Progress tab, five tabs in all'], ['goalbar', 'A progress bar with a percentage under every goal, and one for all goals']]},
@@ -5131,9 +5162,11 @@ document.addEventListener('click', e => {
     case 'g-type': { const sh = $('#g-sheet'); if(sh) sh.dataset.t = b.dataset.v; const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); break; }
     case 'trainer': {
       const t = TRAINERS.find(x => x.id === b.dataset.v); if(!t) break;
-      b.parentElement.querySelectorAll('.tr').forEach(x => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on)); });
-      if(S.ui.ob && b.closest('#ob')) S.ui.ob.trainer = t.id;
-      else { saveSettings({trainer: t.id, level: t.level}); toast(t.name + ' is your trainer'); }
+      const grp = b.parentElement;
+      grp.querySelectorAll('[data-a="trainer"]').forEach(x => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', String(on)); });
+      grp.classList.add('picked');
+      if(S.ui.ob && b.closest('#ob')){ S.ui.ob.trainer = t.id; S.ui.ob.picked = true; const nx = $('#ob [data-a="ob-next"]'); if(nx) nx.disabled = false; }
+      else { saveSettings({trainer: t.id, level: t.level}); toast(t.name + ' is your coach'); }
       break;
     }
     case 'set-panel': S.ui.setPanel = b.dataset.p; renderSettings(); break;
