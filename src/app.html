@@ -255,6 +255,118 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cam-ok button { flex: 1; }
 .cam.confirm .cam-guide, .cam.confirm .cam-level, .cam.confirm .cam-bot { display: none; }
 .cam.confirm .cam-ok { display: flex; }
+/* social */
+.side-panel { width: min(440px, 94vw); }
+.so-head { padding-top: 2px; }
+.so-new { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 14px 0 10px; border: 0; border-radius: 999px; background: var(--g1); color: #fff; font-weight: 650; font-size: 14.5px; }
+.so-new svg, .so-gnew svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; }
+.so-tabs { padding: 2px 14px 10px; zoom: var(--z); }
+.so-tabs .sg { width: 100%; display: grid; }
+.so-body { padding: 0 12px 24px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); }
+.so-av { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 14px; font-weight: 700; letter-spacing: .02em; color: #fff;
+  background: linear-gradient(135deg, hsl(var(--h, 20) 62% 58%), hsl(calc(var(--h, 20) + 40) 58% 44%)); }
+.so-av.me { background: linear-gradient(135deg, var(--g1), color-mix(in srgb, var(--g1) 60%, #000)); }
+.so-av.xs { width: 22px; height: 22px; font-size: 8.5px; box-shadow: 0 0 0 2px var(--bg); }
+.so-av.big { width: 76px; height: 76px; font-size: 26px; }
+.so-card { background: var(--glass-solid, var(--fill)); border: 1px solid var(--line); border-radius: 22px; padding: 14px 14px 6px; display: flex; flex-direction: column; gap: 10px; }
+.so-h { display: flex; align-items: center; gap: 10px; }
+.so-h span { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.so-h b { font-size: 15px; }
+.so-h small { color: var(--dim); font-size: 12.5px; }
+.so-sample { font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--dim); padding: 3px 7px; border-radius: 6px; background: var(--fill-2); }
+.so-t { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; letter-spacing: -.01em; line-height: 1.25; }
+.so-t svg { flex: none; width: 20px; height: 20px; fill: none; stroke: var(--g1); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.so-tx { margin: 0; font-size: 15px; line-height: 1.45; white-space: pre-wrap; }
+.so-st { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.so-st div { min-width: 0; }
+.so-st small { display: block; font-size: 11.5px; color: var(--dim); }
+.so-st b { display: block; font-size: 18px; font-weight: 650; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.so-prs { display: flex; flex-wrap: wrap; gap: 6px; }
+.so-prs span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px 5px 7px; border-radius: 999px; font-size: 12.5px; font-weight: 650; color: #9a6b12; background: #f6e3b4; }
+.so-prs svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.so-map { display: block; width: calc(100% + 28px); margin: 0 -14px; height: 148px; }
+.so-land { fill: color-mix(in srgb, var(--text) 5%, var(--fill)); }
+.so-water { fill: color-mix(in srgb, #4b9bd1 26%, var(--fill)); }
+.so-road { stroke: color-mix(in srgb, var(--text) 9%, transparent); stroke-width: 6; fill: none; }
+.so-rt { fill: none; stroke: var(--g1); stroke-width: 3.6; stroke-linejoin: round; stroke-linecap: round; }
+.so-start { fill: #4fb878; stroke: #fff; stroke-width: 2.5; }
+.so-lifts { display: flex; flex-direction: column; border-radius: 14px; background: var(--fill); padding: 4px 12px; }
+.so-lifts div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--line); }
+.so-lifts div:first-child { border-top: 0; }
+.so-lifts span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
+.so-lifts b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.so-ph { margin: 0 -14px; }
+.so-ph img { display: block; width: 100%; max-height: 360px; object-fit: cover; }
+.so-kl { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
+.so-stack { display: inline-flex; }
+.so-stack .so-av + .so-av { margin-left: -6px; }
+.so-act { display: flex; border-top: 1px solid var(--line); margin: 0 -14px; }
+.so-act button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 0; background: none; color: var(--dim); font-size: 14px; font-weight: 600; }
+.so-act button + button { border-left: 1px solid var(--line); }
+.so-act svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.so-k.on { color: var(--g1); }
+.so-k.on svg { fill: color-mix(in srgb, var(--g1) 25%, transparent); }
+.so-k.pop svg { animation: soPop .45s var(--spring); }
+@keyframes soPop { 40% { transform: scale(1.35) rotate(-12deg); } }
+.so-act .so-del { flex: 0 0 auto; padding: 0 16px; color: #d0644f; }
+.so-cs { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 8px; }
+.so-c { display: flex; gap: 8px; align-items: flex-start; }
+.so-c p { margin: 0; font-size: 14px; line-height: 1.4; padding: 7px 11px; border-radius: 14px; background: var(--fill); }
+.so-more { align-self: flex-start; border: 0; background: none; padding: 0; color: var(--dim); font-size: 13px; font-weight: 600; }
+.so-cbox { display: flex; gap: 8px; align-items: flex-end; padding-bottom: 10px; }
+.so-cbox .field { flex: 1; min-height: 40px; resize: none; }
+.so-comp { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--fill); color: var(--dim); font-size: 15px; text-align: left; }
+.so-comp > span { flex: 1; }
+.so-comp > svg { width: 22px; height: 22px; color: var(--g1); }
+.so-comp.open { align-items: flex-start; color: var(--text); }
+.so-cw { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.so-cw .field { resize: none; }
+.so-cr { display: flex; align-items: center; gap: 8px; }
+.so-cr > span { flex: 1; }
+.so-cam { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-2); color: var(--g1); cursor: pointer; }
+.so-cam svg { width: 21px; height: 21px; }
+.so-end { text-align: center; color: var(--dim); font-size: 13px; margin: 6px 0 0; }
+.so-lab { margin: 6px 4px -4px; font-size: 13px; font-weight: 650; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
+.so-g { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 10px; border: 1px solid var(--line); border-radius: 20px; background: var(--fill); }
+.so-gopen { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; border: 0; background: none; padding: 0; text-align: left; color: var(--text); }
+.so-gopen span { min-width: 0; display: flex; flex-direction: column; }
+.so-gopen b { font-size: 15.5px; }
+.so-gopen small { color: var(--dim); font-size: 12.5px; }
+.so-gc { flex: none; width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; font-style: normal; font-weight: 750; font-size: 16px; color: #fff; background: linear-gradient(135deg, hsl(var(--h, 20) 60% 55%), hsl(calc(var(--h, 20) + 50) 55% 40%)); }
+.so-gc.big { width: 72px; height: 72px; border-radius: 22px; font-size: 24px; }
+.so-join { flex: none; height: 34px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--g1); background: none; color: var(--g1); font-weight: 650; font-size: 14px; }
+.so-join.on { background: var(--g1); color: #fff; }
+.so-join.big { height: 42px; padding: 0 22px; margin-top: 4px; }
+.so-gnew { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.so-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 2px; border: 0; background: none; padding: 4px 0; color: var(--dim); font-size: 15px; font-weight: 600; }
+.so-back svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.so-gh { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 18px 16px; border-radius: 22px; background: linear-gradient(180deg, hsl(var(--h, 20) 55% 50% / .16), transparent 70%), var(--fill); border: 1px solid var(--line); }
+.so-gh h3 { margin: 4px 0 0; font-size: 21px; }
+.so-gh p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.4; }
+.so-gm { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 13px; margin-top: 2px; }
+.so-board { padding: 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--fill); }
+.so-br { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.so-board .hd + .so-br { border-top: 0; margin-top: 4px; }
+.so-br em { width: 18px; font-style: normal; font-weight: 700; color: var(--dim); text-align: center; }
+.so-br .so-av.xs { width: 30px; height: 30px; font-size: 11px; box-shadow: none; }
+.so-br span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.so-br b { font-variant-numeric: tabular-nums; }
+.so-br.me { color: var(--g1); }
+.so-br.me span { font-weight: 650; }
+.so-hint { margin: 8px 0 0; font-size: 13px; color: var(--dim); text-align: center; }
+.so-me { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 10px 0 4px; }
+.so-me h3 { margin: 6px 0 0; font-size: 22px; }
+.so-me p { margin: 0; color: var(--dim); font-size: 14px; }
+.so-ff { display: flex; gap: 22px; margin-top: 10px; }
+.so-ff span { display: flex; flex-direction: column; font-size: 12px; color: var(--dim); }
+.so-ff b { font-size: 18px; color: var(--text); }
+.so-wk { padding: 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--fill); display: flex; flex-direction: column; gap: 12px; }
+.so-bars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 72px; }
+.so-bars i { position: relative; display: block; height: calc(6px + var(--v) * 60px); border-radius: 6px 6px 3px 3px; background: color-mix(in srgb, var(--g1) 35%, var(--fill-2)); }
+.so-bars i.now { background: var(--g1); }
+.so-bars b { position: absolute; left: 0; right: 0; top: -17px; text-align: center; font-size: 11px; color: var(--dim); font-weight: 650; }
+.so-bl { display: flex; justify-content: space-between; margin: -6px 0 0; font-size: 11.5px; color: var(--dim); }
+.so-sc { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 20px; background: var(--fill); padding: 4px; }
 /* iPhone haptics: an invisible label with a hidden switch over each button and slider (see hzScan) */
 .hz { position: absolute; inset: 0; z-index: 3; border-radius: inherit; -webkit-tap-highlight-color: transparent; }
 :where(button:has(> .hz)) { position: relative; }
@@ -1133,7 +1245,7 @@ button.day:active { transform: scale(.94); }
 
 <button class="glass roundbtn" id="setBtn" aria-label="Settings" data-a="settings"><svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><i class="nbadge" id="set-badge" hidden></i></button>
 
-<button class="glass roundbtn" id="menuBtn" aria-label="Menu" data-a="side"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h11M4 17h6"/></svg><i class="nbadge" id="side-badge" hidden></i></button>
+<button class="glass roundbtn" id="menuBtn" aria-label="Social" data-a="side"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.7-3.2 2.9-5 5.5-5s4.8 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.8 14.2c2.3-.2 4.1 1.3 4.7 4"/></svg><i class="nbadge" id="side-badge" hidden></i></button>
 <div class="side" id="side"><div class="side-scrim" data-a="side-close"></div><nav class="side-panel" id="side-panel" aria-label="Menu"></nav></div>
 
 <div class="pager" id="pager">
@@ -1478,8 +1590,8 @@ function setHTML(el, html){
 document.addEventListener('focusout', () => setTimeout(() => { for(const el of [...staleEls]){ if(el.contains(document.activeElement)) continue; staleEls.delete(el); const h = el._stale; el._stale = null; if(h != null && h !== el._html){ el._html = h; el.innerHTML = h; } } }, 0));
 
 /* ---------- state ---------- */
-const COLS = ['sessions','sets','body','checkins','routines','folders','plans','feedback','requests','messages','food'];
-const emptySnap = () => ({sessions:new Map(), sets:new Map(), body:new Map(), checkins:new Map(), routines:new Map(), folders:new Map(), plans:new Map(), feedback:new Map(), requests:new Map(), messages:new Map(), food:new Map(), meta:new Map()});
+const COLS = ['sessions','sets','body','checkins','routines','folders','plans','feedback','requests','messages','food','posts','social'];
+const emptySnap = () => ({sessions:new Map(), sets:new Map(), body:new Map(), checkins:new Map(), routines:new Map(), folders:new Map(), plans:new Map(), feedback:new Map(), requests:new Map(), messages:new Map(), food:new Map(), posts:new Map(), social:new Map(), meta:new Map()});
 const S = {
   db:null, uid:null, mode:'connecting', backend:'local', inflight:0, needsConnect:false, readonly:false, loaded:new Set(), autoOpened:false,
   snap: emptySnap(),
@@ -1528,7 +1640,8 @@ function derive(){
   const folders = [...vmap('folders').values()].filter(f => f && f.name).sort((a,b) => (a.order||0) - (b.order||0));
   const feedback = [...vmap('feedback').values()].filter(f => f && f.text).sort((a,b) => (b.date||'') < (a.date||'') ? -1 : (b.date||'') > (a.date||'') ? 1 : (b.createdAt||0) - (a.createdAt||0));
   const food = [...vmap('food').values()].filter(f => f && f.date).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  D = {sessions, sets, meta, checkins, weightSeries, setsBySession, lib, libBy, lastUsed, routines, folders, feedback, food, plans: vmap('plans'), settings: Object.assign({}, DEF, meta.settings || {})};
+  const posts = [...vmap('posts').values()].filter(x => x && x.ts).sort((a, b) => b.ts - a.ts), social = [...vmap('social').values()].filter(Boolean);
+  D = {sessions, sets, meta, checkins, weightSeries, setsBySession, lib, libBy, lastUsed, routines, folders, feedback, food, posts, social, plans: vmap('plans'), settings: Object.assign({}, DEF, meta.settings || {})};
 }
 const ST = () => D.settings;
 const infoOf = name => D.libBy.get(name) || {name, slot:'other', kind:'b', bw:''};
@@ -1699,7 +1812,7 @@ async function gql(query, variables, token){
 const Q_LOAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){defaultBranchRef{name target{oid}} object(expression:"HEAD:data"){... on Tree{entries{name type object{... on Blob{text} ... on Tree{entries{name type object{... on Blob{text}}}}}}}}}}';
 const Q_HEAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){name defaultBranchRef{target{oid}}}}';
 const M_COMMIT = 'mutation($i:CreateCommitOnBranchInput!){createCommitOnBranch(input:$i){commit{oid}}}';
-const FLAT = {meta:'data/meta.json', routines:'data/routines.json', folders:'data/folders.json', plans:'data/plans.json', requests:'data/requests.json'};
+const FLAT = {meta:'data/meta.json', routines:'data/routines.json', folders:'data/folders.json', plans:'data/plans.json', requests:'data/requests.json', social:'data/social.json'};
 function filesToSnap(){
   const snap = emptySnap();
   GH.index = {};
@@ -1745,8 +1858,9 @@ function commitMsg(ops){
   else if(p.col === 'routines' || p.col === 'folders') m = 'Workouts';
   else if(p.col === 'meta') m = 'Settings';
   else if(p.col === 'requests') m = 'Request for Claude';
-  else if(p.col === 'messages' || p.col === 'photos') m = ops.some(o => o.col === 'food') ? 'Food' : 'Message to Claude';
+  else if(p.col === 'messages' || p.col === 'photos') m = ops.some(o => o.col === 'food') ? 'Food' : ops.some(o => o.col === 'posts') ? 'Social' : 'Message to Claude';
   else if(p.col === 'food') m = p.op === 'delete' ? 'Food deleted' : 'Food: ' + (p.data.meal || 'meal');
+  else if(p.col === 'posts' || p.col === 'social') m = 'Social';
   else if(p.op === 'delete') m = 'Deleted from ' + p.col;
   return m + (ops.length > 1 ? ' (+' + (ops.length - 1) + ')' : '');
 }
@@ -3700,6 +3814,8 @@ function sendMsg(re){
   queue('set', 'messages', id, {id, from: 'me', re, text, photos, date: todayISO(), createdAt: Date.now()});
   toast('Sent · Claude answers tonight');
 }
+document.addEventListener('input', e => { const t = e.target; if(!t.dataset) return; if(t.dataset.sodraft != null && S.ui.soDraft){ S.ui.soDraft.text = t.value; growNote(t); } if(t.dataset.socmt != null){ S.ui.soCmtText = t.value; growNote(t); } });
+document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.sophoto != null && t.files && t.files.length && S.ui.soDraft){ const f = t.files[0]; t.value = ''; if(S.ui.soDraft.photos.length >= 4) return; try{ S.ui.soDraft.photos.push(await shrinkPhoto(f, 1280)); renderSide(); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target, o = S.ui.ob; if(o && t.dataset){ if(t.dataset.ob === 'name') o.name = t.value; if(t.dataset.obg) o.goals[t.dataset.obg] = t.value; } });
 document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.camfile != null && t.files && t.files.length){ const f = t.files[0]; t.value = ''; try{ camShow(await shrinkPhoto(f, 1600)); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target; if(t.dataset && t.dataset.msgtext != null){ S.ui.draftText[t.dataset.msgtext] = t.value; growNote(t); } });
@@ -4062,30 +4178,203 @@ const IC = {
   spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>'
 };
 const sl = (a, icon, label, extra, attrs) => '<button class="sl" data-a="' + a + '"' + (attrs || '') + '>' + icon + '<span>' + esc(label) + '</span>' + (extra || '') + '</button>';
-function renderSide(){
-  const act = activeSession(), sug = act ? null : routineById(suggested()), st = ST(), t = todayISO(), unread = coachUnread();
-  let h = '<div class="side-head"><h2>Plates</h2></div><div class="side-body">';
-  h += act ? sl('resume', IC.play, 'Continue ' + sessionTitle(act), '<small>' + plural(setsOf(act.id).length, 'set') + '</small>')
-    : sug ? sl('start', IC.play, 'Start ' + sug.name, '<small>Next</small>', ' data-id="' + esc(sug.id) + '"') : '';
-  h += sl('checkin', IC.check, 'Morning check-in', D.checkins.has(t) ? '<small>Done ✓</small>' : '<span class="sdot"></span>') +
-    sl('cardio', IC.run, 'Cardio') +
-    sl('side-tab', FOOD_IC, 'Food', foodSum(foodOn(t)).kcal ? '<small>' + kNum(foodSum(foodOn(t)).kcal) + ' kcal</small>' : '', ' data-i="5"') +
-    sl('log-past', IC.past, 'Log a past day', '', ' data-d="' + addDays(t, -1) + '"');
-  h += '<p class="side-lab">Coach</p>' + sl('side-tab', IC.chat, 'Chat with Claude', unread ? '<span class="nb2">' + unread + '</span>' : '', ' data-i="0"') +
-    (D.feedback.length ? sl('reviews', IC.stack, 'Earlier reviews', '<small>' + D.feedback.length + '</small>') : '');
-  h += '<p class="side-lab">Progress</p>' + sl('side-tab', IC.body, 'Body', '', ' data-i="3"') + sl('side-tab', IC.trophy, 'Records', goals().length ? '<small>' + plural(goals().length, 'goal') + '</small>' : '', ' data-i="4"') + (D.sets.length ? sl('best-lifts', IC.chart, 'Best lifts', S.ui.prNew ? '<span class="sdot"></span>' : '') : '');
-  if(D.routines.length){
-    const sid = suggested();
-    h += '<p class="side-lab">Your workouts</p>' + D.routines.slice(0, 5).map(r => sl('routine-open', IC.bar, r.name, r.id === sid ? '<small>Next</small>' : '', ' data-id="' + esc(r.id) + '"')).join('') +
-      (D.routines.length > 5 ? '<button class="side-more" data-a="workouts">Show all ›</button>' : '');
-  }
-  const recent = D.sessions.filter(x => x.kind !== 'styrke' || setsOf(x.id).length || x.id === (act && act.id)).slice(0, 6);
-  if(recent.length) h += '<p class="side-lab">Recent</p>' + recent.map(x => sl('hist', x.kind === 'styrke' ? IC.bar : IC.run, sessionTitle(x), '<small>' + esc(dDay(x.date)) + '</small>', ' data-id="' + esc(x.id) + '"')).join('') + '<button class="side-more" data-a="side-tab" data-i="2">Show all ›</button>';
-  const tr = tier();
-  h += '</div><div class="side-foot"><button class="side-me" data-a="settings"><i class="side-av">' + IC.spark + '</i><span><b>' + esc(st.name || 'You') + ' <em>· ' + tr.name + '</em></b><small>' + (tr.next ? plural(tr.next, 'workout') + ' to ' + tr.up : 'Top level') + '</small></span></button>' +
-    (act ? '' : '<button class="side-new" data-a="quick"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</button>') + '</div>';
-  $('#side-panel').innerHTML = h;
+/* ---------- Social ----------
+   A Strava style feed in the side panel. Your finished workouts post themselves, you can share a thought or a photo,
+   give kudos and comment, and join groups with a weekly board. Plates has no shared server yet, so the other athletes
+   are samples (marked Sample) and only what you do is saved: your posts in data/posts, and kudos, comments and groups
+   in data/social.json. When a shared backend arrives, the samples are swapped for real people. */
+const SO_PEOPLE = {
+  ida: {name: 'Ida Berg', city: 'Bergen', hue: 14}, jonas: {name: 'Jonas Lie', city: 'Oslo', hue: 205}, emma: {name: 'Emma Solheim', city: 'Bergen', hue: 150},
+  mats: {name: 'Mats Haugen', city: 'Trondheim', hue: 265}, sara: {name: 'Sara Nygaard', city: 'Stavanger', hue: 40}
+};
+const SO_GROUPS = [
+  {id: 'bergen-lifters', name: 'Bergen Lifters', about: 'Heavy days and honest reps. A weekly board for total volume.', members: ['ida', 'jonas', 'mats'], count: 128, hue: 14, metric: 'volume'},
+  {id: 'sub20', name: 'Sub 20 5K', about: 'Chasing a 5 km under 20 minutes together. Weekly distance board.', members: ['ida', 'sara', 'emma', 'jonas'], count: 342, hue: 205, metric: 'distance'},
+  {id: 'pullup-club', name: 'Pull-Up Club', about: 'One more rep than last week. Thirty in a row is the dream.', members: ['emma', 'jonas', 'sara'], count: 76, hue: 150, metric: 'workouts'}
+];
+const SO_IC = {
+  kudos: '<svg viewBox="0 0 24 24"><path d="M7 21H4.5A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11H7m0 10V11m0 10h9.7a2 2 0 0 0 2-1.7l1.2-7A2 2 0 0 0 17.9 10H14V5.5A2.5 2.5 0 0 0 11.5 3L7 11"/></svg>',
+  chat: '<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5"/></svg>',
+  lift: '<svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>',
+  run: '<svg viewBox="0 0 24 24"><circle cx="14.5" cy="4.5" r="1.8"/><path d="m8 21 3-6 3 2 1 4M6 12l3-3.5 4 1 2.5 3.5 3 .5M11 15l2-5.5"/></svg>',
+  row: '<svg viewBox="0 0 24 24"><path d="M3 19.5h18M5 19.5l2-3.5h7M14 16l5.5-4M8.5 16l1.5-5 4.5 1.5"/><circle cx="9.5" cy="7.8" r="1.6"/></svg>',
+  back: '<svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'
+};
+const soName = who => who === 'me' ? (ST().name || 'You') : SO_PEOPLE[who].name;
+const soIni = n => String(n || 'You').split(/\s+/).map(w => w.charAt(0)).join('').slice(0, 2).toUpperCase();
+const soAv = (who, cls) => '<i class="so-av' + (who === 'me' ? ' me' : '') + (cls ? ' ' + cls : '') + '"' + (who !== 'me' ? ' style="--h:' + SO_PEOPLE[who].hue + '"' : '') + '>' + esc(soIni(soName(who))) + '</i>';
+function soWhen(ts){
+  const d = isoLocal(new Date(ts)), t = todayISO(), c = fClock.format(ts);
+  return (d === t ? 'Today' : d === addDays(t, -1) ? 'Yesterday' : dDay(d)) + ' at ' + c;
 }
+const soDoc = id => D.social.find(x => x.id === id);
+const soKudos = id => !!soDoc('k:' + id);
+const soComments = id => D.social.filter(x => x.kind === 'comment' && x.post === id).sort((a, b) => a.at - b.at);
+const soJoinedIds = () => new Set(D.social.filter(x => x.kind === 'join').map(x => x.group).concat(D.social.filter(x => x.kind === 'group').map(x => x.id)));
+const soAllGroups = () => D.social.filter(x => x.kind === 'group').map(g => ({id: g.id, name: g.name, about: g.about || '', members: [], count: 1, hue: 28, metric: 'workouts', own: true})).concat(SO_GROUPS);
+function soSamples(){
+  const base = new Date(todayISO() + 'T00:00:00').getTime(), at = (d, h, m) => base - d * 864e5 + (h * 60 + m) * 6e4;
+  return [
+    {id: 's1', who: 'ida', ts: at(0, 6, 42), kind: 'run', title: 'Morning run along the fjord', dist: 6.4, sec: 1870, seed: 3, kudos: 14, by: ['jonas', 'emma', 'sara'], cs: [['jonas', 'Flying this morning'], ['emma', 'That pace!']], groups: ['sub20']},
+    {id: 's2', who: 'jonas', ts: at(0, 5, 55), kind: 'lift', title: 'Push day', min: 58, sets: 16, vol: 7420, prs: ['Incline Bench Press 90 kg × 6'], top: [['Incline Bench Press', '90 kg × 6'], ['Seated Machine Shoulder Press', '55 kg × 10'], ['Triceps Pushdown', '35 kg × 12']], kudos: 9, by: ['ida', 'mats'], cs: [['mats', 'Incline is moving']], groups: ['bergen-lifters']},
+    {id: 's3', who: 'emma', ts: at(1, 19, 20), kind: 'note', text: 'Three sets of ten pull ups today. Six months ago I could not do a single one. Keep showing up.', kudos: 31, by: ['ida', 'sara', 'jonas'], cs: [['sara', 'This is huge, congrats'], ['jonas', 'Next stop fifteen']], groups: ['pullup-club']},
+    {id: 's4', who: 'sara', ts: at(1, 7, 15), kind: 'row', title: 'Rowing intervals', dist: 4, sec: 1022, text: '8 × 500 m with a minute of rest. Last one was the fastest.', kudos: 7, by: ['emma'], cs: [], groups: ['sub20']},
+    {id: 's5', who: 'mats', ts: at(2, 18, 30), kind: 'lift', title: 'Leg day', min: 64, sets: 18, vol: 11850, prs: [], top: [['Hack Squat', '140 kg × 8'], ['Romanian Deadlift', '110 kg × 10'], ['Standing Calf Raise', '90 kg × 15']], kudos: 11, by: ['jonas', 'ida'], cs: [['ida', 'Stairs tomorrow will hurt']], groups: ['bergen-lifters']},
+    {id: 's6', who: 'ida', ts: at(3, 12, 10), kind: 'lift', title: 'Pull day', min: 49, sets: 14, vol: 5960, prs: ['Pull-Up 12 reps'], top: [['Pull-Up', 'Bodyweight × 12'], ['Chest-Supported T-Bar Row', '50 kg × 10'], ['Hammer Curl', '14 kg × 12']], kudos: 18, by: ['emma', 'sara', 'jonas'], cs: [], groups: ['pullup-club', 'bergen-lifters']},
+    {id: 's7', who: 'jonas', ts: at(4, 7, 0), kind: 'run', title: 'Easy recovery run', dist: 5.1, sec: 1745, seed: 8, kudos: 6, by: ['ida'], cs: [], groups: ['sub20']}
+  ];
+}
+const soMin = m => { m = Math.round(m); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; };
+const soSet = x => (+x.weight ? fmt(+x.weight) + ' kg' : 'Bodyweight') + ' × ' + x.reps;
+function soMine(){
+  const out = [], best = new Map(), prs = new Map();
+  for(const x of D.sets.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0))){
+    const sc = score(+x.weight || 0, +x.reps || 0, infoOf(x.exercise)), was = best.get(x.exercise);
+    if(was != null && sc > was + 1e-9){ if(!prs.has(x.sessionId)) prs.set(x.sessionId, new Map()); prs.get(x.sessionId).set(x.exercise, x); }
+    if(was == null || sc > was) best.set(x.exercise, sc);
+  }
+  for(const s of D.sessions){
+    if(!s.endedAt) continue;
+    if(s.kind === 'styrke'){
+      const sets = setsOf(s.id); if(!sets.length) continue;
+      const top = new Map(); for(const x of sets){ const sc = score(+x.weight || 0, +x.reps || 0, infoOf(x.exercise)), b = top.get(x.exercise); if(!b || sc > b.sc) top.set(x.exercise, {sc, x}); }
+      out.push({id: 'w-' + s.id, who: 'me', ts: s.endedAt, kind: 'lift', title: sessionTitle(s), min: Math.max(1, Math.round((s.endedAt - s.startedAt) / 6e4)), sets: sets.length,
+        vol: sets.reduce((a, x) => a + (+x.weight || 0) * (+x.reps || 0), 0), prs: [...(prs.get(s.id) || new Map()).values()].map(x => x.exercise + ' ' + soSet(x)),
+        top: [...top.values()].sort((a, b) => b.sc - a.sc).slice(0, 3).map(({x}) => [x.exercise, soSet(x)]), text: s.note || ''});
+    } else if(s.kind === 'kondis'){
+      const sec = s.durationSec || 0, dist = s.distM ? s.distM / 1000 : 0; if(!sec && !dist) continue;
+      out.push({id: 'w-' + s.id, who: 'me', ts: s.endedAt || s.startedAt, kind: /row|ski/i.test(s.activity || '') ? 'row' : 'run', title: s.title || s.activity || 'Cardio', dist, sec, text: s.note || ''});
+    }
+  }
+  for(const p of D.posts) out.push({id: p.id, who: 'me', ts: p.ts, kind: 'note', text: p.text, photos: p.photos || [], groups: p.group ? [p.group] : [], post: true});
+  return out;
+}
+function soRoute(seed){
+  let r = seed * 7919 % 233280; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+  const n = 26, pts = [];
+  for(let i = 0; i < n; i++){ const a = i / n * Math.PI * 2, k = 1 + (rnd() - .5) * .34; pts.push([160 + Math.cos(a) * 112 * k + (rnd() - .5) * 8, 74 + Math.sin(a) * 46 * k]); }
+  let d = 'M' + pts[0].map(v => v.toFixed(1)).join(' ');
+  for(let i = 0; i < n; i++){
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    d += 'C' + [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]].map(v => v.toFixed(1)).join(' ');
+  }
+  return '<svg class="so-map" viewBox="0 0 320 148" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="320" height="148" class="so-land"/>' +
+    '<path d="M-10 128C60 112 90 140 160 126s110-30 170-18v50H-10z" class="so-water"/><path d="M0 40h320M0 96h320M70 0v148M200 0v148M260 0v148" class="so-road"/>' +
+    '<path d="' + d + '" class="so-rt"/><circle cx="' + pts[0][0].toFixed(1) + '" cy="' + pts[0][1].toFixed(1) + '" r="5" class="so-start"/></svg>';
+}
+function soStats(p){
+  let st = [];
+  if(p.kind === 'lift') st = [['Time', soMin(p.min)], ['Sets', String(p.sets)], ['Volume', kNum(p.vol) + ' kg']];
+  else if(p.kind === 'run' || p.kind === 'row'){
+    const pace = p.dist && p.sec ? (p.kind === 'row' ? mmss(p.sec / (p.dist * 2)) + ' /500 m' : mmss(p.sec / p.dist) + ' /km') : '';
+    st = [p.dist ? ['Distance', fmt(Math.round(p.dist * 100) / 100) + ' km'] : null, pace ? ['Pace', pace] : null, p.sec ? ['Time', mmss(p.sec)] : null].filter(Boolean);
+  }
+  return st.length ? '<div class="so-st">' + st.map(([l, v]) => '<div><small>' + l + '</small><b>' + esc(v) + '</b></div>').join('') + '</div>' : '';
+}
+function soCard(p){
+  const mine = p.who === 'me', k = soKudos(p.id), kc = (p.kudos || 0) + (k ? 1 : 0), cs = (p.cs || []).map(([who, text]) => ({who, text})).concat(soComments(p.id).map(c => ({who: 'me', text: c.text, id: c.id})));
+  const city = mine ? '' : SO_PEOPLE[p.who].city, ic = SO_IC[p.kind === 'note' ? '' : p.kind] || '';
+  let h = '<article class="so-card" data-id="' + esc(p.id) + '"><div class="so-h">' + soAv(p.who) + '<span><b>' + esc(soName(p.who)) + '</b><small>' + soWhen(p.ts) + (city ? ' · ' + city : '') + '</small></span>' +
+    (mine ? '' : '<em class="so-sample">Sample</em>') + '</div>';
+  if(p.title) h += '<h3 class="so-t">' + ic + '<span>' + esc(p.title) + '</span></h3>';
+  if(p.text) h += '<p class="so-tx">' + esc(p.text) + '</p>';
+  h += soStats(p);
+  if(p.prs && p.prs.length) h += '<div class="so-prs">' + p.prs.map(t => '<span>' + SO_IC.trophy + esc(t) + '</span>').join('') + '</div>';
+  if(p.seed) h += soRoute(p.seed);
+  else if(p.top && p.top.length) h += '<div class="so-lifts">' + p.top.map(([n, v]) => '<div><span>' + esc(n) + '</span><b>' + esc(v) + '</b></div>').join('') + '</div>';
+  if(p.photos && p.photos.length) h += '<div class="so-ph">' + photoTag(p.photos[0]) + '</div>';
+  if(kc) h += '<p class="so-kl"><span class="so-stack">' + (k ? soAv('me', 'xs') : '') + (p.by || []).slice(0, k ? 2 : 3).map(w => soAv(w, 'xs')).join('') + '</span>' +
+    (k ? (kc > 1 ? 'You and ' + plural(kc - 1, 'other') : 'You') : kc === 1 ? soName(p.by[0]) : soName(p.by[0]).split(' ')[0] + ' and ' + plural(kc - 1, 'other')) + ' gave kudos</p>';
+  h += '<div class="so-act">' + (mine ? '' : '<button class="so-k' + (k ? ' on' : '') + '" data-a="so-kudos" data-id="' + esc(p.id) + '" aria-pressed="' + k + '">' + SO_IC.kudos + '<span>Kudos</span></button>') +
+    '<button data-a="so-cmt" data-id="' + esc(p.id) + '">' + SO_IC.chat + '<span>' + (cs.length ? plural(cs.length, 'comment') : 'Comment') + '</span></button>' +
+    (mine && p.post ? '<button class="so-del" data-a="so-del" data-id="' + esc(p.id) + '" id="so-del-' + esc(p.id) + '">Delete</button>' : '') + '</div>';
+  const all = S.ui.soAll === p.id, shown = all ? cs : cs.slice(-2);
+  if(cs.length) h += '<div class="so-cs">' + (cs.length > 2 && !all ? '<button class="so-more" data-a="so-cmt-all" data-id="' + esc(p.id) + '">View all ' + cs.length + ' comments</button>' : '') +
+    shown.map(c => '<div class="so-c">' + soAv(c.who, 'xs') + '<p><b>' + esc(soName(c.who)) + '</b> ' + esc(c.text) + '</p></div>').join('') + '</div>';
+  if(S.ui.soCmt === p.id) h += '<div class="so-cbox"><textarea class="field" rows="1" data-socmt="' + esc(p.id) + '" placeholder="Add a comment" maxlength="300">' + esc(S.ui.soCmtText || '') + '</textarea><button class="btn-primary btn-small" data-a="so-cmt-send" data-id="' + esc(p.id) + '">Post</button></div>';
+  return h + '</article>';
+}
+function soComposer(group){
+  const d = S.ui.soDraft;
+  if(!d || d.group !== (group || '')) return '<button class="so-comp" data-a="so-compose" data-g="' + esc(group || '') + '">' + soAv('me') + '<span>' + (group ? 'Post to the group' : 'Share a thought or a photo') + '</span>' + CAM_IC + '</button>';
+  return '<div class="so-comp open">' + soAv('me') + '<div class="so-cw"><textarea class="field" rows="3" data-sodraft placeholder="How did training go?" maxlength="600">' + esc(d.text) + '</textarea>' +
+    (d.photos.length ? '<div class="fd-phs">' + d.photos.map((ph, i) => '<span class="fd-p">' + photoTag(ph) + '<button data-a="so-ph-del" data-i="' + i + '" aria-label="Remove photo">×</button></span>').join('') + '</div>' : '') +
+    '<div class="so-cr"><label class="so-cam" aria-label="Add photo">' + CAM_IC + '<input type="file" accept="image/*" data-sophoto hidden></label><span></span>' +
+    '<button class="btn-quiet btn-small" data-a="so-compose-x">Cancel</button><button class="btn-primary btn-small" data-a="so-post">Post</button></div></div></div>';
+}
+function soFeedHtml(){
+  const items = soMine().concat(soSamples()).sort((a, b) => b.ts - a.ts).slice(0, 40);
+  return soComposer('') + items.map(soCard).join('') + '<p class="so-end">You are all caught up</p>';
+}
+function soWeekStart(){ const d = new Date(todayISO() + 'T12:00:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return isoLocal(d); }
+function soMyWeek(from){
+  const xs = D.sessions.filter(x => x.date >= from && x.endedAt && (x.kind !== 'styrke' || setsOf(x.id).length));
+  return {workouts: xs.length, volume: xs.reduce((a, x) => a + setsOf(x.id).reduce((b, y) => b + (+y.weight || 0) * (+y.reps || 0), 0), 0),
+    distance: xs.reduce((a, x) => a + (x.distM || 0), 0) / 1000, min: xs.reduce((a, x) => a + (x.durationSec ? x.durationSec / 60 : x.endedAt && x.startedAt ? (x.endedAt - x.startedAt) / 6e4 : 0), 0)};
+}
+function soGroupsHtml(){
+  const joined = soJoinedIds(), gs = soAllGroups();
+  const card = g => '<div class="so-g" style="--h:' + g.hue + '"><button class="so-gopen" data-a="so-group" data-id="' + esc(g.id) + '"><i class="so-gc">' + esc(soIni(g.name)) + '</i><span><b>' + esc(g.name) + '</b><small>' + plural(g.count + (joined.has(g.id) && !g.own ? 1 : 0), 'member') + (g.own ? '' : ' · Sample') + '</small></span></button>' +
+    (g.own ? '' : '<button class="so-join' + (joined.has(g.id) ? ' on' : '') + '" data-a="so-join" data-id="' + esc(g.id) + '">' + (joined.has(g.id) ? 'Joined' : 'Join') + '</button>') + '</div>';
+  const mine = gs.filter(g => joined.has(g.id)), rest = gs.filter(g => !joined.has(g.id));
+  return (mine.length ? '<p class="so-lab">Your groups</p>' + mine.map(card).join('') : '') + (rest.length ? '<p class="so-lab">Discover</p>' + rest.map(card).join('') : '') +
+    '<button class="btn-glass wide so-gnew" data-a="so-gnew">' + SO_IC.plus + 'Create a group</button>';
+}
+function soGroupHtml(id){
+  const g = soAllGroups().find(x => x.id === id); if(!g) return soGroupsHtml();
+  const joined = soJoinedIds().has(g.id), wk = soMyWeek(soWeekStart());
+  const unit = {volume: ['Volume', v => kNum(v) + ' kg'], distance: ['Distance', v => fmt(Math.round(v * 10) / 10) + ' km'], workouts: ['Workouts', v => String(v)]}[g.metric];
+  const val = who => { if(who === 'me') return wk[g.metric]; let h = 0; for(const c of (g.id + who)) h = (h * 31 + c.charCodeAt(0)) % 9973; return g.metric === 'volume' ? 4000 + h % 9000 : g.metric === 'distance' ? 8 + h % 28 : 1 + h % 5; };
+  const board = g.members.concat(joined ? ['me'] : []).map(w => ({w, v: val(w)})).sort((a, b) => b.v - a.v);
+  const feed = soSamples().concat(soMine()).filter(p => (p.groups || []).includes(g.id)).sort((a, b) => b.ts - a.ts);
+  return '<button class="so-back" data-a="so-group-x">' + SO_IC.back + 'Groups</button>' +
+    '<div class="so-gh" style="--h:' + g.hue + '"><i class="so-gc big">' + esc(soIni(g.name)) + '</i><h3>' + esc(g.name) + '</h3><p>' + esc(g.about) + '</p>' +
+    '<div class="so-gm"><span class="so-stack">' + g.members.slice(0, 4).map(w => soAv(w, 'xs')).join('') + (joined ? soAv('me', 'xs') : '') + '</span>' + plural(g.count + (joined && !g.own ? 1 : 0), 'member') + '</div>' +
+    (g.own ? '' : '<button class="so-join big' + (joined ? ' on' : '') + '" data-a="so-join" data-id="' + esc(g.id) + '">' + (joined ? 'Joined' : 'Join group') + '</button>') + '</div>' +
+    '<div class="so-board"><div class="hd"><h2>This week</h2><small>' + unit[0] + '</small></div>' + board.map((r, i) => '<div class="so-br' + (r.w === 'me' ? ' me' : '') + '"><em>' + (i + 1) + '</em>' + soAv(r.w, 'xs') + '<span>' + esc(soName(r.w)) + '</span><b>' + esc(unit[1](r.v)) + '</b></div>').join('') +
+    (joined ? '' : '<p class="so-hint">Join to see yourself on the board</p>') + '</div>' +
+    (joined ? soComposer(g.id) : '') + feed.map(soCard).join('');
+}
+function soYouHtml(){
+  const st = ST(), tr = tier(), wk = soMyWeek(soWeekStart()), n = D.sessions.filter(x => x.endedAt && (x.kind !== 'styrke' || setsOf(x.id).length)).length;
+  const weeks = []; for(let i = 7; i >= 0; i--){ const from = addDays(soWeekStart(), -7 * i), to = addDays(from, 6); const xs = D.sessions.filter(x => x.date >= from && x.date <= to && x.endedAt && (x.kind !== 'styrke' || setsOf(x.id).length)); weeks.push({from, n: xs.length}); }
+  const mx = Math.max(1, ...weeks.map(w => w.n));
+  const act = activeSession(), sug = act ? null : routineById(suggested()), t = todayISO();
+  const mine = soMine().sort((a, b) => b.ts - a.ts).slice(0, 10);
+  return '<div class="so-me">' + soAv('me', 'big') + '<h3>' + esc(st.name || 'You') + '</h3><p>' + tr.name + ' · ' + plural(n, 'workout') + '</p>' +
+    '<div class="so-ff"><span><b>5</b>Following</span><span><b>3</b>Followers</span><span><b>' + soJoinedIds().size + '</b>Groups</span></div></div>' +
+    '<div class="so-wk"><div class="hd"><h2>This week</h2><small>' + (tr.next ? plural(tr.next, 'workout') + ' to ' + tr.up : 'Top level') + '</small></div>' +
+    '<div class="so-st"><div><small>Workouts</small><b>' + wk.workouts + '</b></div><div><small>Time</small><b>' + soMin(wk.min) + '</b></div><div><small>Volume</small><b>' + kNum(wk.volume) + ' kg</b></div></div>' +
+    '<div class="so-bars">' + weeks.map((w, i) => '<i style="--v:' + (w.n / mx) + '" class="' + (i === 7 ? 'now' : '') + '"><b>' + (w.n || '') + '</b></i>').join('') + '</div><p class="so-bl"><span>8 weeks ago</span><span>This week</span></p></div>' +
+    '<p class="so-lab">Shortcuts</p><div class="so-sc">' +
+    (act ? sl('resume', IC.play, 'Continue ' + sessionTitle(act), '<small>' + plural(setsOf(act.id).length, 'set') + '</small>') : sug ? sl('start', IC.play, 'Start ' + sug.name, '<small>Next</small>', ' data-id="' + esc(sug.id) + '"') : sl('quick', IC.play, 'Quick workout')) +
+    sl('checkin', IC.check, 'Morning check-in', D.checkins.has(t) ? '<small>Done ✓</small>' : '<span class="sdot"></span>') + sl('cardio', IC.run, 'Cardio') +
+    sl('log-past', IC.past, 'Log a past day', '', ' data-d="' + addDays(t, -1) + '"') + (D.sets.length ? sl('best-lifts', IC.chart, 'Best lifts') : '') +
+    (D.feedback.length ? sl('reviews', IC.stack, 'Earlier reviews', '<small>' + D.feedback.length + '</small>') : '') + (D.routines.length ? sl('workouts', IC.bar, 'Your workouts') : '') +
+    sl('settings', IC.spark, 'Settings') + '</div>' +
+    (mine.length ? '<p class="so-lab">Your activity</p>' + mine.map(soCard).join('') : '');
+}
+function renderSide(){
+  const tab = S.ui.soTab || 'feed', body = $('#side-panel .side-body'), y = body ? body.scrollTop : 0, same = S.ui.soLast === tab + (S.ui.soGroup || '');
+  const h = '<div class="side-head so-head"><h2>Social</h2><button class="so-new" data-a="so-compose" data-g="" aria-label="New post">' + SO_IC.plus + 'Post</button></div>' +
+    '<div class="so-tabs">' + seg2('so-tab', [['feed', 'Feed'], ['groups', 'Groups'], ['you', 'You']], tab) + '</div>' +
+    '<div class="side-body so-body">' + (tab === 'groups' ? (S.ui.soGroup ? soGroupHtml(S.ui.soGroup) : soGroupsHtml()) : tab === 'you' ? soYouHtml() : soFeedHtml()) + '</div>';
+  $('#side-panel').innerHTML = h;
+  if(same) $('#side-panel .side-body').scrollTop = y;
+  S.ui.soLast = tab + (S.ui.soGroup || '');
+  hydratePhotos();
+}
+function soPost(){
+  const d = S.ui.soDraft; if(!d) return;
+  const text = d.text.replace(/\s+\n/g, '\n').trim().slice(0, 600);
+  if(!text && !d.photos.length){ toast('Write something or add a photo'); return; }
+  const id = newId(), now = Date.now();
+  queue('set', 'posts', id, Object.assign({id, date: todayISO(), ts: now, text, photos: d.photos.map((ph, i) => storePhoto('post-' + id + '-' + i, ph))}, d.group ? {group: d.group} : {}));
+  S.ui.soDraft = null; renderSide(); toast('Posted');
+}
+
 // Your membership grows with the workouts you log: Starter, Regular, Pro, Elite
 const TIERS = [[0, 'Starter'], [10, 'Regular'], [50, 'Pro'], [150, 'Elite']];
 function tier(){
@@ -4251,6 +4540,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.15.0', date: '2026-10-21', items: [['social', 'Social in the side menu: a feed like Strava with your workouts, posts and photos, kudos and comments'], ['groups', 'Groups with a weekly board, and your own profile with eight weeks of training'], ['samples', 'Sample athletes and groups until friends can join']]},
   {v: '4.14.0', date: '2026-10-21', items: [['foodphoto', 'Food is photo only: snap the plate with your hand beside it and Claude works out foods, portions and calories'], ['camera', 'A guided camera with the plate circle, your hand outline and a level'], ['hand', 'Measure your hand once, the ruler for portion sizes, under Settings, Coach'], ['range', 'Every meal shows a likely range and how sure Claude is']]},
   {v: '4.13.0', date: '2026-10-21', items: [['food', 'Food page: log meals with a photo or a few words, and Claude estimates calories and macros'], ['goaltypes', 'Three kinds of goal: strength, endurance and health'], ['trainers', 'Pick a trainer, Guide, Builder or Elite, under Settings, Coach'], ['welcome', 'Welcome steps for a new account: trainer, exercises you love and goals']]},
   {v: '4.12.0', date: '2026-10-21', items: [['lockcard', 'Lock screen card: lock the phone during a workout and see time, sets, exercises and progress']]},
@@ -4511,7 +4801,7 @@ document.addEventListener('input', e => {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if(!b) return;
   const a = b.dataset.a;
-  if(b.closest('#side')) closeSide();
+  if(b.closest('#side') && !a.startsWith('so-')) closeSide();
   if(S.ui.armed && !(a === 'set' && b.dataset.id === S.ui.armed)){ S.ui.armed = null; renderWorkout(); }
   switch(a){
     case 'quick': startSession(null); break;
@@ -4559,6 +4849,50 @@ document.addEventListener('click', e => {
     case 'pin-auto': saveSettings({lcPins: []}); renderPins(); break;
     case 'goal-edit': openGoal(b.dataset.id); break;
     case 'goal-save': saveGoal(b.dataset.id || null); break;
+    case 'so-tab': S.ui.soTab = b.dataset.v; S.ui.soGroup = null; renderSide(); $('#side-panel .side-body').scrollTop = 0; break;
+    case 'so-kudos': {
+      const id = b.dataset.id, on = !soKudos(id);
+      b.classList.toggle('on', on); b.classList.remove('pop'); void b.offsetWidth; if(on) b.classList.add('pop'); haptic();
+      if(on) queue('set', 'social', 'k:' + id, {id: 'k:' + id, kind: 'kudos', post: id, at: Date.now()}); else queue('delete', 'social', 'k:' + id);
+      setTimeout(renderSide, on ? 420 : 0);
+      break;
+    }
+    case 'so-cmt': S.ui.soCmt = S.ui.soCmt === b.dataset.id ? null : b.dataset.id; S.ui.soCmtText = ''; renderSide(); { const t = document.querySelector('[data-socmt]'); if(t) t.focus(); } break;
+    case 'so-cmt-all': S.ui.soAll = b.dataset.id; renderSide(); break;
+    case 'so-cmt-send': {
+      const text = (S.ui.soCmtText || '').trim().slice(0, 300); if(!text){ toast('Write a comment first'); break; }
+      const id = 'c:' + newId(); queue('set', 'social', id, {id, kind: 'comment', post: b.dataset.id, text, at: Date.now()});
+      S.ui.soCmt = null; S.ui.soCmtText = ''; renderSide(); haptic();
+      break;
+    }
+    case 'so-compose': S.ui.soDraft = {text: '', photos: [], group: b.dataset.g || ''}; if(S.ui.soTab === 'you') S.ui.soTab = 'feed'; renderSide(); { const t = document.querySelector('[data-sodraft]'); if(t) t.focus(); } break;
+    case 'so-compose-x': S.ui.soDraft = null; renderSide(); break;
+    case 'so-post': soPost(); break;
+    case 'so-ph-del': { const d = S.ui.soDraft; if(d){ d.photos.splice(+b.dataset.i, 1); renderSide(); } break; }
+    case 'so-del': {
+      const id = b.dataset.id;
+      if(S.ui.armedAct === 'post:' + id){ disarmAct(); queue('delete', 'posts', id); renderSide(); toast('Post deleted'); }
+      else armButton('so-del-' + id, 'post:' + id, 'Delete', 'Tap again');
+      break;
+    }
+    case 'so-group': S.ui.soGroup = b.dataset.id; S.ui.soTab = 'groups'; renderSide(); $('#side-panel .side-body').scrollTop = 0; break;
+    case 'so-group-x': S.ui.soGroup = null; renderSide(); break;
+    case 'so-join': {
+      const id = b.dataset.id, on = !soJoinedIds().has(id);
+      if(on) queue('set', 'social', 'j:' + id, {id: 'j:' + id, kind: 'join', group: id, at: Date.now()}); else queue('delete', 'social', 'j:' + id);
+      haptic(); renderSide(); toast(on ? 'Joined' : 'Left the group');
+      break;
+    }
+    case 'so-gnew': closeSide(); openSheet('sogroup', shTop('New group', 'Social'),
+      '<div class="gsheet"><div><label class="lab" for="sg-name">Name</label><input id="sg-name" class="field" maxlength="40" autocomplete="off" placeholder="Morning crew"></div>' +
+      '<div><label class="lab" for="sg-about">About</label><textarea id="sg-about" class="field" rows="2" maxlength="160" placeholder="What the group is for"></textarea></div>' +
+      '<button class="btn-primary wide" data-a="so-gsave">Create group</button></div>', false); break;
+    case 'so-gsave': {
+      const name = $('#sg-name').value.replace(/\s+/g, ' ').trim(); if(!name){ toast('Give the group a name'); $('#sg-name').focus(); break; }
+      const id = 'g:' + newId(); queue('set', 'social', id, {id, kind: 'group', name, about: $('#sg-about').value.replace(/\s+/g, ' ').trim(), at: Date.now()});
+      closeSheet(); S.ui.soTab = 'groups'; S.ui.soGroup = id; setTimeout(openSide, 300); toast('Group created');
+      break;
+    }
     case 'g-type': { const sh = $('#g-sheet'); if(sh) sh.dataset.t = b.dataset.v; const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); break; }
     case 'trainer': {
       const t = TRAINERS.find(x => x.id === b.dataset.v); if(!t) break;
