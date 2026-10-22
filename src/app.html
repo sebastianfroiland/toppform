@@ -2186,7 +2186,7 @@ function routeHash(){
 }
 function maybeAutoOpen(){
   if(S.autoOpened) return;
-  S.autoOpened = true; derive();
+  S.autoOpened = true; guard(derive, 'data');
   if(routeHash()) return;
   if(activeSession()) selectTab(1);
 }
@@ -2200,9 +2200,9 @@ function setView(i){
   if(i !== 1) saveNote();
   if(i === 3 && pgNow() === 'records'){ S.ui.prNew = false; $('#pr-dot').hidden = true; }
   if(i === 3 && pgNow() === 'body') setTimeout(helloFig, 450);
-  if(D) PAGES[i]();
+  if(D) paintPage(i);
   VIEWS.forEach((id, j) => $('#' + id).setAttribute('aria-hidden', String(i !== j)));
-  if(D) syncFit();
+  if(D) guard(syncFit, 'fit');
   dockVis(i === 0 ? 1 : 0);
   if(i === 0) purpleShow();
   const w = pager.clientWidth;
@@ -2239,7 +2239,7 @@ async function init(){
   fixGap();
   tabsApi = LG.tabs($('#tabbar'), {onChange: setView});
   sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => { sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open'); }});
-  derive(); refresh();
+  refresh();
   if(!inClaude() && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if(GH.cfg && GH.cfg.token){ await ghStart(); return; }
   if(inClaude()){
@@ -2261,15 +2261,28 @@ function goLocal(){ S.backend = 'local'; S.mode = 'local'; refresh(); maybeAutoO
 /* ---------- rendering ---------- */
 /* The page you are looking at renders right away, the others a moment later, so taps stay snappy with a long history. */
 const PAGES = [() => renderToday(), () => renderWorkout(), () => renderLog(), () => renderProgress(), () => renderFood()];
+/* One page that cannot draw (a broken document, say) must not take the tab bar, start-up or saving down with it:
+   the error is logged, the other pages still draw, and the page you look at says so once. */
+const pageFailed = new Set();
+function guard(fn, what){
+  try{ fn(); return true; }
+  catch(e){ console.error('Could not draw ' + what, e); return false; }
+}
+function paintPage(i){
+  if(guard(PAGES[i], VIEWS[i]) || pageFailed.has(i)) return;
+  if(i === S.tab){ pageFailed.add(i); toast('Part of this page could not load'); }
+}
 let laterT = null, laterDirty = false;
 function renderLater(){
   clearTimeout(laterT); laterT = null;
   if(!laterDirty) return; laterDirty = false;
-  PAGES.forEach((f, i) => { if(i !== S.tab && i !== 1) f(); });
-  syncFit();
-  if($('#setModal').classList.contains('open') && S.ui.setPanel === 'feedback') renderFeedbackPanel();
-  if(sheetMode === 'reviews') renderReviews();
-  if(sheetMode === 'bestlifts') renderBestLifts();
+  PAGES.forEach((f, i) => { if(i !== S.tab && i !== 1) paintPage(i); });
+  guard(syncFit, 'fit');
+  guard(() => {
+    if($('#setModal').classList.contains('open') && S.ui.setPanel === 'feedback') renderFeedbackPanel();
+    if(sheetMode === 'reviews') renderReviews();
+    if(sheetMode === 'bestlifts') renderBestLifts();
+  }, 'sheet');
 }
 /* Workout, Log, Body and Records fit the screen exactly, and so does every flashcard. Nothing is allowed to scroll a
    little or hide behind the tab bar: a box that is too tall tightens step by step (tips first, then spacing) and is
@@ -2317,10 +2330,10 @@ function fitCards(){
 }
 addEventListener('resize', () => { if(D) syncFit(); });
 function refresh(){
-  derive(); applyLook(); renderStatus();
-  maybeOnboard();
-  PAGES[S.tab](); if(S.tab !== 1) renderWorkout();
-  syncFit(); requestAnimationFrame(syncFit);
+  guard(derive, 'data'); guard(applyLook, 'look'); guard(renderStatus, 'status');
+  guard(maybeOnboard, 'welcome');
+  paintPage(S.tab); if(S.tab !== 1) paintPage(1);
+  guard(syncFit, 'fit'); requestAnimationFrame(() => guard(syncFit, 'fit'));
   laterDirty = true; clearTimeout(laterT); laterT = setTimeout(renderLater, 160);
 }
 function renderStatus(){
