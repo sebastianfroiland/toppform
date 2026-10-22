@@ -1779,7 +1779,9 @@ function parseDur(s){
   const m = parseFloat(s); return isFinite(m) && m > 0 ? Math.round(m*60) : null;
 }
 const fmtDur = sec => !sec ? '' : sec % 60 === 0 ? (sec/60) + ' min' : mmss(sec);
-const toast = msg => LG.toast(msg);
+// a warning that matters (a full phone) stays up a moment, so a 'Saved' right after it cannot cover it
+let toastHold = 0;
+const toast = (msg, hold) => { const now = Date.now(); if(!hold && now < toastHold) return; toastHold = hold ? now + 3000 : 0; LG.toast(msg, hold ? 3000 : 2000); };
 const haptic = () => LG.haptic();
 /* Since iOS 26.5 a web page can only make an iPhone tick when a real finger taps a switch: a tick started from code
    is ignored. So every button and slider gets an invisible label on top with a hidden switch inside. The tap lands on
@@ -1987,16 +1989,27 @@ document.addEventListener('gesturestart', e => e.preventDefault());
    or just this phone. Every change goes through one queue that survives bad reception. */
 function savePending(){
   const v = JSON.stringify(S.pending);
+  let ok = true;
   try{ localStorage.setItem('tl.pending.v1', v); }
   catch(e){
     // storage is full: the copy of the repo can be loaded again, so it goes first
     try{ localStorage.removeItem('tl.gh.cache'); localStorage.setItem('tl.pending.v1', v); }
-    catch(x){ if(!S.ui.fullWarned){ S.ui.fullWarned = true; toast('Phone storage is full. Go online so your sets are saved'); } }
+    catch(x){ ok = false; }
   }
+  // a change that could not be stored is said every time, and the status keeps saying it until a save works again
+  S.full = !ok;
+  if(!ok) toast('Phone storage is full. Not saved on this phone', true);
+  return ok;
 }
 let retryMs = 0, retryT = null, flushT = null;
 function queue(op, col, id, data){
-  if(op === 'set'){
+  if(S.backend === 'local' && S.mode === 'local'){
+    // on the phone alone nothing is uploaded, so the queue keeps only the newest version of each doc, and a doc that
+    // only ever lived on the phone needs no delete: removing a meal frees its photo
+    for(let i = S.pending.length - 1; i >= S.inflight; i--) if(S.pending[i].col === col && S.pending[i].id === id) S.pending.splice(i, 1);
+    if(op !== 'set' && !(S.snap[col] && S.snap[col].has(id))){ savePending(); refresh(); return; }
+  }
+  else if(op === 'set'){
     for(let i = S.pending.length - 1; i >= S.inflight; i--){
       const p = S.pending[i];
       if(p.col === col && p.id === id){ if(p.op === 'set'){ p.data = data; savePending(); refresh(); scheduleFlush(); return; } break; }
@@ -2351,6 +2364,7 @@ function renderStatus(){
   let s = 'busy', t = '', note = '';
   const gh = S.backend === 'gh';
   if(S.readonly){ s = 'off'; t = 'Read only'; note = 'You only have view access, so what you log stays on this phone.'; }
+  else if(S.full){ s = 'off'; t = 'Not saved'; note = gh ? 'Phone storage is full. Keep the app open until it is online, so your changes reach GitHub.' : 'Phone storage is full, so new changes are lost when the app closes. Connect GitHub or download a copy under Settings, Data.'; }
   else if(gh && GH.authError){ s = 'off'; t = 'Token rejected'; note = 'GitHub no longer accepts your token. Everything you log is kept on this phone. Create a new token and reconnect under Settings, Data.'; }
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
   else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
@@ -4086,6 +4100,9 @@ function saveHandTyped(){
 /* The guided camera: a live view with the plate circle and the hand drawn where they belong, a level that turns green
    when the phone is flat above the table, and a check before the photo is used. Falls back to the camera app. */
 const CAMS = {stream: null, mode: 'meal', shot: null, tiltOn: false};
+// a meal photo goes to GitHub at 1600 px; with no repo it is kept inside the phone's own storage, so it is stored as
+// small as a message photo there (the fist photo stays sharp, since it is measured)
+const camMax = () => S.backend === 'gh' || CAMS.mode === 'hand' ? 1600 : 720;
 function camEl(){
   let el = $('#cam'); if(el) return el;
   el = document.createElement('div'); el.className = 'cam'; el.id = 'cam'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Camera');
@@ -4139,7 +4156,7 @@ function closeCam(){
 function camShow(url){ CAMS.shot = url; $('#cam-img').src = url; $('#cam').classList.add('confirm'); }
 function camShot(){
   const v = $('#cam-v'); if(!v || !v.videoWidth){ toast('The camera is not ready yet'); return; }
-  const k = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement('canvas');
+  const k = Math.min(1, camMax() / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement('canvas');
   c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
   camShow(c.toDataURL('image/jpeg', .86)); haptic();
 }
@@ -4571,7 +4588,7 @@ function sendMsg(re){
 document.addEventListener('input', e => { const t = e.target; if(!t.dataset) return; if(t.dataset.sodraft != null && S.ui.soDraft){ S.ui.soDraft.text = t.value; growNote(t); } if(t.dataset.socmt != null){ S.ui.soCmtText = t.value; growNote(t); } });
 document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.sophoto != null && t.files && t.files.length && S.ui.soDraft){ const f = t.files[0]; t.value = ''; if(S.ui.soDraft.photos.length >= 4) return; try{ S.ui.soDraft.photos.push(await shrinkPhoto(f, 1280)); renderSide(); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target, o = S.ui.ob; if(o && t.dataset){ if(t.dataset.ob === 'name') o.name = t.value; if(t.dataset.obg) o.goals[t.dataset.obg] = t.value; } });
-document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.camfile != null && t.files && t.files.length){ const f = t.files[0]; t.value = ''; try{ camShow(await shrinkPhoto(f, 1600)); }catch(x){ toast('Could not read that photo'); } } });
+document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.camfile != null && t.files && t.files.length){ const f = t.files[0]; t.value = ''; try{ camShow(await shrinkPhoto(f, camMax())); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target; if(t.dataset && t.dataset.msgtext != null){ S.ui.draftText[t.dataset.msgtext] = t.value; growNote(t); } });
 document.addEventListener('change', e => { const t = e.target; if(t.dataset && t.dataset.msgphoto != null && t.files && t.files.length){ addPhotos(t.dataset.msgphoto, t.files); t.value = ''; } });
 
