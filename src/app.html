@@ -4833,7 +4833,8 @@ function libPick(name){
   const ex = s.exercises.map(e => Object.assign({}, e));
   const i = L.k ? ex.findIndex(e => e.k === L.k) : -1;
   let newK = null;
-  if(L.mode === 'swap' && i >= 0){ ex[i].from = ex[i].from || ex[i].name; ex[i].name = name; ex[i].hint = ''; }
+  // a swapped card starts on the new exercise's numbers, its RIR too
+  if(L.mode === 'swap' && i >= 0){ ex[i].from = ex[i].from || ex[i].name; ex[i].name = name; ex[i].hint = ''; delete S.ui.rir[L.k]; if(S.ui.rirTouched) S.ui.rirTouched.delete(L.k); }
   else if(L.mode === 'after' && i >= 0){ newK = newId(); ex.splice(i + 1, 0, {k:newK, name, planned:ex[i].planned || 0, hint:''}); }
   else { newK = newId(); ex.push({k:newK, name, planned: s.template === 'F' ? 0 : 1, hint:''}); }
   const mode = L.mode;
