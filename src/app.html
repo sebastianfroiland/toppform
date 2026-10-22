@@ -4689,13 +4689,14 @@ function restAlert(r){
   const e = (Date.now() - r.start) / 1000;
   if(e >= r.target && !r.alerted){ r.alerted = true; ls.set('tl.rest', JSON.stringify(r)); try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(x){} beep(); if(e - r.target < 6) notifyRest(r); }
 }
-// every exercise card shows the rest: the planned time while it waits, the running time and a bar once you log a set
+// every exercise card shows the rest: the planned time while it waits, the running time and a bar once you log a set.
+// The list view keeps the rest bar at the bottom instead, and a workout logged for an earlier day has no rest.
 function paintRestBoxes(s, running){
-  const r = S.ui.rest, e = running ? (Date.now() - r.start) / 1000 : 0;
+  const r = S.ui.rest, e = running ? (Date.now() - r.start) / 1000 : 0, deck = ST().view === 'cards';
   document.querySelectorAll('#cards .ex [data-r="rest"]').forEach(box => {
     const card = box.closest('.ex'), ex = s && s.exercises.find(x => x.k === card.dataset.k); if(!ex) return;
     const q = n => box.querySelector('[data-r="' + n + '"]');
-    box.hidden = !!ex.skip;
+    box.hidden = !!ex.skip || !deck || !!s.loggedAt; if(box.hidden) return;
     box.classList.toggle('idle', !running); box.classList.toggle('over', running && e >= r.target);
     const t = running ? mmss(e) + '<small>/ ' + mmss(r.target) + '</small>' : mmss(restPlan(ex, s));
     if(q('rst-t').innerHTML !== t) q('rst-t').innerHTML = t;
