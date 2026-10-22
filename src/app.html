@@ -2528,6 +2528,9 @@ function folderList(){
    moved {at, why}, copied from the plan that held today (or with the workout that was due, when there was none), so
    tomorrow the same plan carries over until the evening review writes a new one. It uses one of the week's skips. */
 const MOVE_WHY = ['Tired', 'Sore', 'No time', 'Sick'];
+// when the evening review has already planned tomorrow, the button says Rest today and the card shows that plan
+const tomorrowPlan = () => { const p = D.plans.get(addDays(todayISO(), 1)); return p && p.suggest ? p : null; };
+const moveLabel = () => tomorrowPlan() ? 'Rest today' : 'Move to tomorrow';
 const movedToday = () => { const p = todaysPlan(); return !!(p && p.moved && p.date === todayISO()) && !streakInfo().today; };
 function canMove(){
   const p = todaysPlan();
@@ -2537,7 +2540,7 @@ function canMove(){
 function askMove(){
   const si = streakInfo();
   if(si.spare > 0){ moveToday(); return; }
-  openSheet('move', shTop('No skips left', 'Move to tomorrow'), '<p class="sub" style="margin:4px 2px 16px">' + (si.prev ? 'Moving it puts your ' + si.prev + ' week streak at risk. Two workouts in one day can still save the week.' : 'Moving it leaves this week one workout short, unless you do two in one day.') + '</p>' +
+  openSheet('move', shTop('No skips left', moveLabel()), '<p class="sub" style="margin:4px 2px 16px">' + (si.prev ? 'Moving it puts your ' + si.prev + ' week streak at risk. Two workouts in one day can still save the week.' : 'Moving it leaves this week one workout short, unless you do two in one day.') + '</p>' +
     '<button class="btn-primary wide" data-a="move-ok">Move anyway</button><button class="btn-quiet" data-a="sheet-close" style="margin-top:4px">Keep it today</button>', false);
 }
 function moveToday(){
@@ -2546,7 +2549,7 @@ function moveToday(){
   const doc = Object.assign({}, base || {}, {date: t, moved: {at: Date.now()}});
   if(!doc.suggest && sug) doc.suggest = sug;
   queue('set', 'plans', t, doc);
-  haptic(); toast('Moved to tomorrow' + (left > 0 ? ' · ' + plural(left, 'skip') + ' left' : left === 0 ? ' · no skips left' : ''));
+  haptic(); toast((tomorrowPlan() ? 'Rest day' : 'Moved to tomorrow') + (left > 0 ? ' · ' + plural(left, 'skip') + ' left' : left === 0 ? ' · no skips left' : ''));
 }
 function moveUndo(){
   const t = todayISO(), u = loadJSON('tl.moveUndo', null), p = D.plans.get(t);
@@ -2564,16 +2567,21 @@ function renderNext(){
   const plan = todaysPlan(), sug = routineById(suggested()), all = D.routines.length ? ' · ' + D.routines.length : '';
   const title = plan && plan.suggest === 'rest' ? 'Rest day' : plan && plan.suggest === 'cardio' ? 'Cardio day' : sug ? sug.name : 'Start a workout';
   // the bottom row: all workouts, and moving today's workout to tomorrow when one is planned and not done yet
-  const foot = canMove() ? '<div class="two qr"><button class="btn-quiet" data-a="workouts">All workouts' + all + '</button><button class="btn-quiet" data-a="move">Move to tomorrow</button></div>'
+  const foot = canMove() ? '<div class="two qr"><button class="btn-quiet" data-a="workouts">All workouts' + all + '</button><button class="btn-quiet" data-a="move">' + moveLabel() + '</button></div>'
     : '<button class="btn-quiet" data-a="workouts" style="margin-top:4px">All workouts' + all + '</button>';
   if(movedToday()){
     const why = plan.moved.why || '', cardio = plan.suggest === 'cardio', what = cardio ? 'Cardio' : sug ? sug.name : 'Your workout', sp = streakInfo().spare;
-    // what waits for tomorrow, quietly, in the room the workout had
-    const rows = cardio ? cardioDefault().map(b => [cardioIcon(b.name) + esc(b.name), b.min + ' min']) : sug ? (sug.items || []).map(x => [esc(x.name), plural(x.sets || 1, 'set')]) : [];
+    // what waits for tomorrow, quietly, in the room the workout had: the moved workout, or the plan the review already wrote
+    const nx = tomorrowPlan(), nr = nx && routineById(nx.suggest), ncardio = !!nx && nx.suggest === 'cardio', cm = ncardio || (!nx && cardio);
+    const machines = ncardio ? (Array.isArray(nx.cardio) ? nx.cardio.filter(b => b && b.name).map(b => ({name: b.name, min: Math.max(1, Math.round(b.min || 10))})) : []) : cardioDefault();
+    const items = nx ? (nr ? nr.items || [] : []) : sug ? sug.items || [] : [];
+    const rows = cm ? machines.map(b => [cardioIcon(b.name) + esc(b.name), b.min + ' min']) : items.map(x => [esc(x.name), plural(x.sets || 1, 'set')]);
+    const next = nx ? (ncardio ? 'Cardio' : nr ? nr.name : nx.suggest === 'rest' ? 'Rest' : '') : '';
     setHTML($('#start-card'), '<div class="hd"><h2>Rest day</h2><small>' + (sp > 0 ? plural(sp, 'skip') + ' left' : 'No skips left') + '</small></div>' +
-      '<p class="sub" style="margin-top:6px">' + esc(what) + ' moves to tomorrow.</p>' +
+      '<p class="sub" style="margin-top:6px">' + esc(what) + (nx ? ' is off today.' : ' moves to tomorrow.') + '</p>' +
       '<div class="row why">' + MOVE_WHY.map(w => '<button class="chip" data-a="move-why" data-w="' + esc(w) + '" aria-pressed="' + (why === w) + '">' + esc(w) + '</button>').join('') + '</div>' +
-      (rows.length ? '<p class="lab" style="margin:16px 0 0">Tomorrow</p><div class="nx scrolly later">' + rows.map(([a, b]) => '<div class="nxr"><span' + (cardio ? ' class="nxc"' : '') + '>' + a + '</span><small>' + b + '</small></div>').join('') + '</div>' : '<div class="scrolly" style="min-height:0"></div>') +
+      (rows.length || next ? '<p class="lab" style="margin:16px 0 0">Tomorrow' + (next ? ' · ' + esc(next) : '') + '</p>' : '') +
+      (rows.length ? '<div class="nx scrolly later">' + rows.map(([a, b]) => '<div class="nxr"><span' + (cm ? ' class="nxc"' : '') + '>' + a + '</span><small>' + b + '</small></div>').join('') + '</div>' : '<div class="scrolly" style="min-height:0"></div>') +
       '<button class="btn-glass wide" data-a="move-undo" style="margin-top:12px">Undo</button>' +
       '<button class="btn-quiet" data-a="workouts" style="margin-top:4px">All workouts' + all + '</button>');
     return;
@@ -4699,7 +4707,7 @@ function renderCoach(){
   const plan = todaysPlan(), act = activeSession(), sug = act ? null : routineById(suggested());
   let chat = '';
   if(plan && plan.message) chat += '<div class="msg plan"><b>Today\'s plan</b>' + esc(plan.message) +
-    (act ? '<button class="chip" data-a="resume">Continue workout</button>' : movedToday() ? '<button class="chip" data-a="move-undo">Moved to tomorrow · Undo</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
+    (act ? '<button class="chip" data-a="resume">Continue workout</button>' : movedToday() ? '<button class="chip" data-a="move-undo">' + (tomorrowPlan() ? 'Rest today' : 'Moved to tomorrow') + ' · Undo</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
     '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date) || 'Today') + '</small></div>';
   chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
   // answers in earlier reviews that have not been seen yet are pointed at, not quietly marked read
@@ -5555,6 +5563,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.36.1', date: '2026-10-22', items: [['rest4361', 'When your coach has already planned tomorrow, the button says Rest today and the card shows that plan']]},
   {v: '4.36.0', date: '2026-10-22', items: [['cardio436', 'Set how many cardio sessions you want a week under Settings, General, next to strength'], ['streak436', 'A streak: every week you reach your goal keeps it going. The days left over are skips, and a day off uses one by itself'], ['move436', 'Move to tomorrow on the Workout page turns today into a rest day and keeps the workout for tomorrow'], ['social436', 'Your streak shows on Social, and the Show Up Club ranks streaks']]},
   {v: '4.35.0', date: '2026-10-22', items: [['tip435', 'Your coach\'s tip for each exercise waits behind the note bubble, folded until you tap it: how to do it, not the numbers']]},
   {v: '4.34.0', date: '2026-10-22', items: [['purple434', 'Purple no longer peeks over the coach card on Today']]},
