@@ -425,6 +425,11 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .so-cr > span { flex: 1; }
 .so-cam { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-2); color: var(--g1); cursor: pointer; }
 .so-cam svg { width: 21px; height: 21px; }
+/* photos added to a post: small thumbnails with a round remove button, so they never push past the panel */
+.so-phs { display: flex; flex-wrap: wrap; gap: 8px; }
+.so-pht { position: relative; flex: 0 0 auto; width: 72px; height: 72px; border-radius: 12px; overflow: hidden; background: var(--fill-2); }
+.so-pht img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.so-pht button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 17px; line-height: 1; display: grid; place-items: center; }
 .so-end { text-align: center; color: var(--dim); font-size: 13px; margin: 6px 0 0; }
 .so-lab { margin: 6px 4px -4px; font-size: 13px; font-weight: 650; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
 .so-g { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 10px; border: 1px solid var(--line); border-radius: 20px; background: var(--fill); }
@@ -556,6 +561,10 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit { height: 100%; display: flex; flex-direction: column; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 76px); }
 .vin.fit > * { flex: none; }
 .vin.fit .grow { flex: 1 1 auto; min-height: min-content; display: flex; flex-direction: column; }
+/* when even the smallest version is too tall, a part with a list in it gives way: the list scrolls inside it, so the
+   page itself still fits */
+.vin.fit.squeeze .grow:has(.scrolly) { min-height: 0; }
+.vin.fit.squeeze .grow:has(.scrolly) > :not(.grow, .scrolly) { flex-shrink: 0; }
 .vin.fit > :last-child, .vin.fit .grow > :last-child { margin-bottom: 0; }
 /* When a fitted page or a flashcard is a little too tall it tightens step by step instead of scrolling: first the tips
    go (snug), then the spacing turns compact (tight), and last syncFit scales it down just enough. */
@@ -564,11 +573,16 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit.tight .top { margin-bottom: 10px; }
 .vin.fit.tight .nxr { padding: 5px 0; }
 .vin.fit.tight .card .hd + * { margin-top: 4px; }
-.ex.tight { padding: 15px 16px; }
-.ex.tight .exs { height: 36px; margin-top: 8px; }
+.ex.tight { padding: 13px 16px; }
+.ex.tight .exs { height: 34px; margin-top: 6px; }
+.ex.tight .last { margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ex.tight .steppers.slide { gap: 4px; }
+.ex.tight .logged { margin-top: 6px; }
+.ex.tight .steppers { margin-top: 8px; }
+.ex.tight .rir { margin-top: 6px; }
+.ex.tight .rir .lab { margin-bottom: 4px; }
 .ex.tight .steppers.slide .stp { min-height: 44px; }
-.ex.tight .logrow { margin-top: 8px; }
+.ex.tight .logrow { margin-top: 6px; }
 .ex.tight .logrow button, .ex.tight .btn-primary.wide { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
 .ex.tight .ctm { margin-top: 10px; padding: 10px 12px 10px 15px; row-gap: 9px; }
 .ex.tight .ctm-l b { font-size: 40px; }
@@ -584,10 +598,16 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit.tight .cd { aspect-ratio: 1 / .64; border-radius: 10px; }
 .vin.fit.tight .scrolly { min-height: 40px; }
 .vin.fit.tight .bodymap { min-height: 140px; }
+/* when even the smallest Body does not fit (a small phone), the muscles give way (squeeze): the figure takes the room
+   that is left and the list keeps only the rows that fit */
+.vin.fit.squeeze.tight .bodymap { contain: size; min-height: 120px; }
+.vin.fit.squeeze .mlist { flex-wrap: wrap; align-content: flex-start; }
 .goal-add { margin-top: 12px; }
 /* Progress: a switch between Records and Body under the title */
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .pg-sw { margin: 0 0 12px; }
+/* the title keeps one spacing in Records and Body, so the switch never moves when you change pane */
+#v-body .top { margin-bottom: 10px; }
 .pg-sw .sg, .pg-per .sg { width: 100%; display: grid; }
 .pg-sw .sg button { padding: 8px 11px; font-size: 14px; }
 .vin.fit.tight .pg-sw, .vin.fit.tight .pg-per { margin-bottom: 8px; }
@@ -621,9 +641,15 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .gtop.done .gring em { color: var(--up); font-size: 18px; }
 .gtop .curve { margin-top: 8px; }
 /* the lift picker: chips that scroll sideways, your goals first with a small ring mark */
-.lc-pick { display: flex; gap: 6px; margin: -2px -16px 0; padding: 2px 16px 2px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 22px), transparent); }
+.lc-pick { display: flex; gap: 6px; margin: -10px -16px -8px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 22px), transparent); }
 .lc-pick::-webkit-scrollbar { display: none; }
-.lc-pick .chip { flex: none; min-height: 32px; padding: 0 12px; font-size: 13px; color: var(--dim); background: none; }
+.lc-pick .chip { position: relative; flex: none; min-height: 32px; padding: 0 12px; font-size: 13px; color: var(--dim); background: none; }
+/* the chips, the pen, the period and Front and Back look small but take a finger: each reaches about 48 px */
+.lc-pick .chip::after, .pg-per .sg button::after, .mside .sg button::after { content: ''; position: absolute; inset: -8px -3px; }
+.lc-pick .lc-edit::after { inset: -8px -8px; }
+#lc-bar { z-index: 1; }
+.pg-per .sg button, .mside .sg button { overflow: visible; }
+.pg-per .sg button::after, .mside .sg button::after { inset: -8px 0; }
 .lc-pick .chip.on { background: var(--text); color: var(--bg); border-color: transparent; }
 .lc-pick .chip .gd { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid currentColor; opacity: .8; }
 .lc-pick .lc-edit { width: 32px; padding: 0; }
@@ -1023,8 +1049,8 @@ button.setchip:active { transform: scale(.94); background: color-mix(in srgb, va
 .pm button:active { transform: scale(.92); }
 /* Slide mode: one plain slider per value, full width. Tap the number to type it instead. */
 .steppers.slide { grid-template-columns: 1fr; gap: 6px; }
-.steppers.slide .stp { display: grid; grid-template-columns: 64px 1fr 56px; grid-template-areas: "l r v"; align-items: center; column-gap: 8px; padding: 2px 12px; min-height: 50px; border-radius: 16px; }
-.steppers.slide .stp label { grid-area: l; }
+.steppers.slide .stp { display: grid; grid-template-columns: 56px minmax(0, 1fr) 74px; grid-template-areas: "l r v"; align-items: center; column-gap: 8px; padding: 2px 12px; min-height: 50px; border-radius: 16px; }
+.steppers.slide .stp label { grid-area: l; white-space: nowrap; }
 .steppers.slide .stp input:not(.rng), .steppers.slide .stp output { grid-area: v; text-align: right; font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .steppers.slide .stp output.free { font-size: 14px; color: var(--dim); font-weight: 600; letter-spacing: 0; }
 /* touch-action pan-y: a sideways drag anywhere on the strip moves the slider, an up or down swipe still scrolls the page */
@@ -1372,7 +1398,9 @@ button.day:active { transform: scale(.94); }
 .rst-bar { grid-area: bar; height: 5px; border-radius: 3px; background: var(--fill-2); overflow: hidden; }
 .rst-bar i { display: block; height: 100%; width: 0; background: var(--accent-grad); transition: width .5s linear; }
 .rst.idle .rst-bar { display: none; }
-.ex.tight .rst { margin-top: 8px; padding-top: 7px; padding-bottom: 9px; }
+.ex.tight .rst { margin-top: 6px; padding-top: 7px; padding-bottom: 9px; }
+.ex.tight .rst:not(.idle) { row-gap: 6px; }
+.ex.cramp .rst.idle, .ex.cramp .exs { display: none; }
 .ex.snug .rst.idle .rst-l span { display: none; }
 .ex.tight .rst.idle { padding-top: 4px; padding-bottom: 4px; }
 .ex.tight .rst > .ib { width: 34px; height: 34px; }
@@ -1795,7 +1823,9 @@ function parseDur(s){
   const m = parseFloat(s); return isFinite(m) && m > 0 ? Math.round(m*60) : null;
 }
 const fmtDur = sec => !sec ? '' : sec % 60 === 0 ? (sec/60) + ' min' : mmss(sec);
-const toast = msg => LG.toast(msg);
+// a warning that matters (a full phone) stays up a moment, so a 'Saved' right after it cannot cover it
+let toastHold = 0;
+const toast = (msg, hold) => { const now = Date.now(); if(!hold && now < toastHold) return; toastHold = hold ? now + 3000 : 0; LG.toast(msg, hold ? 3000 : 2000); };
 const haptic = () => LG.haptic();
 /* Since iOS 26.5 a web page can only make an iPhone tick when a real finger taps a switch: a tick started from code
    is ignored. So every button and slider gets an invisible label on top with a hidden switch inside. The tap lands on
@@ -1902,7 +1932,10 @@ const ready = last => !!last && last.sets.some(s => (s.reps||0) >= 10);
 function todaysPlan(){
   const t = todayISO();
   if(D.plans.has(t)) return D.plans.get(t);
-  return [...D.plans.values()].filter(p => p && p.date && p.date <= t && dayDiff(t, p.date) <= 1).sort((a,b) => a.date < b.date ? 1 : -1)[0] || null;
+  // yesterday's plan carries over when no review wrote one for today, but only until you have trained after it:
+  // its targets and its workout were for that day
+  const p = [...D.plans.values()].filter(p => p && p.date && p.date <= t && dayDiff(t, p.date) <= 1).sort((a,b) => a.date < b.date ? 1 : -1)[0] || null;
+  return p && !D.sessions.some(s => s.endedAt && s.date >= p.date && (s.kind !== 'styrke' || setsOf(s.id).length)) ? p : null;
 }
 const targetFor = name => { const p = todaysPlan(); return p && p.targets ? p.targets[name] || null : null; };
 // RIR in a plan can be a range like "1-2": the card starts on the first number
@@ -1927,11 +1960,19 @@ const wTxt = (w, info) => info.bw === 'bw' ? (w ? '+' + fmt(w) : 'BW') : info.bw
 // RIR is reps in reserve. Older sets logged partial reps after failure instead, shown as +N.
 const rirTxt = n => n >= 5 ? '5+' : String(n);
 const setText = (s, info) => wTxt(s.weight || 0, info) + ' × ' + (s.reps||0) + (s.partials ? '+' + s.partials : '') + (s.rir != null ? ' (' + rirTxt(s.rir) + ' RIR)' : '');
+// A workout with nothing done for 12 hours was left open by mistake. It stops being the current workout, so a new
+// one can start and today's sets never land on an old day; closeStale then saves it as it was.
+const STALE_MS = 12 * 3600e3;
+function staleS(s){
+  const now = Date.now();
+  if(now - Math.max(s.startedAt || 0, s.loggedAt || 0, s.updatedAt || 0) <= STALE_MS) return false;
+  return !setsOf(s.id).some(x => now - (x.ts || 0) <= STALE_MS);
+}
 function activeSession(){
   const m = vmap('sessions');
-  if(S.activeId && m.has(S.activeId)){ const s = m.get(S.activeId); if(s && !s.endedAt) return s; }
+  if(S.activeId && m.has(S.activeId)){ const s = m.get(S.activeId); if(s && !s.endedAt && Array.isArray(s.exercises) && !staleS(s)) return s; }
   const now = Date.now();
-  for(const s of D.sessions){ if((s.kind === 'styrke' || s.template === 'C') && !s.endedAt && now - (s.startedAt||0) < 6*3600e3) return s; }
+  for(const s of D.sessions){ if((s.kind === 'styrke' || s.template === 'C') && !s.endedAt && Array.isArray(s.exercises) && now - (s.startedAt||0) < 6*3600e3) return s; }
   return null;
 }
 const routineById = id => D.routines.find(r => r.id === id) || null;
@@ -1955,7 +1996,8 @@ const bodyKg = () => (D.weightSeries.length ? D.weightSeries[D.weightSeries.leng
 function score(w, r, info){
   const load = info.bw === 'bw' ? bodyKg() + w : info.bw === 'assist' ? bodyKg() - w : w;
   if(load <= 0) return r;
-  return r <= 1 ? load : load * (1 + r/30);
+  // the estimate (Epley) only holds for a few reps, so a long set counts as 12 and never makes a huge max
+  return r <= 1 ? load : load * (1 + Math.min(r, 12)/30);
 }
 const weekNo = iso => { const st = ST().start; if(!st) return 0; const d = dayDiff(iso, st); return d < 0 ? 0 : Math.floor(d/7) + 1; };
 
@@ -2003,16 +2045,27 @@ document.addEventListener('gesturestart', e => e.preventDefault());
    or just this phone. Every change goes through one queue that survives bad reception. */
 function savePending(){
   const v = JSON.stringify(S.pending);
+  let ok = true;
   try{ localStorage.setItem('tl.pending.v1', v); }
   catch(e){
     // storage is full: the copy of the repo can be loaded again, so it goes first
     try{ localStorage.removeItem('tl.gh.cache'); localStorage.setItem('tl.pending.v1', v); }
-    catch(x){ if(!S.ui.fullWarned){ S.ui.fullWarned = true; toast('Phone storage is full. Go online so your sets are saved'); } }
+    catch(x){ ok = false; }
   }
+  // a change that could not be stored is said every time, and the status keeps saying it until a save works again
+  S.full = !ok;
+  if(!ok) toast('Phone storage is full. Not saved on this phone', true);
+  return ok;
 }
 let retryMs = 0, retryT = null, flushT = null;
 function queue(op, col, id, data){
-  if(op === 'set'){
+  if(S.backend === 'local' && S.mode === 'local'){
+    // on the phone alone nothing is uploaded, so the queue keeps only the newest version of each doc, and a doc that
+    // only ever lived on the phone needs no delete: removing a meal frees its photo
+    for(let i = S.pending.length - 1; i >= S.inflight; i--) if(S.pending[i].col === col && S.pending[i].id === id) S.pending.splice(i, 1);
+    if(op !== 'set' && !(S.snap[col] && S.snap[col].has(id))){ savePending(); refresh(); return; }
+  }
+  else if(op === 'set'){
     for(let i = S.pending.length - 1; i >= S.inflight; i--){
       const p = S.pending[i];
       if(p.col === col && p.id === id){ if(p.op === 'set'){ p.data = data; savePending(); refresh(); scheduleFlush(); return; } break; }
@@ -2135,8 +2188,14 @@ function commitMsg(ops){
 /* A file GitHub sent cut off or broken is never written, since the new file would hold only the new docs and the rest
    of that month would be gone. Changes that belong in it wait on the phone, behind the others, until it reads again. */
 const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
+const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+// lays the phone's meta over the repo's: nested settings merge, lists keep what the repo had, everything else is the phone's
+const layOver = (base, top) => { const o = Object.assign({}, base); for(const k in top){ const a = o[k], b = top[k];
+  o[k] = isObj(a) && isObj(b) ? Object.assign({}, a, b) : Array.isArray(a) && Array.isArray(b) ? a.concat(b.filter(x => !a.some(y => JSON.stringify(y) === JSON.stringify(x)))) : b; } return o; };
 async function ghFlush(){
   if(!GH.head){ GH.emptyRepo = true; renderStatus(); return; }
+  // just connected with changes on the phone and data in the repo: ask which should win before anything is written
+  if(S.ui.askUpload){ if(Object.keys(GH.files).length){ if(!(sheetMode === 'upload' && document.body.classList.contains('sheet-open'))) askPhoneData(); renderStatus(); return; } S.ui.askUpload = false; }
   const held = ghHeld();
   if(held.length){ const h = new Set(held), go = S.pending.filter(op => !h.has(op)); S.pending.splice(0, S.pending.length, ...go, ...held); }
   const ops = S.pending.slice(0, Math.min(40, S.pending.length - held.length));
@@ -2150,7 +2209,8 @@ async function ghFlush(){
     for(const op of ops){
       if(op.col === 'photos'){ photoAdds.push({path: 'data/photos/' + op.id + '.jpg', contents: op.data.b64}); continue; }
       const path = ghPath(op);
-      if(op.col === 'meta'){ changed[path] = op.data; continue; }
+      // settings from before the phone was connected (op.pre) never replace a meta file the repo already has; they are laid over it
+      if(op.col === 'meta'){ changed[path] = op.pre && GH.files[path] ? layOver(GH.files[path], op.data) : op.data; continue; }
       const old = GH.index[op.col + '/' + op.id];
       if(old && old !== path) delete get(old)[op.id];
       if(op.op === 'set') get(path)[op.id] = op.data; else delete get(path)[op.id];
@@ -2196,9 +2256,18 @@ async function ghConnect(btn){
     if(!d.repository) throw {auth:true};
     GH.cfg = {owner, repo, token}; ls.set('tl.gh', JSON.stringify(GH.cfg));
     toast('Connected');
+    // changes made on this phone before connecting wait until the question in askPhoneData is answered
+    S.ui.askUpload = S.pending.length > 0;
     await ghStart();
   }catch(e){ toast(e && (e.auth || e.gql) ? 'Repo not found with that token' : 'Could not reach GitHub'); }
   finally{ btn.disabled = false; btn.textContent = 'Connect'; }
+}
+function askPhoneData(){
+  const n = S.pending.filter(op => op.col !== 'photos').length;
+  openSheet('upload', shTop('Changes on this phone', 'Connect'),
+    '<p class="sub">' + plural(n, 'change') + ' made on this phone before it was connected, and the repo already has data. Which should the app keep?</p>' +
+    '<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><button class="btn-primary wide" data-a="up-yes">Upload the phone changes</button><button class="btn-quiet" data-a="up-no">Use GitHub only</button></div>' +
+    '<p class="note" style="margin-top:12px">Upload lays the phone changes over what is in the repo. Use GitHub only drops what was logged on this phone.</p>', false);
 }
 function ghDisconnect(){ ls.del('tl.gh'); ls.del('tl.gh.cache'); location.reload(); }
 
@@ -2265,7 +2334,12 @@ const standalone = () => { try{ return matchMedia('(display-mode: standalone)').
 async function init(){
   fixGap();
   tabsApi = LG.tabs($('#tabbar'), {onChange: setView});
-  sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => { sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open'); }});
+  sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => {
+    // the exercise picker of a workout you are making closes back to that workout, so a tap beside it never loses it
+    const back = sheetMode === 'lib' && S.ui.lib && S.ui.lib.mode === 'routine' && S.ui.rd;
+    sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open');
+    if(back) setTimeout(renderRoutineSheet, 0);
+  }});
   refresh();
   if(!inClaude() && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if(GH.cfg && GH.cfg.token){ await ghStart(); return; }
@@ -2331,12 +2405,19 @@ function syncFit(){
   const act = activeSession(), bar = $('#tabbar').getBoundingClientRect().top;
   for(const id of ['v-workout', 'v-log', 'v-body']){
     const vin = $('#' + id + ' .vin'), want = id !== 'v-workout' || !act || (ST().view === 'cards' && act.exercises.length > 0);
+    // a list that was squeezed last time keeps where you had scrolled it
+    const lists = [...vin.querySelectorAll('.scrolly')].map(x => [x, x.scrollTop]);
     vin.classList.toggle('fit', want);
+    vin.classList.remove('squeeze');
     if(!want){ vin.classList.remove('snug', 'tight'); vin.style.zoom = ''; continue; }
-    // the page must not scroll and nothing may end up behind the tab bar
-    const v = vin.parentElement;
-    const over = () => { const top = v.getBoundingClientRect().top; let bottom = 0; for(const c of vin.children){ if(c.offsetParent !== null) bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); } return v.scrollHeight > v.clientHeight + 1 || bottom > bar - top - 4; };
-    if(!fitBox(vin, over)) vin.classList.remove('fit');
+    // the page must not scroll and nothing may end up behind the tab bar; a part squeezed round its list must still
+    // show the rest of what is in it
+    const v = vin.parentElement, grows = [...vin.querySelectorAll('.grow:has(.scrolly)')];
+    const over = () => { const top = v.getBoundingClientRect().top; let bottom = 0; for(const c of vin.children){ if(c.offsetParent !== null) bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); } return v.scrollHeight > v.clientHeight + 1 || bottom > bar - top - 4 || (vin.classList.contains('squeeze') && grows.some(g => g.scrollHeight > g.clientHeight + 1)); };
+    if(fitBox(vin, over)) continue;
+    vin.classList.add('squeeze');
+    if(!fitBox(vin, over)) vin.classList.remove('fit', 'squeeze');
+    else lists.forEach(([x, t]) => { x.scrollTop = t; });
   }
   fitCards();
   drawLiftChart();
@@ -2347,12 +2428,16 @@ function syncFit(){
 function fitCards(){
   const wrap = $('#cards'), on = wrap.classList.contains('deck-on'), cur = S.ui.deckI || 0, box = wrap.clientWidth + 'x' + wrap.clientHeight;
   [...wrap.querySelectorAll(':scope > .ex')].forEach((el, j) => {
-    if(!on || el.offsetParent === null){ if(el._fit){ el.classList.remove('snug', 'tight'); el.style.zoom = ''; el._fit = null; } return; }
+    if(!on || el.offsetParent === null){ if(el._fit){ el.classList.remove('snug', 'tight', 'cramp'); el.style.zoom = ''; el._fit = null; } return; }
     if(Math.abs(j - cur) > 1) return;
-    const sig = box + '|' + el.className.replace(/\b(snug|tight)\b/g, '') + '|' + el.innerHTML.length;
+    const sig = box + '|' + el.className.replace(/\b(snug|tight|cramp)\b/g, '') + '|' + el.innerHTML.length;
     if(el._fit === sig) return;
-    fitBox(el, () => el.scrollHeight > el.clientHeight + 1, true);
-    el._fit = box + '|' + el.className.replace(/\b(snug|tight)\b/g, '') + '|' + el.innerHTML.length;
+    // still too tall at the smallest size (a small phone with large text): the setup field and the waiting rest go
+    // before the card has to scroll, so Log set stays in view
+    const over = () => el.scrollHeight > el.clientHeight + 1;
+    el.classList.remove('cramp');
+    if(!fitBox(el, over, true)){ el.classList.add('cramp'); fitBox(el, over, true); }
+    el._fit = box + '|' + el.className.replace(/\b(snug|tight|cramp)\b/g, '') + '|' + el.innerHTML.length;
   });
 }
 addEventListener('resize', () => { if(D) syncFit(); });
@@ -2367,9 +2452,11 @@ function renderStatus(){
   let s = 'busy', t = '', note = '';
   const gh = S.backend === 'gh';
   if(S.readonly){ s = 'off'; t = 'Read only'; note = 'You only have view access, so what you log stays on this phone.'; }
+  else if(S.full){ s = 'off'; t = 'Not saved'; note = gh ? 'Phone storage is full. Keep the app open until it is online, so your changes reach GitHub.' : 'Phone storage is full, so new changes are lost when the app closes. Connect GitHub or download a copy under Settings, Data.'; }
   else if(gh && GH.authError){ s = 'off'; t = 'Token rejected'; note = 'GitHub no longer accepts your token. Everything you log is kept on this phone. Create a new token and reconnect under Settings, Data.'; }
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
   else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
+  else if(gh && S.ui.askUpload && S.pending.length){ s = 'busy'; t = 'Not uploaded yet'; }
   else if(S.mode === 'offline'){ s = 'busy'; t = S.pending.length ? 'Saves when online' : 'Offline'; }
   else if(S.mode === 'local'){ s = 'off'; t = S.pending.length ? 'Saved on phone' : 'Phone only'; if(!S.needsConnect) note = 'Not connected right now. What you log is kept on this phone and uploads when the app reconnects.'; }
   else if(S.mode === 'live'){ if(S.pending.length){ s = 'busy'; t = retryMs ? 'Waiting for network' : 'Saving'; } else { s = 'ok'; t = ''; } }
@@ -2591,6 +2678,7 @@ function renderWeek(){
 /* ---------- workout ---------- */
 function renderWorkout(){
   const s = activeSession();
+  if(!s && S.activeId) setTimeout(closeStale);
   $('#live-dot').hidden = !s;
   $('#wo-idle').hidden = !!s; $('#wo-live').hidden = !s; $('#wo-acts').hidden = !s;
   if(!s){
@@ -2755,6 +2843,8 @@ function updateSession(id, patch){
 }
 function logSet(k){
   const s = activeSession(); if(!s) return;
+  // a quick double tap logs one set, not two
+  if(S.ui.newSetK === k && Date.now() - (S.ui.newSetAt || 0) < 600) return;
   const ex = s.exercises.find(e => e.k === k); if(!ex) return;
   const g = f => $('#in-' + k + '-' + f);
   const w = Math.max(0, num(g('w').value) || 0), reps = Math.max(0, Math.round(num(g('r').value) || 0)), rir = !ex.rm && S.ui.rir[k] != null ? S.ui.rir[k] : null;
@@ -2766,7 +2856,7 @@ function logSet(k){
   ensureAudio();
   ['w','r'].forEach(f => { delete g(f).dataset.touched; g(f).blur(); });
   if(S.ui.rirTouched) S.ui.rirTouched.delete(k);
-  S.ui.newSet = set.id; S.ui.newSetAt = Date.now();
+  S.ui.newSet = set.id; S.ui.newSetAt = Date.now(); S.ui.newSetK = k;
   queue('set', 'sets', set.id, set);
   haptic();
   if(!s.loggedAt) startRest(restPlan(ex, s), ex.name);
@@ -2810,11 +2900,14 @@ function removeExercise(k){
   S.ui.deckI = Math.max(0, Math.min(S.ui.deckI || 0, s.exercises.length - 2));
   toast(ex.name + ' removed');
 }
+// Remove, Delete set and Discard ask once more, and that second tap only counts after a short pause, so a quick
+// double tap never removes or deletes anything by itself
+const armSoon = () => Date.now() - (S.ui.armedAt || 0) < 400;
 function armDelete(b){
   const k = b.dataset.k, key = 'exdel:' + k;
-  if(S.ui.armedAct === key){ disarmAct(); removeExercise(k); return; }
+  if(S.ui.armedAct === key){ if(armSoon()) return; disarmAct(); removeExercise(k); return; }
   const paint = () => document.querySelectorAll('[data-a="ex-del"]').forEach(x => { const on = S.ui.armedAct === 'exdel:' + x.dataset.k; x.classList.toggle('armed', on); x.innerHTML = on ? 'Remove?' : TRASH; });
-  armAct(key, paint); haptic();
+  armAct(key, paint); S.ui.armedAt = Date.now(); haptic();
 }
 function saveSkip(){
   const sk = S.ui.skip; if(!sk) return;
@@ -2847,6 +2940,7 @@ function paceVs(name, sec, distM, last){
   return {up: d < 0, t: !d ? 'same pace as last time' : Math.abs(d) + ' s ' + (d < 0 ? 'faster' : 'slower') + ' than last time'};
 }
 function addWarm(){
+  if(sheetMode === 'lib') closeSheet();
   const s = activeSession(); if(!s || s.exercises.some(e => e.warm)) return;
   updateSession(s.id, {exercises: [warmEx(ST().warm || ls.get('tl.lastWarm') || 'Row')].concat(s.exercises)});
   S.ui.deckI = 0; requestAnimationFrame(() => { if($('#cards').classList.contains('deck-on')) deckGo(0, true); });
@@ -3177,6 +3271,16 @@ function finish(){
   for(const k of Object.keys(CT)) delete CT[k]; ctSave();
   selectTab(0);
 }
+// the workout left open: saved with its sets and ended at the last one, or removed when nothing was done in it
+function closeStale(){
+  const s = S.activeId && vmap('sessions').get(S.activeId);
+  if(!s || s.endedAt || !staleS(s)) return;
+  const sets = setsOf(s.id), day = /^\d{4}-\d\d-\d\d$/.test(s.date || '') ? ' from ' + dShort(s.date) : '';
+  S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.expanded.clear(); S.ui.noteFor = null; lockCardClear();
+  for(const k of Object.keys(CT)) delete CT[k]; ctSave();
+  if(!sets.length && !s.note && !s.knee && !s.rpe && !(s.exercises || []).some(e => e && e.log)) queue('delete', 'sessions', s.id);
+  else { updateSession(s.id, {endedAt: Math.max(s.startedAt || 0, ...sets.map(x => x.ts || 0))}); toast('Workout' + day + ' saved'); }
+}
 /* A finished quick workout is kept as a workout in the Quick Workouts folder, so it can be started again */
 function saveQuick(s){
   if(!s) return;
@@ -3275,17 +3379,19 @@ function cardioPRs(){
   const out = [];
   for(const act of Object.keys(by)){
     const xs = by[act], tiles = [], paced = xs.filter(s => s.distM && s.durationSec);
+    // a best time over a distance is the same one the chips and goals show
+    const over = d => cardioSeries(act, d).reduce((a, b) => !a || b.y < a.y ? b : a, null);
     if(act === 'Run'){
-      const best = min => paced.filter(s => s.distM >= min).map(s => ({s, pace: s.durationSec / (s.distM / 1000)})).sort((a,b) => a.pace - b.pace)[0];
-      const p1 = best(1000), p5 = best(5000), p10 = best(10000);
+      const p1 = paced.filter(s => s.distM >= 1000).map(s => ({s, pace: s.durationSec / (s.distM / 1000)})).sort((a,b) => a.pace - b.pace)[0];
+      const p5 = over(5000), p10 = over(10000);
       if(p1) tiles.push(['Best pace', mmss(p1.pace) + ' /km', p1.s.date]);
-      if(p5) tiles.push(['5K', mmss(p5.pace * 5), p5.s.date]);
-      if(p10) tiles.push(['10K', mmss(p10.pace * 10), p10.s.date]);
+      if(p5) tiles.push(['5K', mmss(p5.y), p5.x]);
+      if(p10) tiles.push(['10K', mmss(p10.y), p10.x]);
     }
     if(inMeters(act)){
-      const r2 = paced.filter(s => s.distM >= 1950).map(s => ({s, t: Math.abs(s.distM - 2000) <= 50 ? s.durationSec : s.durationSec / s.distM * 2000})).sort((a,b) => a.t - b.t)[0];
+      const r2 = over(2000);
       const sp = paced.filter(s => s.distM >= 500).map(s => ({s, sp: s.durationSec / (s.distM / 500)})).sort((a,b) => a.sp - b.sp)[0];
-      if(r2) tiles.push(['2000 m', mmss(r2.t), r2.s.date]);
+      if(r2) tiles.push(['2000 m', mmss(r2.y), r2.x]);
       if(sp) tiles.push(['Best split', mmss(sp.sp) + ' /500m', sp.s.date]);
     }
     const longD = xs.filter(s => s.distM).sort((a,b) => b.distM - a.distM)[0], longT = xs.filter(s => s.durationSec).sort((a,b) => b.durationSec - a.durationSec)[0];
@@ -3396,7 +3502,7 @@ const lvlNew = () => ST().level !== 'pro';
 const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
 function periodRange(key){
   const t = todayISO();
-  if(key === 'last'){ const s = D.sessions.find(x => x.kind === 'styrke' && setsOf(x.id).length); const d = s ? s.date : t; return {key, from: d, to: d, label: 'your last workout', id: 'last-' + d, sid: s ? s.id : null}; }
+  if(key === 'last'){ const done = x => x.kind === 'styrke' ? setsOf(x.id).length : x.kind === 'kondis', s = D.sessions.find(done), d = s ? s.date : t, st = s && D.sessions.find(x => x.date === d && x.kind === 'styrke' && done(x)); return {key, from: d, to: d, label: 'your last workout', id: 'last-' + d, sid: st ? st.id : s ? s.id : null}; }
   if(key === '7') return {key, from: addDays(t, -6), to: t, label: 'the last 7 days', id: 'p7-' + t};
   if(key === '30') return {key, from: addDays(t, -29), to: t, label: 'the last 30 days', id: 'p30-' + t};
   if(key === 'm0'){ const f = t.slice(0, 8) + '01'; return {key, from: f, to: t, label: fMonth.format(new Date(f + 'T12:00:00')), id: 'm-' + t.slice(0, 7)}; }
@@ -3524,11 +3630,12 @@ function renderBody(r, p){
   S.ui.muscles = sc;
   const heat = k => sc[k] ? 'color-mix(in srgb, var(--g1) ' + Math.round(22 + sc[k] / mx * 78) + '%, var(--fill-2))' : 'var(--fill-2)';
   const top = Object.keys(sc).filter(k => sc[k] > 0).sort((a, b) => sc[b] - sc[a]), hot = top.filter(k => sc[k] >= mx * .9).slice(0, 2);
+  const tips = guidance(sc, r, p).filter(l => !/^Most work/.test(l) && !/times a week/.test(l)).slice(0, 2);
   const list = top.slice(0, 5).map(k => '<button class="mrow" data-a="muscle-pick" data-m="' + k + '"><span><b>' + esc(REGIONS[k][0]) + '</b><small>' + plural(Math.max(1, Math.round(sc[k])), 'set') + '</small></span><i><em style="width:' + Math.round(sc[k] / mx * 100) + '%"></em></i></button>').join('');
   setHTML($('#body-card'), '<div class="hd"><h2>Muscles</h2><small>Darker is more sets</small></div>' +
     '<div class="bodymap"><div class="fig3d" aria-label="Drag to turn the figure"><div class="flip' + (S.ui.figBack ? ' back' : '') + '"><div class="face f">' + figureSvg('front', heat, hot) + '</div><div class="face b">' + figureSvg('back', heat, hot) + '</div></div></div>' +
     '<div class="mside"><div class="mlist">' + (list || '<p class="sub">No sets yet</p>') + '</div>' + seg2('fig-side', [['f', 'Front'], ['b', 'Back']], S.ui.figBack ? 'b' : 'f') + '</div></div>' +
-    '<div class="guide">' + guidance(sc, r, p).filter(l => !/^Most work/.test(l) && !/times a week/.test(l)).slice(0, 2).map(l => '<p>' + esc(l) + '</p>').join('') + '</div>');
+    (tips.length ? '<div class="guide">' + tips.map(l => '<p>' + esc(l) + '</p>').join('') + '</div>' : ''));
 }
 // Turn the figure: a sideways drag rotates it in 3D under your finger and lets go on the nearest side
 function turnFig(back){ S.ui.figBack = back; const f = document.querySelector('#body-card .flip'); if(f){ f.classList.toggle('back', back); } const g = document.querySelector('#body-card .sg'); if(g){ g.style.setProperty('--i', back ? 1 : 0); [...g.children].forEach((x, i) => x.classList.toggle('on', i === (back ? 1 : 0))); } }
@@ -3565,7 +3672,7 @@ function helloFig(){
 
 /* Goals: at most three, in your own words. Claude rewrites each one short and formal in the evening review (the
    formal field) and plans around them until you change them. A goal tied to a lift and a target shows how close you are. */
-const goals = () => (D.meta.goals || []).filter(g => g && g.text).slice(0, 3);
+const goals = () => { const gl = D.meta.goals; return (Array.isArray(gl) ? gl : gl && typeof gl === 'object' ? Object.values(gl) : []).filter(g => g && g.text).slice(0, 3); };
 function saveMeta(patch){ queue('set', 'meta', 'logg', Object.assign({}, D.meta, patch, {updatedAt: Date.now()})); }
 function liftNow(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc * 2) / 2 : 0; }
 /* Three kinds of goal: Strength (a lift and a number), Endurance (a distance and a time) and Health (body weight,
@@ -3582,6 +3689,20 @@ function healthNow(m){
   if(m === 'week') return D.sessions.filter(x => x.date >= since && (x.kind !== 'styrke' || setsOf(x.id).length)).length;
   return null;
 }
+// where a body weight or body fat goal started: saved with the goal, else your value the day you set it, else your first one after
+function healthFrom(g){
+  if(g.from != null) return g.from;
+  const xs = g.metric === 'kg' ? D.weightSeries.map(x => ({date: x.date, v: x.kg})) : g.metric === 'fat' ? [...vmap('body').values()].filter(x => x && x.fat).map(x => ({date: x.date, v: +x.fat})).sort((a, c) => a.date < c.date ? -1 : 1) : [];
+  if(!xs.length) return null;
+  const c = g.createdAt ? new Date(g.createdAt) : null, day = c && !isNaN(c) ? isoLocal(c) : String(g.date || '');
+  return (xs.filter(x => x.date <= day).pop() || xs[0]).v;
+}
+// a weight on a body weight lift is what you add (or the help a machine gives), as the goal sheet asks for it
+const goalKg = (w, info) => info.bw ? wTxt(Math.max(0, w), info) + (w > 0 ? ' kg' : '') : fmt(w) + ' kg';
+const addedMax = (sc, info) => Math.round((info.bw === 'bw' ? sc - bodyKg() : info.bw === 'assist' ? bodyKg() - sc : sc) * 2) / 2;
+// the longest you have gone on one machine in one go, in metres
+const longestM = act => cardioEntries().reduce((m, e) => e.act === act && +e.distM > m ? +e.distM : m, 0);
+const distTxt = m => kmLabel(m < 1000 ? Math.round(m) : Math.round(m / 100) * 100);
 function goalStat(g){
   const t = goalType(g);
   if(t === 'strength'){
@@ -3593,12 +3714,14 @@ function goalStat(g){
       return {st: g.lift + ' · best ' + best + ' of ' + g.reps + ' reps' + (best >= g.reps ? ' · reached ✓' : ''), pct: best / g.reps}; }
     if(!g.target) return {st: g.lift};
     // a weight, or a weight for reps like 100 kg × 10: compare estimated maxes so every set counts
-    const now = pr.e1 ? pr.e1.sc : 0, want = g.reps ? score(g.target, g.reps, info) : g.target;
-    return {st: g.lift + ' · ' + (g.reps ? 'best ≈ ' + fmt(Math.round(now * 2) / 2) + ' kg max, goal ' + fmt(g.target) + ' × ' + g.reps : fmt(Math.round(now * 2) / 2) + ' of ' + fmt(g.target) + ' kg') + (now >= want ? ' · reached ✓' : ''), pct: now / want};
+    const now = pr.e1 ? pr.e1.sc : 0, want = score(g.target, g.reps || 1, info);
+    return {st: g.lift + ' · ' + (g.reps ? 'best ≈ ' + goalKg(addedMax(now, info), info) + ' max, goal ' + goalKg(g.target, info) + ' × ' + g.reps : goalKg(addedMax(now, info), info) + ' of ' + goalKg(g.target, info)) + (now >= want ? ' · reached ✓' : ''), pct: now / want};
   }
   if(t === 'endurance'){
     if(!g.act || !g.distM) return {st: ''};
     const pts = cardioSeries(g.act, g.distM), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0, km = fmt(g.distM / 1000) + ' km';
+    // a distance with no time is reached once you have gone that far in one go
+    if(!g.timeSec){ const far = longestM(g.act), ok = far >= g.distM * .98; return {st: g.act + ' ' + km + ' · longest ' + distTxt(far) + (ok ? ' · reached ✓' : ''), pct: ok ? 1 : far / g.distM}; }
     if(!best) return {st: g.act + ' ' + km + ' · no timed one yet'};
     return {st: g.act + ' ' + km + ' · best ' + mmss(best) + (g.timeSec ? ' of ' + mmss(g.timeSec) + (best <= g.timeSec ? ' · reached ✓' : '') : ''), pct: g.timeSec ? g.timeSec / best : null};
   }
@@ -3606,14 +3729,14 @@ function goalStat(g){
   const [name, unit] = HEALTH_M[g.metric], now = healthNow(g.metric);
   if(now == null) return {st: name + ' · no data yet'};
   let pct = null;
-  if(g.target != null){ const from = g.from != null ? g.from : now; pct = from === g.target ? (now === g.target ? 1 : 0) : (from - now) / (from - g.target); if(g.metric === 'sleep' || g.metric === 'week') pct = now / g.target; }
+  if(g.target != null){ const f0 = healthFrom(g), from = f0 != null ? f0 : now; pct = from === g.target ? (now === g.target ? 1 : 0) : (from - now) / (from - g.target); if(g.metric === 'sleep' || g.metric === 'week') pct = now / g.target; }
   return {st: name + ' · ' + fmt(now) + ' ' + unit + (g.target != null ? ' · target ' + fmt(g.target) : ''), pct};
 }
 /* The goals card: a ring per goal with a short name, and a dashed slot for each kind still free. A tap opens the goal
    with its curve and the goal line, and the fields to change it. */
 function goalShort(g){
   const t = goalType(g);
-  if(t === 'strength' && g.lift) return [shortName(g.lift), g.target ? fmt(g.target) + ' kg' + (g.reps ? ' × ' + g.reps : '') : g.reps ? g.reps + ' in a row' : 'Get stronger'];
+  if(t === 'strength' && g.lift) return [shortName(g.lift), g.target ? goalKg(g.target, infoOf(g.lift)) + (g.reps ? ' × ' + g.reps : '') : g.reps ? g.reps + ' in a row' : 'Get stronger'];
   if(t === 'endurance' && g.act && g.distM) return [g.act + ' ' + kmLabel(g.distM), g.timeSec ? 'Under ' + mmss(g.timeSec) : 'Go the distance'];
   if(t === 'health' && g.metric && HEALTH_M[g.metric]) return [HEALTH_M[g.metric][0], g.target != null ? fmt(g.target) + ' ' + HEALTH_M[g.metric][1] : 'Keep track'];
   return [GOAL_T[t], g.formal || g.text];
@@ -3635,7 +3758,8 @@ function goalLine(g){
   const t = goalType(g);
   if(t === 'strength' && g.lift){
     if(g.reps && !g.target) return {y: g.reps, label: 'Goal ' + g.reps + ' reps', reps: true};
-    if(g.target) return {y: g.reps ? Math.round(score(g.target, g.reps, infoOf(g.lift)) * 2) / 2 : g.target, label: 'Goal ' + fmt(g.target) + (g.reps ? ' × ' + g.reps : ' kg'), reps: false};
+    const info = infoOf(g.lift);
+    if(g.target) return {y: g.reps || info.bw ? Math.round(score(g.target, g.reps || 1, info) * 2) / 2 : g.target, label: 'Goal ' + (g.reps ? (info.bw ? wTxt(g.target, info) : fmt(g.target)) + ' × ' + g.reps : goalKg(g.target, info)), reps: false};
     return null;
   }
   if(t === 'endurance' && g.timeSec) return {y: g.timeSec, label: 'Goal under ' + mmss(g.timeSec)};
@@ -3667,13 +3791,14 @@ function goalNow(g){
   const t = goalType(g);
   if(t === 'strength' && g.lift){
     const pr = strengthPRs().find(x => x.name === g.lift), info = infoOf(g.lift);
-    const want = g.target ? fmt(g.target) + ' kg' + (g.reps ? ' × ' + g.reps : ' max') : g.reps ? g.reps + ' reps' : '';
+    const want = g.target ? goalKg(g.target, info) + (g.reps ? ' × ' + g.reps : ' max') : g.reps ? g.reps + ' reps' : '';
     if(!pr) return ['Not logged yet', want];
     if(g.reps && !g.target) return [(pr.maxReps ? pr.maxReps.reps : Math.max(0, ...D.sets.filter(x => x.exercise === g.lift).map(x => +x.reps || 0))) + ' reps', want];
-    if(!g.reps) return ['≈ ' + fmt(Math.round(pr.e1.sc * 2) / 2) + ' kg max', want];
+    if(!g.reps) return ['≈ ' + goalKg(addedMax(pr.e1.sc, info), info) + ' max', want];
     const b = pr.e1.x; return [wTxt(b.weight || 0, info) + ' kg × ' + b.reps, want];
   }
-  if(t === 'endurance' && g.act && g.distM){ const pts = cardioSeries(g.act, g.distM), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0; return [best ? mmss(best) : 'Not timed yet', g.timeSec ? 'Under ' + mmss(g.timeSec) : kmLabel(g.distM)]; }
+  if(t === 'endurance' && g.act && g.distM && !g.timeSec){ const far = longestM(g.act); return [far ? distTxt(far) : 'Not logged yet', kmLabel(g.distM)]; }
+  if(t === 'endurance' && g.act && g.distM){ const pts = cardioSeries(g.act, g.distM), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0; return [best ? mmss(best) : 'Not timed yet', 'Under ' + mmss(g.timeSec)]; }
   if(t === 'health' && g.metric && HEALTH_M[g.metric]){ const u = HEALTH_M[g.metric][1], now = healthNow(g.metric); return [now == null ? 'No data yet' : fmt(now) + ' ' + u, g.target != null ? fmt(g.target) + ' ' + u : '']; }
   return ['', ''];
 }
@@ -3714,7 +3839,7 @@ function saveGoal(id){
   if(!text){ toast('Write the goal first'); $('#g-text').focus(); return; }
   const list = goals(), old = id ? list.find(x => x.id === id) : null;
   if(!old && list.length >= 3){ toast('Three goals at a time'); return; }
-  if(old && old.type === t && t === 'health' && old.metric === f.metric && old.from != null) f.from = old.from;
+  if(old && old.type === t && t === 'health' && old.metric === f.metric){ const fr = healthFrom(old); if(fr != null) f.from = fr; }
   const g = Object.assign({}, old || {id: newId(), createdAt: Date.now()}, f, {text, date: todayISO()});
   for(const k of Object.keys(f)) if(g[k] == null) delete g[k];
   if(!old || old.text !== text) delete g.formal;
@@ -4102,6 +4227,9 @@ function saveHandTyped(){
 /* The guided camera: a live view with the plate circle and the hand drawn where they belong, a level that turns green
    when the phone is flat above the table, and a check before the photo is used. Falls back to the camera app. */
 const CAMS = {stream: null, mode: 'meal', shot: null, tiltOn: false};
+// a meal photo goes to GitHub at 1600 px; with no repo it is kept inside the phone's own storage, so it is stored as
+// small as a message photo there (the fist photo stays sharp, since it is measured)
+const camMax = () => S.backend === 'gh' || CAMS.mode === 'hand' ? 1600 : 720;
 function camEl(){
   let el = $('#cam'); if(el) return el;
   el = document.createElement('div'); el.className = 'cam'; el.id = 'cam'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Camera');
@@ -4155,7 +4283,7 @@ function closeCam(){
 function camShow(url){ CAMS.shot = url; $('#cam-img').src = url; $('#cam').classList.add('confirm'); }
 function camShot(){
   const v = $('#cam-v'); if(!v || !v.videoWidth){ toast('The camera is not ready yet'); return; }
-  const k = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement('canvas');
+  const k = Math.min(1, camMax() / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement('canvas');
   c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
   camShow(c.toDataURL('image/jpeg', .86)); haptic();
 }
@@ -4238,7 +4366,7 @@ function renderBodyPage(){
   segSync($('#pg-per'), 'period', PERIODS, key);
   const n = p.str.length + p.kon.length, wk = periodWeeks(r), goal = ST().goal || 3, last = key === 'last';
   const tile = (l, v, e) => '<div class="tile"><small>' + l + '</small><b' + (v === '–' ? ' class="nil"' : '') + '>' + v + '</b><em>' + esc(e) + '</em></div>';
-  setHTML($('#pg-stats'), tile('Workouts', n || '–', last ? (p.str[0] ? dDay(p.str[0].date) : 'none yet') : wk >= 1.5 ? fmt(Math.round(n / wk * 10) / 10) + ' a week' : 'goal ' + goal + ' a week') +
+  setHTML($('#pg-stats'), tile('Workouts', n || '–', last ? (n ? dDay(r.from) : 'none yet') : wk >= 1.5 ? fmt(Math.round(n / wk * 10) / 10) + ' a week' : 'goal ' + goal + ' a week') +
     tile('Sets', p.sets.length || '–', p.min >= 1 ? '+ ' + Math.round(p.min) + ' min cardio' : 'hard sets') +
     tile('Sleep', p.sleep ? fmt(Math.round(p.sleep * 10) / 10) + ' h' : '–', p.sleep ? 'a night' : 'no check-ins'));
   renderBody(r, p);
@@ -4283,7 +4411,7 @@ const SLOT_IC = {cpress: 'bench', cfly: 'bench', vert: 'pull', row: 'row', rear:
 const ICON_BY_NAME = [[/pull-?up|chin|pulldown/i, 'pull'], [/bench|chest press|push-?up|dip/i, 'bench'], [/squat|leg press|lunge/i, 'squat'], [/deadlift|rdl|hyper|good morning|curl/i, 'hinge'], [/row/i, 'row'], [/shoulder press|overhead/i, 'press'], [/raise/i, 'raise'], [/thrust|bridge|abduct|adduct/i, 'hip']];
 const liftIcon = (slot, name) => { const hit = !SLOT_IC[slot] && name ? ICON_BY_NAME.find(([re]) => re.test(name)) : null; return '<svg viewBox="0 0 24 24" aria-hidden="true">' + LIFT_IC[hit ? hit[1] : SLOT_IC[slot] || 'bell'] + '</svg>'; };
 const SHORT = {'Bench Press': 'Bench', 'Incline Bench Press': 'Incline', 'Incline Dumbbell Press (30°)': 'Incline DB', 'Flat Dumbbell Press': 'DB press', 'Machine Chest Press': 'Chest press', 'Smith Incline Press': 'Incline', 'Lat Pulldown': 'Pulldown', 'Pull-Up': 'Pull-ups', 'Chin-Up': 'Chin-ups', 'Assisted Pull-Up': 'Pull-ups', 'Hack Squat': 'Hack squat', 'Back Squat': 'Squat', 'Leg Press': 'Leg press', 'Pendulum Squat': 'Pendulum', 'Romanian Deadlift': 'RDL', 'Overhead Press': 'OHP', 'Seated Dumbbell Press': 'DB press', 'Seated Machine Shoulder Press': 'Shoulders', 'Barbell Row': 'Row', 'Seated Cable Row': 'Cable row', 'Chest-Supported T-Bar Row': 'T-bar row', 'Chest-Supported Machine Row': 'Row', 'Seated Leg Curl': 'Leg curl', 'Lying Leg Curl': 'Leg curl', 'Dumbbell Lateral Raise': 'Laterals', 'Machine Lateral Raise': 'Laterals', 'Triceps Pushdown': 'Pushdown', 'Hip Thrust Machine': 'Hip thrust', 'Barbell Hip Thrust': 'Hip thrust', 'Leg Extension': 'Leg ext'};
-const shortName = n => SHORT[n] || (n.split(' ')[0].length <= 10 ? n.split(' ')[0] : n.slice(0, 9));
+const shortName = n => SHORT[n] || (n.split(' ')[0].length <= 10 ? n.split(' ')[0] : n.slice(0, 9) + '…');
 /* What the bar shows. Sebastian picks up to five under Choose lifts: lifts, and cardio distances like a 3 km run,
    saved in settings.lcPins. With nothing picked it fills itself with your goal lifts and the lifts you log most. */
 const CARDIO_PINS = [['Run', 1000], ['Run', 3000], ['Run', 5000], ['Run', 10000], ['Row', 500], ['Row', 1000], ['Row', 2000], ['Row', 5000], ['SkiErg', 1000], ['SkiErg', 2000], ['Bike', 10000], ['Bike', 20000]];
@@ -4293,19 +4421,27 @@ function pinItem(id){
   if(c) return {cardio: true, act: c[1], dist: +c[2], name: c[1] + ' ' + kmLabel(+c[2]), id};
   return strengthPRs().find(p => p.name === id) || {name: id, info: infoOf(id), empty: true, id};
 }
+const lcPins = () => { const p = ST().lcPins; return (Array.isArray(p) ? p : typeof p === 'string' ? [p] : []).filter(x => x && typeof x === 'string').slice(0, 5); };
 function lcState(){
   const ids = [];
   for(const g of goals()){ const t = goalType(g); if(t === 'strength' && g.lift) ids.push(g.lift); else if(t === 'endurance' && g.act && g.distM) ids.push('c:' + g.act + ':' + g.distM); }
-  const nGoal = new Set(ids).size, pins = (ST().lcPins || []).filter(Boolean).slice(0, 5);
+  const nGoal = new Set(ids).size, pins = lcPins();
   (pins.length ? pins : keyLifts(5).map(p => p.name)).forEach(id => ids.push(id));
+  if(!pins.length && !D.sets.length) CARDIO_PINS.map(([a, d]) => ['c:' + a + ':' + d, cardioSeries(a, d).length]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(x => ids.push(x[0]));
   const favs = [...new Set(ids)].slice(0, 8).map(pinItem), saved = S.ui.lcLift || ls.get('tl.lcLift');
   const i = Math.max(0, favs.findIndex(p => p.name === saved));
   return {favs, i, p: favs[i] || null, nGoal};
 }
 const pinIcon = p => p.cardio ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + (CARDIO_IC[p.act] || CARDIO_IC.Run) + '</svg>' : liftIcon(p.info.slot, p.name);
 const pinShort = p => p.cardio ? p.act + ' ' + kmLabel(p.dist) : shortName(p.name);
-const lcBarHtml = (favs, i, nGoal) => '<div class="lc-pick">' + favs.map((p, j) => '<button class="chip' + (j === i ? ' on' : '') + '" data-a="lc-pick" data-i="' + j + '" data-n="' + esc(p.name) + '">' + (j < nGoal ? '<i class="gd" aria-hidden="true"></i>' : '') + esc(pinShort(p)) + '</button>').join('') +
-  '<button class="chip lc-edit' + (favs.length ? '' : ' wide') + '" data-a="lc-edit" aria-label="Choose lifts">' + PEN + (favs.length ? '' : 'Choose lifts') + '</button></div>';
+// two chips that would read the same show enough of the name to tell them apart
+const chipNames = favs => { const a = favs.map(pinShort); return a.map((x, j) => {
+  if(a.indexOf(x) === a.lastIndexOf(x)) return x;
+  const w = favs[j].name.split(' '), twins = favs.filter((f, k) => k !== j && a[k] === x).map(f => f.name.split(' ')), at = (v, n) => v.slice(0, n).join(' ');
+  let n = Math.min(2, w.length); while(n < w.length && twins.some(t => at(t, n) === at(w, n))) n++;
+  const s = at(w, n); return s.length > 22 ? s.slice(0, 21) + '…' : s; }); };
+const lcBarHtml = (favs, i, nGoal) => { const nm = chipNames(favs); return '<div class="lc-pick">' + favs.map((p, j) => '<button class="chip' + (j === i ? ' on' : '') + '" data-a="lc-pick" data-i="' + j + '" data-n="' + esc(p.name) + '">' + (j < nGoal ? '<i class="gd" aria-hidden="true"></i>' : '') + esc(nm[j]) + '</button>').join('') +
+  '<button class="chip lc-edit' + (favs.length ? '' : ' wide') + '" data-a="lc-edit" aria-label="Choose lifts">' + PEN + (favs.length ? '' : 'Choose lifts') + '</button></div>'; };
 // your best time over a distance on one machine, per day: longer efforts count at their pace, up to three times the distance
 function cardioSeries(act, dist){
   const by = new Map();
@@ -4333,7 +4469,7 @@ function renderLiftHead(p){
     foot = lcFoot('');
   } else if(p.cardio){
     const pts = cardioSeries(p.act, p.dist), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0;
-    const diff = pts.length > 1 ? pts[pts.length - 1].y - pts[0].y : 0;
+    const diff = pts.length > 1 ? best - pts[0].y : 0;
     head = '<div class="lc-head"><div class="lc-name"><b>' + esc(p.name) + '</b><small>' + esc(gtxt || (best ? 'Fastest time' : 'No ' + kmLabel(p.dist) + ' logged yet')) + '</small></div>' +
       '<div class="lc-num">' + (best ? '<span><strong>' + mmss(best) + '</strong></span>' : '') + (diff ? '<small class="' + (diff < 0 ? 'up' : 'dn') + '">' + (diff < 0 ? '−' : '+') + mmss(Math.abs(diff)) + ' since ' + esc(dDay(pts[0].x)) + '</small>' : best ? '<small>best</small>' : '') + '</div></div>';
     foot = lcFoot('<button class="btn-glass" data-a="cardio">Cardio</button>');
@@ -4342,13 +4478,13 @@ function renderLiftHead(p){
     foot = lcFoot(p.info.bw ? '' : '<button class="btn-glass" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button>');
   } else {
     const sr = liftSeries(p.name), val = sr.reps ? p.maxReps.reps : Math.round(p.e1.sc * 2) / 2, unit = sr.reps ? 'reps' : 'kg';
-    const pts = sr.e1, diff = pts.length > 1 ? Math.round((pts[pts.length - 1].y - pts[0].y) * 2) / 2 : 0;
-    const test = D.sessions.filter(x => isTestS(x) && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
+    const pts = sr.e1, diff = pts.length > 1 ? Math.round((val - pts[0].y) * 2) / 2 : 0;
+    const test = D.sessions.filter(x => isTestS(x) && x.exercises && x.exercises[0] && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
     const tested = test ? setsOf(test.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0] : null;
     const bs = sr.reps ? p.maxReps : p.e1.x, sub = gtxt || (tested ? 'Tested ' + fmt(tested.weight) + ' kg · ' + dDay(test.date) : 'Best set ' + (sr.reps ? bs.reps + ' reps' : wTxt(bs.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + bs.reps) + ' · ' + dDay(bs.date));
     head = '<div class="lc-head"><button class="lc-name" data-a="exhist" data-n="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + esc(sub) + '</small></button>' +
       '<div class="lc-num"><span><strong>' + fmt(val) + '</strong> ' + unit + '</span>' + (diff ? '<small class="' + (diff > 0 ? 'up' : 'dn') + '">' + (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) + ' ' + unit + ' since ' + esc(dDay(pts[0].x)) + '</small>' : '<small>' + (sr.reps ? 'most in a set' : 'estimated max') + '</small>') + '</div></div>';
-    foot = lcFoot(sr.reps ? '' : '<button class="btn-glass" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button>');
+    foot = lcFoot(sr.reps || p.info.bw ? '' : '<button class="btn-glass" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button>');
   }
   setHTML($('#lc-head'), head); setHTML($('#lc-foot'), foot);
 }
@@ -4358,7 +4494,7 @@ function drawLiftChart(){
   const {p} = lcState(), H = Math.max(64, Math.round(box.clientHeight || 160) - 30), gl = goalFor(p);
   const key = (p ? p.name : '') + '|' + H + '|' + D.sets.length + '|' + D.sessions.length + '|' + (gl && gl.y || '');
   if(box._key === key) return; box._key = key;
-  if(!p){ box.innerHTML = curveHtml([], {empty: 'After your first workout, your best lifts and their curves show up here'}); return; }
+  if(!p){ box.innerHTML = curveHtml([], {empty: D.sessions.length ? 'Choose a lift or a distance and its curve shows up here' : 'After your first workout, your best lifts and their curves show up here'}); return; }
   if(p.cardio){ box.innerHTML = curveHtml(cardioSeries(p.act, p.dist), {h: H, fy: mmss, inv: true, goal: gl, label: p.name + ' over time', empty: 'Do ' + kmLabel(p.dist) + ' or more on the ' + p.act.toLowerCase() + ' and your time shows up', one: 'Do it again and the line starts'}); return; }
   if(p.empty){ box.innerHTML = curveHtml([], {h: H, empty: 'Log it once and it shows up here'}); return; }
   const sr = liftSeries(p.name);
@@ -4387,7 +4523,7 @@ function openPins(){
 }
 function renderPins(){
   const P = S.ui.pins; if(!P || !$('#pin-res')) return;
-  const pins = (ST().lcPins || []).slice(0, 5), q = norm(P.q);
+  const pins = lcPins(), q = norm(P.q);
   setHTML($('#pin-top'), (pins.length ? '<div class="pin-sel">' + pins.map((id, i) => { const p = pinItem(id); return '<button class="chip on" data-a="pin" data-id="' + esc(id) + '"><i>' + (i + 1) + '</i>' + pinIcon(p) + esc(p.name) + '<span aria-hidden="true">×</span></button>'; }).join('') + '</div>' : '<p class="sub">Nothing chosen, so Records shows your goal lifts and the lifts you log most.</p>') +
     (pins.length ? '<button class="btn-quiet" data-a="pin-auto" style="margin-top:2px">Back to automatic</button>' : ''));
   const row = (id, label, icon) => { const on = pins.includes(id); return '<button class="pin-row' + (on ? ' on' : '') + '" data-a="pin" data-id="' + esc(id) + '" aria-pressed="' + on + '">' + icon + '<span>' + esc(label) + '</span><i class="ck" aria-hidden="true"></i></button>'; };
@@ -4399,7 +4535,7 @@ function renderPins(){
   setHTML($('#pin-res'), html || '<p class="sub" style="margin-top:12px">No lift called that</p>');
 }
 function togglePin(id){
-  const pins = (ST().lcPins || []).slice(0, 5), i = pins.indexOf(id);
+  const pins = lcPins(), i = pins.indexOf(id);
   if(i >= 0) pins.splice(i, 1); else if(pins.length >= 5){ toast('Five at a time. Tap one above to take it off'); return; } else pins.push(id);
   saveSettings({lcPins: pins}); haptic();
   if(i < 0){ S.ui.lcLift = pinItem(id).name; ls.set('tl.lcLift', S.ui.lcLift); }
@@ -4587,7 +4723,7 @@ function sendMsg(re){
 document.addEventListener('input', e => { const t = e.target; if(!t.dataset) return; if(t.dataset.sodraft != null && S.ui.soDraft){ S.ui.soDraft.text = t.value; growNote(t); } if(t.dataset.socmt != null){ S.ui.soCmtText = t.value; growNote(t); } });
 document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.sophoto != null && t.files && t.files.length && S.ui.soDraft){ const f = t.files[0]; t.value = ''; if(S.ui.soDraft.photos.length >= 4) return; try{ S.ui.soDraft.photos.push(await shrinkPhoto(f, 1280)); renderSide(); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target, o = S.ui.ob; if(o && t.dataset){ if(t.dataset.ob === 'name') o.name = t.value; if(t.dataset.obg) o.goals[t.dataset.obg] = t.value; } });
-document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.camfile != null && t.files && t.files.length){ const f = t.files[0]; t.value = ''; try{ camShow(await shrinkPhoto(f, 1600)); }catch(x){ toast('Could not read that photo'); } } });
+document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.camfile != null && t.files && t.files.length){ const f = t.files[0]; t.value = ''; try{ camShow(await shrinkPhoto(f, camMax())); }catch(x){ toast('Could not read that photo'); } } });
 document.addEventListener('input', e => { const t = e.target; if(t.dataset && t.dataset.msgtext != null){ S.ui.draftText[t.dataset.msgtext] = t.value; growNote(t); } });
 document.addEventListener('change', e => { const t = e.target; if(t.dataset && t.dataset.msgphoto != null && t.files && t.files.length){ addPhotos(t.dataset.msgphoto, t.files); t.value = ''; } });
 
@@ -4647,13 +4783,14 @@ function restAlert(r){
   const e = (Date.now() - r.start) / 1000;
   if(e >= r.target && !r.alerted){ r.alerted = true; ls.set('tl.rest', JSON.stringify(r)); try{ navigator.vibrate && navigator.vibrate([180, 90, 180]); }catch(x){} beep(); if(e - r.target < 6) notifyRest(r); }
 }
-// every exercise card shows the rest: the planned time while it waits, the running time and a bar once you log a set
+// every exercise card shows the rest: the planned time while it waits, the running time and a bar once you log a set.
+// The list view keeps the rest bar at the bottom instead, and a workout logged for an earlier day has no rest.
 function paintRestBoxes(s, running){
-  const r = S.ui.rest, e = running ? (Date.now() - r.start) / 1000 : 0;
+  const r = S.ui.rest, e = running ? (Date.now() - r.start) / 1000 : 0, deck = ST().view === 'cards';
   document.querySelectorAll('#cards .ex [data-r="rest"]').forEach(box => {
     const card = box.closest('.ex'), ex = s && s.exercises.find(x => x.k === card.dataset.k); if(!ex) return;
     const q = n => box.querySelector('[data-r="' + n + '"]');
-    box.hidden = !!ex.skip;
+    box.hidden = !!ex.skip || !deck || !!s.loggedAt; if(box.hidden) return;
     box.classList.toggle('idle', !running); box.classList.toggle('over', running && e >= r.target);
     const t = running ? mmss(e) + '<small>/ ' + mmss(r.target) + '</small>' : mmss(restPlan(ex, s));
     if(q('rst-t').innerHTML !== t) q('rst-t').innerHTML = t;
@@ -4772,6 +4909,8 @@ function renderLibRes(){
     if(!D.lib.some(x => norm(x.name) === q)) html += '<button class="btn-primary wide" data-a="lib-new">Use “' + esc(L.q.trim().slice(0, 60)) + '”</button>';
     if(hits.length) html += '<div class="lgroup">' + hits.map(x => libItem(x, inUse)).join('') + '</div>';
   } else {
+    // the cards view has no + Warm-up button, so a workout without one offers it here
+    if(L.mode === 'add' && s && !isCardioS(s) && !s.exercises.some(e => e.warm)) html += '<div class="lgroup"><p class="lab">Warm-up</p><button class="li" data-a="add-warm"><span>' + esc(ST().warm || ls.get('tl.lastWarm') || 'Row') + '</span><small></small></button></div>';
     const recent = [...D.lastUsed.keys()].filter(n => !cur || n !== cur.name).slice(0, 8).map(n => D.libBy.get(n) || {name:n});
     if(recent.length) html += '<div class="lgroup"><p class="lab">Recent</p>' + recent.map(x => libItem(x, inUse)).join('') + '</div>';
     const groups = {}; for(const x of D.lib.slice().sort((a, b) => a.name.localeCompare(b.name))){ (groups[x.slot] = groups[x.slot] || []).push(x); }
@@ -4787,7 +4926,8 @@ function libPick(name){
   const ex = s.exercises.map(e => Object.assign({}, e));
   const i = L.k ? ex.findIndex(e => e.k === L.k) : -1;
   let newK = null;
-  if(L.mode === 'swap' && i >= 0){ ex[i].from = ex[i].from || ex[i].name; ex[i].name = name; ex[i].hint = ''; }
+  // a swapped card starts on the new exercise's numbers, its RIR too
+  if(L.mode === 'swap' && i >= 0){ ex[i].from = ex[i].from || ex[i].name; ex[i].name = name; ex[i].hint = ''; delete S.ui.rir[L.k]; if(S.ui.rirTouched) S.ui.rirTouched.delete(L.k); }
   else if(L.mode === 'after' && i >= 0){ newK = newId(); ex.splice(i + 1, 0, {k:newK, name, planned:ex[i].planned || 0, hint:''}); }
   else { newK = newId(); ex.push({k:newK, name, planned: s.template === 'F' ? 0 : 1, hint:''}); }
   const mode = L.mode;
@@ -4826,7 +4966,7 @@ function openRoutinePreview(id){
 function openRoutine(id, folder){
   const r = id ? routineById(id) : null;
   S.ui.rd = r ? {id:r.id, name:r.name, folder: r.folder && D.folders.some(f => f.id === r.folder) ? r.folder : MINE, rotation:r.rotation !== false, order:r.order || 0, items:(r.items || []).map(x => Object.assign({}, x, {sets:x.sets || 1}))}
-              : {id:null, name:'', folder: folder || (D.folders[0] ? D.folders[0].id : MINE), rotation:false, order:0, items:[]};
+              : {id:null, name:'', folder: folder || MINE, rotation:false, order:0, items:[]};
   renderRoutineSheet();
 }
 function renderRoutineSheet(){
@@ -4944,7 +5084,7 @@ function openExHistory(name){
   for(const x of D.sets){ if(x.exercise !== name || seen.has(x.sessionId)) continue; seen.add(x.sessionId); sess.push(x.sessionId); if(sess.length >= 15) break; }
   const pr = strengthPRs().find(p => p.name === name);
   const rows = sess.map(sid => { const xs = setsOf(sid).filter(x => x.exercise === name).sort((a, b) => a.n - b.n);
-    return '<div class="exr"><b>' + esc(dShort(xs[0].date)) + '</b><div class="logged" style="margin-top:8px">' + xs.map(x => '<button class="setchip" data-a="set" data-id="' + esc(x.id) + '"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join('') + '</div></div>'; }).join('');
+    return '<div class="exr"><b>' + esc(dShort(xs[0].date)) + '</b><div class="logged" style="margin-top:8px">' + xs.map(x => '<button class="setchip" data-a="set" data-id="' + esc(x.id) + '" data-back="hist:' + esc(name) + '"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join('') + '</div></div>'; }).join('');
   let top = '';
   if(pr){
     let lastW = null; const shown = [];
@@ -5095,7 +5235,7 @@ function soComposer(group){
   const d = S.ui.soDraft;
   if(!d || d.group !== (group || '')) return '<button class="so-comp" data-a="so-compose" data-g="' + esc(group || '') + '">' + soAv('me') + '<span>' + (group ? 'Post to the group' : 'Share a thought or a photo') + '</span>' + CAM_IC + '</button>';
   return '<div class="so-comp open">' + soAv('me') + '<div class="so-cw"><textarea class="field" rows="3" data-sodraft placeholder="How did training go?" maxlength="600">' + esc(d.text) + '</textarea>' +
-    (d.photos.length ? '<div class="fd-phs">' + d.photos.map((ph, i) => '<span class="fd-p">' + photoTag(ph) + '<button data-a="so-ph-del" data-i="' + i + '" aria-label="Remove photo">×</button></span>').join('') + '</div>' : '') +
+    (d.photos.length ? '<div class="so-phs">' + d.photos.map((ph, i) => '<span class="so-pht">' + photoTag(ph) + '<button data-a="so-ph-del" data-i="' + i + '" aria-label="Remove photo">×</button></span>').join('') + '</div>' : '') +
     '<div class="so-cr"><label class="so-cam" aria-label="Add photo">' + CAM_IC + '<input type="file" accept="image/*" data-sophoto hidden></label><span></span>' +
     '<button class="btn-quiet btn-small" data-a="so-compose-x">Cancel</button><button class="btn-primary btn-small" data-a="so-post">Post</button></div></div></div>';
 }
@@ -5337,6 +5477,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.31.0', date: '2026-10-22', items: [['connect431', 'Connecting GitHub asks what to keep when this phone has changes and the repo already has data'], ['full431', 'A full phone says Not saved until a save works, and Phone only keeps one version of each change'], ['photo431', 'Meal photos in Phone only are stored at 720 px, so storage lasts'], ['sothumb431', 'Photos in a new Social post show as small thumbnails with a remove button'], ['dbl431', 'A double tap on Log set logs one set, and Remove, Delete set and Discard never confirm by themselves'], ['stale431', 'A workout left open for 12 hours is saved and no longer blocks today'], ['fit431', 'Body fits a small phone, flashcards fit at text L, and a page that is still too tall scrolls inside its list instead of the page'], ['slide431', 'Slide mode shows 122.5 kg and 15:00 in full'], ['goals431', 'Goal rings count added weight on body weight lifts, Last counts cardio, and chips never read the same'], ['picker431', 'Closing the exercise picker goes back to the workout you are making, and a new workout starts in My Workouts'], ['plan431', 'Yesterday\'s plan stops setting the cards once you have trained after it'], ['max431', 'The estimated max counts a long set as 12 reps']]},
   {v: '4.30.0', date: '2026-10-22', items: [['workoutc430', 'Workout C is a strength workout again, not cardio'], ['dates430', 'A bad date or an empty entry in your data no longer blanks the app'], ['guard430', 'A page that cannot draw no longer freezes the tabs, start-up or saving'], ['month430', 'A month file the app could not read on GitHub is never written over; its changes wait on the phone'], ['chart430', 'Reading a chart no longer hides it'], ['deck430', 'The cards land on the right exercise when they are shrunk to fit']]},
   {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face, instead of Claude'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
   {v: '4.28.0', date: '2026-10-21', items: [['setedit428', 'Tap a logged set to change its weight, reps or RIR, or to delete it, also on earlier days in Log'], ['fast428', 'Logging a set is about twice as fast, so the card answers right away'], ['smooth428', 'New sets pop in, and Records, Body and Food ease in when you switch'], ['tick428', 'The slider ticks when you let go after a drag']]},
@@ -5593,7 +5734,8 @@ function openSetEdit(id, back){
     '<div><p class="lab">Reps in reserve</p><div class="rir-b" role="group" aria-label="Reps in reserve">' + [0, 1, 2, 3, 4, 5].map(n => '<button data-a="se-rir" data-v="' + n + '" aria-pressed="' + (x.rir === n) + '">' + rirTxt(n) + '</button>').join('') + '</div></div>' +
     '<button class="btn-primary wide" data-a="se-save">Save</button><button class="btn-quiet danger" data-a="se-del" id="se-del">Delete set</button></div>', false);
 }
-function setEditDone(E){ S.ui.se = null; if(E && E.back && vmap('sessions').get(E.back)) openDetail(E.back); else closeSheet(); }
+// Save and Delete go back to where the set was opened: the workout in Log, the exercise history, or the card
+function setEditDone(E){ S.ui.se = null; const b = E && E.back || ''; if(b.slice(0, 5) === 'hist:') openExHistory(b.slice(5)); else if(b && vmap('sessions').get(b)) openDetail(b); else closeSheet(); }
 function saveSetEdit(){
   const E = S.ui.se, x = E && D.sets.find(y => y.id === E.id); if(!x) return;
   const w = Math.max(0, num($('#se-w').value) || 0), reps = Math.max(0, Math.round(num($('#se-r').value) || 0));
@@ -5863,7 +6005,7 @@ document.addEventListener('click', e => {
     case 'msg-unphoto': { const l = S.ui.drafts[b.dataset.re] || []; l.splice(+b.dataset.i, 1); rerenderThreads(); break; }
     case 'rm-start': startRm(); break;
     case 'ov-done': S.ui.ovEdit = false; disarmAct(); renderWorkout(); break;
-    case 'ov-del': { const k = b.dataset.k; if(S.ui.armedAct === 'ovdel:' + k){ disarmAct(); removeExercise(k); } else { armAct('ovdel:' + k, renderWorkout); haptic(); } break; }
+    case 'ov-del': { const k = b.dataset.k; if(S.ui.armedAct === 'ovdel:' + k){ if(!armSoon()){ disarmAct(); removeExercise(k); } } else { armAct('ovdel:' + k, renderWorkout); S.ui.armedAt = Date.now(); haptic(); } break; }
     case 'deck-go': { if(S.ui.ovEdit || Date.now() - (S.ui.ovPressAt || 0) < 500) break; const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
     case 'deck-ov': S.ui.overview = !S.ui.overview; S.ui.ovEdit = false; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
     case 'exhist': openExHistory(b.dataset.n); break;
@@ -5873,15 +6015,15 @@ document.addEventListener('click', e => {
     case 'se-save': saveSetEdit(); break;
     case 'se-del': {
       const E = S.ui.se; if(!E) break;
-      if(S.ui.armedAct === 'sedel:' + E.id){ disarmAct(); deleteSet(E.id); toast('Set deleted'); setEditDone(E); }
-      else armButton('se-del', 'sedel:' + E.id, 'Delete set', 'Tap again to delete');
+      if(S.ui.armedAct === 'sedel:' + E.id){ if(!armSoon()){ disarmAct(); deleteSet(E.id); toast('Set deleted'); setEditDone(E); } }
+      else { armButton('se-del', 'sedel:' + E.id, 'Delete set', 'Tap again to delete'); S.ui.armedAt = Date.now(); }
       break;
     }
     case 'finish': finish(); break;
     case 'cancel-session': {
       const s = activeSession(); if(!s) break;
-      if(S.ui.armedAct === 'cancel'){ disarmAct(); deleteSession(s.id); toast('Workout discarded'); selectTab(0); }
-      else armAct('cancel', renderWorkout);
+      if(S.ui.armedAct === 'cancel'){ if(!armSoon()){ disarmAct(); deleteSession(s.id); toast('Workout discarded'); selectTab(0); } }
+      else { armAct('cancel', renderWorkout); S.ui.armedAt = Date.now(); }
       break;
     }
     case 'sheet-close': closeSheet(); break;
@@ -5932,6 +6074,8 @@ document.addEventListener('click', e => {
     case 'set-seg': { const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); saveSettings({[b.dataset.k]: b.dataset.v}); break; }
     case 'gh-connect': ghConnect(b); break;
     case 'gh-skip': S.ui.skipConnect = true; renderToday(); maybeOnboard(); break;
+    case 'up-yes': S.ui.askUpload = false; S.pending.forEach(op => { op.pre = true; }); savePending(); closeSheet(); scheduleFlush(); break;
+    case 'up-no': S.ui.askUpload = false; S.pending.splice(0, S.pending.length); savePending(); filesToSnap(); closeSheet(); refresh(); toast('Using the data on GitHub'); break;
     case 'gh-show': closeSettings(); S.ui.skipConnect = false; S.needsConnect = true; $('#connect').dataset.built = ''; selectTab(0); renderToday(); break;
     case 'gh-disconnect': if(S.ui.armedAct === 'ghd'){ disarmAct(); ghDisconnect(); } else armButton('ghd-btn', 'ghd', 'Disconnect', 'Tap again'); break;
     case 'ask-overview': { const key = $('#req-period').value, r = periodRange(key), id = newId(); queue('set', 'requests', id, {id, type:'overview', period:key, label:r.label, date:todayISO(), createdAt:Date.now()}); toast(coach().short + ' writes it tonight'); renderReviews(); break; }
