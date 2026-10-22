@@ -1271,7 +1271,7 @@ button.day:active { transform: scale(.94); }
 .curve svg { display: block; width: 100%; overflow: visible; }
 .curve .cdot { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--g1); box-shadow: 0 0 0 3px var(--bg); pointer-events: none; transition: left .12s, top .12s; }
 .curve .ctip { position: absolute; top: -6px; transform: translate(-50%, -100%); padding: 4px 9px; border-radius: 9px; background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; font-variant-numeric: tabular-nums; }
-.curve.scrub .ctip { opacity: 1; }
+.curve.reading .ctip { opacity: 1; }
 .curve .cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-top: 6px; font-variant-numeric: tabular-nums; }
 .curve.empty { padding: 18px 0 6px; text-align: center; color: var(--dim); font-size: 13.5px; display: flex; align-items: center; justify-content: center; }
 .curve.one { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 14px 0 6px; text-align: center; }
@@ -1785,9 +1785,9 @@ const fShort = new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',mo
 const fTime = new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit'});
 const fMonth = new Intl.DateTimeFormat('en-GB',{month:'long',year:'numeric'});
 const fDay = new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short'});
-const dLong = iso => fLong.format(new Date(iso+'T12:00:00'));
-const dShort = iso => fShort.format(new Date(iso+'T12:00:00'));
-const dDay = iso => fDay.format(new Date(iso+'T12:00:00'));
+// a date that is missing or not YYYY-MM-DD shows as nothing instead of stopping the page that shows it
+const dFmt = f => iso => { const d = new Date(iso+'T12:00:00'); return isNaN(d) ? '' : f.format(d); };
+const dLong = dFmt(fLong), dShort = dFmt(fShort), dDay = dFmt(fDay);
 const mmss = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return (h ? h + ':' + String(m).padStart(2,'0') : m) + ':' + String(s).padStart(2,'0'); };
 function parseDur(s){
   s = String(s||'').trim().replace(',','.'); if(!s) return null;
@@ -1844,15 +1844,18 @@ let D = null;
 function normDoc(col, d){
   if(!d || typeof d !== 'object') return d;
   const nm = n => NAME_EN[n] || n, c = {};
+  // a list with a hole in it (a half written doc) loses the hole instead of stopping the app
+  const bad = x => !x || typeof x !== 'object';
   if(col === 'sets'){ if(NAME_EN[d.exercise]) c.exercise = NAME_EN[d.exercise]; }
   else if(col === 'sessions'){
-    if(d.exercises && d.exercises.some(e => NAME_EN[e.name] || (e.from && NAME_EN[e.from]))) c.exercises = d.exercises.map(e => Object.assign({}, e, {name: nm(e.name)}, e.from ? {from: nm(e.from)} : {}));
+    if(d.exercises && !Array.isArray(d.exercises)) c.exercises = [];
+    else if(d.exercises && d.exercises.some(e => bad(e) || NAME_EN[e.name] || (e.from && NAME_EN[e.from]))) c.exercises = d.exercises.filter(e => !bad(e)).map(e => Object.assign({}, e, {name: nm(e.name)}, e.from ? {from: nm(e.from)} : {}));
     if(TITLE_EN[d.title]) c.title = TITLE_EN[d.title];
     if(ACT_EN[d.activity]) c.activity = ACT_EN[d.activity];
     if(KNEE_EN[d.knee]) c.knee = KNEE_EN[d.knee];
   }
   else if(col === 'checkins'){ if(KNEE_EN[d.knee]) c.knee = KNEE_EN[d.knee]; if(SORE_EN[d.sore]) c.sore = SORE_EN[d.sore]; }
-  else if(col === 'routines'){ if(TITLE_EN[d.name]) c.name = TITLE_EN[d.name]; if(d.items && d.items.some(i => NAME_EN[i.name])) c.items = d.items.map(i => Object.assign({}, i, {name: nm(i.name)})); }
+  else if(col === 'routines'){ if(TITLE_EN[d.name]) c.name = TITLE_EN[d.name]; if(d.items && !Array.isArray(d.items)) c.items = []; else if(d.items && d.items.some(i => bad(i) || NAME_EN[i.name])) c.items = d.items.filter(i => !bad(i)).map(i => Object.assign({}, i, {name: nm(i.name)})); }
   else if(col === 'plans'){ if(d.targets && Object.keys(d.targets).some(k => NAME_EN[k])){ const t = {}; for(const k in d.targets) t[nm(k)] = d.targets[k]; c.targets = t; } }
   return Object.keys(c).length ? Object.assign({}, d, c) : d;
 }
@@ -1879,7 +1882,9 @@ function derive(){
   const lastUsed = new Map(); for(const s of sets){ if(!lastUsed.has(s.exercise)) lastUsed.set(s.exercise, s.ts); }
   const routines = [...vmap('routines').values()].filter(r => r && r.name).sort((a,b) => (a.order||0) - (b.order||0) || String(a.name).localeCompare(b.name));
   const folders = [...vmap('folders').values()].filter(f => f && f.name).sort((a,b) => (a.order||0) - (b.order||0));
-  const feedback = [...vmap('feedback').values()].filter(f => f && f.text).sort((a,b) => (b.date||'') < (a.date||'') ? -1 : (b.date||'') > (a.date||'') ? 1 : (b.createdAt||0) - (a.createdAt||0));
+  // a review whose date is not a real day goes last, so it never stands in for the latest one
+  const fbDay = f => /^\d{4}-\d{2}-\d{2}$/.test(f.date || '') ? f.date : '';
+  const feedback = [...vmap('feedback').values()].filter(f => f && f.text).sort((a,b) => fbDay(b) < fbDay(a) ? -1 : fbDay(b) > fbDay(a) ? 1 : (+b.createdAt||0) - (+a.createdAt||0));
   const food = [...vmap('food').values()].filter(f => f && f.date).sort((a, b) => (a.ts || 0) - (b.ts || 0));
   const posts = [...vmap('posts').values()].filter(x => x && x.ts).sort((a, b) => b.ts - a.ts), social = [...vmap('social').values()].filter(Boolean);
   D = {sessions, sets, meta, checkins, weightSeries, setsBySession, lib, libBy, lastUsed, routines, folders, feedback, food, posts, social, plans: vmap('plans'), settings: Object.assign({}, DEF, meta.settings || {})};
@@ -2056,7 +2061,7 @@ function dbSubscribe(){
   base().onSnapshot(d => { const m = new Map(); if(d.exists) m.set('logg', d.data()); S.snap.meta = m; loadedCol('meta'); refresh(); }, onErr);
 }
 
-const GH = { cfg: loadJSON('tl.gh', null), head: null, branch: 'main', files: {}, index: {}, authError: false };
+const GH = { cfg: loadJSON('tl.gh', null), head: null, branch: 'main', files: {}, index: {}, bad: new Set(), authError: false };
 const GQL = 'https://api.github.com/graphql';
 async function gql(query, variables, token){
   let res;
@@ -2068,7 +2073,7 @@ async function gql(query, variables, token){
   if(j.errors && j.errors.length) throw {gql:true, message: j.errors.map(e => e.message).join('; ')};
   return j.data;
 }
-const Q_LOAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){defaultBranchRef{name target{oid}} object(expression:"HEAD:data"){... on Tree{entries{name type object{... on Blob{text} ... on Tree{entries{name type object{... on Blob{text}}}}}}}}}}';
+const Q_LOAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){defaultBranchRef{name target{oid}} object(expression:"HEAD:data"){... on Tree{entries{name type object{... on Blob{text isTruncated} ... on Tree{entries{name type object{... on Blob{text isTruncated}}}}}}}}}}';
 const Q_HEAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){name defaultBranchRef{target{oid}}}}';
 const M_COMMIT = 'mutation($i:CreateCommitOnBranchInput!){createCommitOnBranch(input:$i){commit{oid}}}';
 const FLAT = {meta:'data/meta.json', routines:'data/routines.json', folders:'data/folders.json', plans:'data/plans.json', requests:'data/requests.json', social:'data/social.json'};
@@ -2086,7 +2091,7 @@ function filesToSnap(){
   }
   S.snap = snap;
 }
-function ghCache(){ try{ localStorage.setItem('tl.gh.cache', JSON.stringify({head: GH.head, branch: GH.branch, files: GH.files})); }catch(e){} }
+function ghCache(){ try{ localStorage.setItem('tl.gh.cache', JSON.stringify({head: GH.head, branch: GH.branch, files: GH.files, bad: [...GH.bad]})); }catch(e){} }
 function ghPath(op){
   if(FLAT[op.col]) return FLAT[op.col];
   let month = op.op === 'set' && op.data && op.data.date ? String(op.data.date).slice(0, 7) : null;
@@ -2098,14 +2103,18 @@ async function ghLoad(){
   const repo = d.repository; if(!repo) throw {auth:true};
   GH.branch = repo.defaultBranchRef ? repo.defaultBranchRef.name : 'main';
   GH.head = repo.defaultBranchRef ? repo.defaultBranchRef.target.oid : null;
-  const files = {};
+  const files = {}, bad = new Set();
   const walk = (entries, prefix) => (entries || []).forEach(e => {
     const p = prefix + '/' + e.name;
-    if(e.type === 'blob' && /\.json$/.test(e.name) && e.object && e.object.text != null){ try{ files[p] = JSON.parse(e.object.text); }catch(x){ console.warn('Could not read', p); } }
+    if(e.type === 'blob' && /\.json$/.test(e.name)){
+      // a file that comes back cut off or broken is marked, so the app never writes over what it could not read
+      const t = e.object && !e.object.isTruncated ? e.object.text : null;
+      try{ if(t == null) throw 0; files[p] = JSON.parse(t); }catch(x){ bad.add(p); console.warn('Could not read', p); }
+    }
     else if(e.type === 'tree' && e.object && e.object.entries) walk(e.object.entries, p);
   });
   if(repo.object) walk(repo.object.entries, 'data');
-  GH.files = files; filesToSnap(); ghCache();
+  GH.files = files; GH.bad = bad; filesToSnap(); ghCache();
   GH.authError = false; S.mode = 'live';
 }
 const b64 = s => { const bytes = new TextEncoder().encode(s); let bin = ''; for(let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); };
@@ -2123,9 +2132,16 @@ function commitMsg(ops){
   else if(p.op === 'delete') m = 'Deleted from ' + p.col;
   return m + (ops.length > 1 ? ' (+' + (ops.length - 1) + ')' : '');
 }
+/* A file GitHub sent cut off or broken is never written, since the new file would hold only the new docs and the rest
+   of that month would be gone. Changes that belong in it wait on the phone, behind the others, until it reads again. */
+const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
 async function ghFlush(){
   if(!GH.head){ GH.emptyRepo = true; renderStatus(); return; }
-  const ops = S.pending.slice(0, 40); S.inflight = ops.length;
+  const held = ghHeld();
+  if(held.length){ const h = new Set(held), go = S.pending.filter(op => !h.has(op)); S.pending.splice(0, S.pending.length, ...go, ...held); }
+  const ops = S.pending.slice(0, Math.min(40, S.pending.length - held.length));
+  if(!ops.length){ renderStatus(); return; }
+  S.inflight = ops.length;
   let again = false;
   try{
     const changed = {};
@@ -2144,7 +2160,7 @@ async function ghFlush(){
     GH.head = d.createCommitOnBranch.commit.oid;
     Object.assign(GH.files, changed);
     S.pending.splice(0, ops.length); savePending(); filesToSnap(); ghCache(); retryMs = 0; S.mode = 'live';
-    again = S.pending.length > 0;
+    again = S.pending.length > held.length;
   }catch(e){
     if(e && e.auth) GH.authError = true;
     else if(e && e.gql && /expect|head|oid|fast.?forward/i.test(e.message || '')){ try{ await ghLoad(); again = true; }catch(x){ retryLater(); } }
@@ -2166,7 +2182,7 @@ function markAllLoaded(){ ['sessions','sets','meta'].forEach(loadedCol); }
 async function ghStart(){
   S.backend = 'gh'; S.needsConnect = false;
   const c = loadJSON('tl.gh.cache', null);
-  if(c && c.files){ GH.files = c.files; GH.head = c.head; GH.branch = c.branch || 'main'; filesToSnap(); S.mode = 'offline'; refresh(); }
+  if(c && c.files){ GH.files = c.files; GH.head = c.head; GH.branch = c.branch || 'main'; GH.bad = new Set(c.bad || []); filesToSnap(); S.mode = 'offline'; refresh(); }
   try{ await ghLoad(); }
   catch(e){ if(e && e.auth) GH.authError = true; S.mode = 'offline'; }
   markAllLoaded(); refresh(); scheduleFlush();
@@ -2197,7 +2213,7 @@ function routeHash(){
 }
 function maybeAutoOpen(){
   if(S.autoOpened) return;
-  S.autoOpened = true; derive();
+  S.autoOpened = true; guard(derive, 'data');
   if(routeHash()) return;
   if(activeSession()) selectTab(1);
 }
@@ -2211,9 +2227,9 @@ function setView(i){
   if(i !== 1) saveNote();
   if(i === 3 && pgNow() === 'records'){ S.ui.prNew = false; $('#pr-dot').hidden = true; }
   if(i === 3 && pgNow() === 'body') setTimeout(helloFig, 450);
-  if(D) PAGES[i]();
+  if(D) paintPage(i);
   VIEWS.forEach((id, j) => $('#' + id).setAttribute('aria-hidden', String(i !== j)));
-  if(D) syncFit();
+  if(D) guard(syncFit, 'fit');
   dockVis(i === 0 ? 1 : 0);
   if(i === 0) purpleShow();
   const w = pager.clientWidth;
@@ -2250,7 +2266,7 @@ async function init(){
   fixGap();
   tabsApi = LG.tabs($('#tabbar'), {onChange: setView});
   sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => { sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open'); }});
-  derive(); refresh();
+  refresh();
   if(!inClaude() && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if(GH.cfg && GH.cfg.token){ await ghStart(); return; }
   if(inClaude()){
@@ -2272,15 +2288,28 @@ function goLocal(){ S.backend = 'local'; S.mode = 'local'; refresh(); maybeAutoO
 /* ---------- rendering ---------- */
 /* The page you are looking at renders right away, the others a moment later, so taps stay snappy with a long history. */
 const PAGES = [() => renderToday(), () => renderWorkout(), () => renderLog(), () => renderProgress(), () => renderFood()];
+/* One page that cannot draw (a broken document, say) must not take the tab bar, start-up or saving down with it:
+   the error is logged, the other pages still draw, and the page you look at says so once. */
+const pageFailed = new Set();
+function guard(fn, what){
+  try{ fn(); return true; }
+  catch(e){ console.error('Could not draw ' + what, e); return false; }
+}
+function paintPage(i){
+  if(guard(PAGES[i], VIEWS[i]) || pageFailed.has(i)) return;
+  if(i === S.tab){ pageFailed.add(i); toast('Part of this page could not load'); }
+}
 let laterT = null, laterDirty = false;
 function renderLater(){
   clearTimeout(laterT); laterT = null;
   if(!laterDirty) return; laterDirty = false;
-  PAGES.forEach((f, i) => { if(i !== S.tab && i !== 1) f(); });
-  syncFit();
-  if($('#setModal').classList.contains('open') && S.ui.setPanel === 'feedback') renderFeedbackPanel();
-  if(sheetMode === 'reviews') renderReviews();
-  if(sheetMode === 'bestlifts') renderBestLifts();
+  PAGES.forEach((f, i) => { if(i !== S.tab && i !== 1) paintPage(i); });
+  guard(syncFit, 'fit');
+  guard(() => {
+    if($('#setModal').classList.contains('open') && S.ui.setPanel === 'feedback') renderFeedbackPanel();
+    if(sheetMode === 'reviews') renderReviews();
+    if(sheetMode === 'bestlifts') renderBestLifts();
+  }, 'sheet');
 }
 /* Workout, Log, Body and Records fit the screen exactly, and so does every flashcard. Nothing is allowed to scroll a
    little or hide behind the tab bar: a box that is too tall tightens step by step (tips first, then spacing) and is
@@ -2328,10 +2357,10 @@ function fitCards(){
 }
 addEventListener('resize', () => { if(D) syncFit(); });
 function refresh(){
-  derive(); applyLook(); renderStatus();
-  maybeOnboard();
-  PAGES[S.tab](); if(S.tab !== 1) renderWorkout();
-  syncFit(); requestAnimationFrame(syncFit);
+  guard(derive, 'data'); guard(applyLook, 'look'); guard(renderStatus, 'status');
+  guard(maybeOnboard, 'welcome');
+  paintPage(S.tab); if(S.tab !== 1) paintPage(1);
+  guard(syncFit, 'fit'); requestAnimationFrame(() => guard(syncFit, 'fit'));
   laterDirty = true; clearTimeout(laterT); laterT = setTimeout(renderLater, 160);
 }
 function renderStatus(){
@@ -2340,6 +2369,7 @@ function renderStatus(){
   if(S.readonly){ s = 'off'; t = 'Read only'; note = 'You only have view access, so what you log stays on this phone.'; }
   else if(gh && GH.authError){ s = 'off'; t = 'Token rejected'; note = 'GitHub no longer accepts your token. Everything you log is kept on this phone. Create a new token and reconnect under Settings, Data.'; }
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
+  else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
   else if(S.mode === 'offline'){ s = 'busy'; t = S.pending.length ? 'Saves when online' : 'Offline'; }
   else if(S.mode === 'local'){ s = 'off'; t = S.pending.length ? 'Saved on phone' : 'Phone only'; if(!S.needsConnect) note = 'Not connected right now. What you log is kept on this phone and uploads when the app reconnects.'; }
   else if(S.mode === 'live'){ if(S.pending.length){ s = 'busy'; t = retryMs ? 'Waiting for network' : 'Saving'; } else { s = 'ok'; t = ''; } }
@@ -2624,7 +2654,7 @@ const hintOf = h => h && !/super\s?set/i.test(h) ? h : '';
 // the rest, right on the card: it waits with the planned time and starts by itself when you log a set
 const REST_BOX = '<div class="rst idle" data-r="rest"><div class="rst-l">Rest<span data-r="rst-n"></span></div><div class="rst-t" data-r="rst-t">0:00</div>' +
   '<button class="ib" data-a="sound" aria-label="Sound when rest is over" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button><button class="ib" data-a="rest-close" data-r="rst-x" aria-label="Stop the rest" hidden><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button><span class="rst-bar"><i data-r="rst-bar"></i></span></div>';
-const restPlan = (ex, s) => s && s.template === 'T' ? 180 : infoOf(ex.name).kind === 'b' ? ST().restB : ST().restI;
+const restPlan = (ex, s) => isTestS(s) ? 180 : infoOf(ex.name).kind === 'b' ? ST().restB : ST().restI;
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
 const BUBBLE = '<svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>';
@@ -2950,7 +2980,10 @@ function warmDone(k){
 /* Cardio workout: pick the machines and minutes, then one card per machine like a strength workout, each with the
    timer, the distance and a note. It is saved as cardio (kind kondis, template C) with the machines in exercises, so
    Records and the evening review see every machine on its own. */
-const isCardioS = s => !!s && s.template === 'C';
+// A routine's id is stored as the template too, so a routine whose id happens to be C or T must not pass for a cardio
+// workout or a 1RM test: cardio is kondis or has machine cards, and a 1RM test has its ladder
+const isCardioS = s => !!s && s.template === 'C' && (s.kind === 'kondis' || (s.exercises || []).some(e => e && e.cardio));
+const isTestS = s => !!s && s.template === 'T' && (!!(s.exercises && s.exercises[0] && s.exercises[0].rm) || !routineById('T'));
 const cardioEx = (name, min) => ({k: newId(), name, cardio: true, planned: 1, min: min || 10, hint: ''});
 const cardioAct = names => { const u = [...new Set(names)]; return u.length === 1 ? u[0] : 'Mixed'; };
 const cardioTitle = names => [...new Set(names)].join(', ') || 'Cardio';
@@ -3098,14 +3131,16 @@ document.addEventListener('pointercancel', endOvPress);
 function deckGo(i, smooth){
   const wrap = $('#cards'), el = wrap.querySelectorAll('.ex')[i]; if(!el) return;
   S.ui.deckI = i; fitCards();
-  wrap.scrollTo({left: el.offsetLeft - (wrap.clientWidth - el.offsetWidth) / 2, behavior: smooth && !reduceMotion() ? 'smooth' : 'auto'});
+  // a fitted card is zoomed, and its offsets are in its own zoomed space, so measure it on screen instead
+  const r = el.getBoundingClientRect(), wr = wrap.getBoundingClientRect(), z = wr.width / wrap.offsetWidth || 1;
+  wrap.scrollTo({left: wrap.scrollLeft + (r.left + r.width / 2 - wr.left - wr.width / 2) / z, behavior: smooth && !reduceMotion() ? 'smooth' : 'auto'});
   const s = activeSession(); if(s) renderDeck(s);
 }
 // Keep the bar in step with the card you have swiped to
 $('#cards').addEventListener('scroll', () => {
   const wrap = $('#cards'); if(!wrap.classList.contains('deck-on')) return;
   const first = wrap.querySelector('.ex'); if(!first) return;
-  const i = Math.round(wrap.scrollLeft / (first.offsetWidth + 12));
+  const i = Math.round(wrap.scrollLeft / (first.getBoundingClientRect().width / (wrap.getBoundingClientRect().width / wrap.offsetWidth || 1) + 12));
   if(i !== S.ui.deckI){ S.ui.deckI = i; const s = activeSession(); if(s) renderDeck(s); fitCards(); }
 }, {passive: true});
 let noteT = null;
@@ -3339,10 +3374,10 @@ function scrubCurve(el, x){
   const dot = el.querySelector('.cdot'), tip = el.querySelector('.ctip');
   dot.style.left = tip.style.left = best[0] + '%'; dot.style.top = best[1] + 'px'; tip.style.top = (best[1] - 8) + 'px';
   if(tip.textContent !== best[2] + ' · ' + best[3]){ tip.textContent = best[2] + ' · ' + best[3]; haptic(); }
-  el.classList.add('scrub');
+  el.classList.add('reading');
 }
 function endScrub(el){
-  el.classList.remove('scrub');
+  el.classList.remove('reading');
   let pts; try{ pts = JSON.parse(el.dataset.pts); }catch(e){ return; }
   const l = pts[pts.length - 1], dot = el.querySelector('.cdot'); dot.style.left = l[0] + '%'; dot.style.top = l[1] + 'px';
 }
@@ -4308,7 +4343,7 @@ function renderLiftHead(p){
   } else {
     const sr = liftSeries(p.name), val = sr.reps ? p.maxReps.reps : Math.round(p.e1.sc * 2) / 2, unit = sr.reps ? 'reps' : 'kg';
     const pts = sr.e1, diff = pts.length > 1 ? Math.round((pts[pts.length - 1].y - pts[0].y) * 2) / 2 : 0;
-    const test = D.sessions.filter(x => x.template === 'T' && x.exercises && x.exercises[0] && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
+    const test = D.sessions.filter(x => isTestS(x) && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
     const tested = test ? setsOf(test.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0] : null;
     const bs = sr.reps ? p.maxReps : p.e1.x, sub = gtxt || (tested ? 'Tested ' + fmt(tested.weight) + ' kg · ' + dDay(test.date) : 'Best set ' + (sr.reps ? bs.reps + ' reps' : wTxt(bs.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + bs.reps) + ' · ' + dDay(bs.date));
     head = '<div class="lc-head"><button class="lc-name" data-a="exhist" data-n="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + esc(sub) + '</small></button>' +
@@ -4413,7 +4448,7 @@ function reportHtml(t){
   return String(t || '').split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => /^#{1,3}\s/.test(l) ? '<h3>' + esc(l.replace(/^#{1,3}\s*/, '')) + '</h3>' : '<p>' + esc(l.replace(/^[-*]\s+/, '').replace(/\*\*(.+?)\*\*/g, '$1')) + '</p>').join('');
 }
 const FB_KIND = {daily:'Evening review', weekly:'Weekly summary', monthly:'Monthly overview', period:'Overview'};
-const fbLabel = f => (FB_KIND[f.kind] || 'Feedback') + ' · ' + dLong(f.date) + (f.label ? ' · ' + f.label : '');
+const fbLabel = f => [FB_KIND[f.kind] || 'Feedback', dLong(f.date), f.label].filter(Boolean).join(' · ');
 const fbId = f => f.id || (f.kind || 'daily') + '-' + f.date;
 
 /* ---------- talking back to your coach ----------
@@ -4423,12 +4458,17 @@ const photoCache = {};
 const msgsFor = re => [...vmap('messages').values()].filter(m => m && m.re === re).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 const fClock = new Intl.DateTimeFormat('en-GB', {hour: '2-digit', minute: '2-digit'});
 function photoTag(ph){ const src = ph.startsWith('data:') ? ph : photoCache[ph]; return '<img alt="Photo" ' + (src ? 'src="' + esc(src) + '"' : 'data-ph="' + esc(ph) + '"') + '>'; }
+// the day and time under a message; a message without a date takes the day it was written
+function msgWhen(m){
+  const at = new Date(+m.createdAt || Date.parse(m.createdAt) || Date.now()), ok = !isNaN(at);
+  return [dShort(m.date) || (ok ? dShort(isoLocal(at)) : ''), ok ? fClock.format(at) : ''].filter(Boolean).join(' ');
+}
 function threadHtml(re, noComposer, limit){
   const ms = msgsFor(re), last = ms[ms.length - 1], who = re === 'app' ? 'Plates' : coach().short;
   // newest first, so the latest message and Claude's latest answer sit at the top
   let h = (last && last.from !== 'claude' ? '<div class="waiting">' + esc(who) + ' answers tonight</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
     (m.photos && m.photos.length ? '<div class="ph">' + m.photos.map(photoTag).join('') + '</div>' : '') +
-    '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(dShort(m.date)) + ' ' + fClock.format(new Date(m.createdAt || Date.now())) + '</small></div>').join('');
+    '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(msgWhen(m)) + '</small></div>').join('');
   return (h ? '<div class="thread">' + h + '</div>' : '') + (noComposer ? '' : composerHtml(re));
 }
 function composerHtml(re){
@@ -4467,7 +4507,7 @@ function renderCoach(){
   let chat = '';
   if(plan && plan.message) chat += '<div class="msg plan"><b>Today\'s plan</b>' + esc(plan.message) +
     (act ? '<button class="chip" data-a="resume">Continue workout</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
-    '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date)) + '</small></div>';
+    '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date) || 'Today') + '</small></div>';
   chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
   setHTML($('#chat'), chat);
   setHTML($('#dock'), composerHtml(re));
@@ -4490,7 +4530,7 @@ function renderReviews(){
   else {
     if(!S.ui.fbKey || !list.some(f => fbId(f) === S.ui.fbKey)) S.ui.fbKey = fbId(list[0]);
     const f = list.find(x => fbId(x) === S.ui.fbKey);
-    html = '<select class="sel block" id="fb-sel" aria-label="Choose date">' + opts(list.map(x => [fbId(x), dShort(x.date) + ' · ' + (FB_KIND[x.kind] || 'Feedback') + (x.label ? ' (' + x.label + ')' : '')]), S.ui.fbKey) + '</select>' +
+    html = '<select class="sel block" id="fb-sel" aria-label="Choose date">' + opts(list.map(x => [fbId(x), [dShort(x.date), FB_KIND[x.kind] || 'Feedback'].filter(Boolean).join(' · ') + (x.label ? ' (' + x.label + ')' : '')]), S.ui.fbKey) + '</select>' +
       '<div><p class="fbmeta">' + esc(fbLabel(f)) + '</p><div class="report">' + reportHtml(f.text) + '</div>' + composerHtml(fbId(f)) + threadHtml(fbId(f), true) + '</div>';
   }
   if(sampleFn) html += '<div class="srow" style="border-top:1px solid var(--line)"><div><b>Summarise now</b></div><select class="sel" id="ai-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-primary wide" data-a="ai-run-set">Summarise</button><div class="report" id="ai-out"></div>';
@@ -5297,6 +5337,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.30.0', date: '2026-10-22', items: [['workoutc430', 'Workout C is a strength workout again, not cardio'], ['dates430', 'A bad date or an empty entry in your data no longer blanks the app'], ['guard430', 'A page that cannot draw no longer freezes the tabs, start-up or saving'], ['month430', 'A month file the app could not read on GitHub is never written over; its changes wait on the phone'], ['chart430', 'Reading a chart no longer hides it'], ['deck430', 'The cards land on the right exercise when they are shrunk to fit']]},
   {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face, instead of Claude'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
   {v: '4.28.0', date: '2026-10-21', items: [['setedit428', 'Tap a logged set to change its weight, reps or RIR, or to delete it, also on earlier days in Log'], ['fast428', 'Logging a set is about twice as fast, so the card answers right away'], ['smooth428', 'New sets pop in, and Records, Body and Food ease in when you switch'], ['tick428', 'The slider ticks when you let go after a drag']]},
   {v: '4.27.0', date: '2026-10-21', items: [['prog427', 'Progress made new: a ring for each goal, your lifts as chips with the goals first, and a dashed goal line on the curve'], ['goal427', 'Tap a goal to see where you are, where you are going and your curve'], ['body427', 'Body has a period switch and three plain numbers: workouts, sets and sleep'], ['food427', 'Food is calmer: a week strip, one calorie ring split by protein, carbs and fat, and the calories beside each meal'], ['guide427', 'How to snap sits behind the question mark'], ['next427', 'A workout you already did today is not offered again'], ['fix427', 'Fixes: set numbers after a delete, cardio kept when you finish without Done, 1RM tests without RIR, no rest timer when you log a past day, and the minus in Overview works']]},
@@ -5586,7 +5627,7 @@ const RM_STEPS = [[.5, 5, 'Warm-up'], [.7, 3, 'Warm-up'], [.82, 1, 'Warm-up'], [
 const rmLadder = goal => { const st = ST().step || 2.5; return RM_STEPS.map(([f, r, l]) => ({w: Math.max(0, Math.round(goal * f / st) * st), r, l})); };
 function rmEstimate(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc / (ST().step || 2.5)) * (ST().step || 2.5) : 0; }
 function renderRmCard(){
-  const tests = D.sessions.filter(x => x.template === 'T' && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 2);
+  const tests = D.sessions.filter(x => isTestS(x) && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 2);
   const rows = tests.map(x => { const name = (x.exercises && x.exercises[0] || {}).name; const best = setsOf(x.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0];
     return name ? '<div class="li rmrow"><span>' + esc(name) + ' <small>' + esc(dShort(x.date)) + '</small></span><b>' + (best ? fmt(best.weight) + ' kg' : !x.endedAt ? 'Running' : 'No single') + '</b></div>' : ''; }).join('');
   setHTML($('#rm-card'), '<div class="hd"><h2>1RM test</h2></div>' + (rows ? '<div class="rmlist">' + rows + '</div>' : '<p class="sub" style="margin-top:4px">Find your max for one rep, step by step.</p>') +
