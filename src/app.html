@@ -2876,6 +2876,7 @@ function paceVs(name, sec, distM, last){
   return {up: d < 0, t: !d ? 'same pace as last time' : Math.abs(d) + ' s ' + (d < 0 ? 'faster' : 'slower') + ' than last time'};
 }
 function addWarm(){
+  if(sheetMode === 'lib') closeSheet();
   const s = activeSession(); if(!s || s.exercises.some(e => e.warm)) return;
   updateSession(s.id, {exercises: [warmEx(ST().warm || ls.get('tl.lastWarm') || 'Row')].concat(s.exercises)});
   S.ui.deckI = 0; requestAnimationFrame(() => { if($('#cards').classList.contains('deck-on')) deckGo(0, true); });
@@ -4815,6 +4816,8 @@ function renderLibRes(){
     if(!D.lib.some(x => norm(x.name) === q)) html += '<button class="btn-primary wide" data-a="lib-new">Use “' + esc(L.q.trim().slice(0, 60)) + '”</button>';
     if(hits.length) html += '<div class="lgroup">' + hits.map(x => libItem(x, inUse)).join('') + '</div>';
   } else {
+    // the cards view has no + Warm-up button, so a workout without one offers it here
+    if(L.mode === 'add' && s && !isCardioS(s) && !s.exercises.some(e => e.warm)) html += '<div class="lgroup"><p class="lab">Warm-up</p><button class="li" data-a="add-warm"><span>' + esc(ST().warm || ls.get('tl.lastWarm') || 'Row') + '</span><small></small></button></div>';
     const recent = [...D.lastUsed.keys()].filter(n => !cur || n !== cur.name).slice(0, 8).map(n => D.libBy.get(n) || {name:n});
     if(recent.length) html += '<div class="lgroup"><p class="lab">Recent</p>' + recent.map(x => libItem(x, inUse)).join('') + '</div>';
     const groups = {}; for(const x of D.lib.slice().sort((a, b) => a.name.localeCompare(b.name))){ (groups[x.slot] = groups[x.slot] || []).push(x); }
