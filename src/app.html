@@ -2267,7 +2267,12 @@ const standalone = () => { try{ return matchMedia('(display-mode: standalone)').
 async function init(){
   fixGap();
   tabsApi = LG.tabs($('#tabbar'), {onChange: setView});
-  sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => { sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open'); }});
+  sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => {
+    // the exercise picker of a workout you are making closes back to that workout, so a tap beside it never loses it
+    const back = sheetMode === 'lib' && S.ui.lib && S.ui.lib.mode === 'routine' && S.ui.rd;
+    sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open');
+    if(back) setTimeout(renderRoutineSheet, 0);
+  }});
   refresh();
   if(!inClaude() && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if(GH.cfg && GH.cfg.token){ await ghStart(); return; }
@@ -4839,7 +4844,7 @@ function openRoutinePreview(id){
 function openRoutine(id, folder){
   const r = id ? routineById(id) : null;
   S.ui.rd = r ? {id:r.id, name:r.name, folder: r.folder && D.folders.some(f => f.id === r.folder) ? r.folder : MINE, rotation:r.rotation !== false, order:r.order || 0, items:(r.items || []).map(x => Object.assign({}, x, {sets:x.sets || 1}))}
-              : {id:null, name:'', folder: folder || (D.folders[0] ? D.folders[0].id : MINE), rotation:false, order:0, items:[]};
+              : {id:null, name:'', folder: folder || MINE, rotation:false, order:0, items:[]};
   renderRoutineSheet();
 }
 function renderRoutineSheet(){
