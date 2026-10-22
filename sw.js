@@ -1,6 +1,6 @@
 // Plates service worker: the app opens offline. The GitHub API always goes straight to the network.
-const CACHE = 'toppform-4.33.0';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './art/coach-bjorn.webp', './art/coach-gunnar.webp', './art/coach-ingrid.webp', './art/pp-cap.webp', './art/pp-hand-fing.webp', './art/pp-hand-top.webp', './art/pp-head.webp', './art/purple.webp'];
+const CACHE = 'toppform-4.34.0';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './art/coach-bjorn.webp', './art/coach-gunnar.webp', './art/coach-ingrid.webp'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
