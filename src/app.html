@@ -2770,6 +2770,8 @@ function updateSession(id, patch){
 }
 function logSet(k){
   const s = activeSession(); if(!s) return;
+  // a quick double tap logs one set, not two
+  if(S.ui.newSetK === k && Date.now() - (S.ui.newSetAt || 0) < 600) return;
   const ex = s.exercises.find(e => e.k === k); if(!ex) return;
   const g = f => $('#in-' + k + '-' + f);
   const w = Math.max(0, num(g('w').value) || 0), reps = Math.max(0, Math.round(num(g('r').value) || 0)), rir = !ex.rm && S.ui.rir[k] != null ? S.ui.rir[k] : null;
@@ -2781,7 +2783,7 @@ function logSet(k){
   ensureAudio();
   ['w','r'].forEach(f => { delete g(f).dataset.touched; g(f).blur(); });
   if(S.ui.rirTouched) S.ui.rirTouched.delete(k);
-  S.ui.newSet = set.id; S.ui.newSetAt = Date.now();
+  S.ui.newSet = set.id; S.ui.newSetAt = Date.now(); S.ui.newSetK = k;
   queue('set', 'sets', set.id, set);
   haptic();
   if(!s.loggedAt) startRest(restPlan(ex, s), ex.name);
@@ -2825,11 +2827,14 @@ function removeExercise(k){
   S.ui.deckI = Math.max(0, Math.min(S.ui.deckI || 0, s.exercises.length - 2));
   toast(ex.name + ' removed');
 }
+// Remove, Delete set and Discard ask once more, and that second tap only counts after a short pause, so a quick
+// double tap never removes or deletes anything by itself
+const armSoon = () => Date.now() - (S.ui.armedAt || 0) < 400;
 function armDelete(b){
   const k = b.dataset.k, key = 'exdel:' + k;
-  if(S.ui.armedAct === key){ disarmAct(); removeExercise(k); return; }
+  if(S.ui.armedAct === key){ if(armSoon()) return; disarmAct(); removeExercise(k); return; }
   const paint = () => document.querySelectorAll('[data-a="ex-del"]').forEach(x => { const on = S.ui.armedAct === 'exdel:' + x.dataset.k; x.classList.toggle('armed', on); x.innerHTML = on ? 'Remove?' : TRASH; });
-  armAct(key, paint); haptic();
+  armAct(key, paint); S.ui.armedAt = Date.now(); haptic();
 }
 function saveSkip(){
   const sk = S.ui.skip; if(!sk) return;
@@ -5881,7 +5886,7 @@ document.addEventListener('click', e => {
     case 'msg-unphoto': { const l = S.ui.drafts[b.dataset.re] || []; l.splice(+b.dataset.i, 1); rerenderThreads(); break; }
     case 'rm-start': startRm(); break;
     case 'ov-done': S.ui.ovEdit = false; disarmAct(); renderWorkout(); break;
-    case 'ov-del': { const k = b.dataset.k; if(S.ui.armedAct === 'ovdel:' + k){ disarmAct(); removeExercise(k); } else { armAct('ovdel:' + k, renderWorkout); haptic(); } break; }
+    case 'ov-del': { const k = b.dataset.k; if(S.ui.armedAct === 'ovdel:' + k){ if(!armSoon()){ disarmAct(); removeExercise(k); } } else { armAct('ovdel:' + k, renderWorkout); S.ui.armedAt = Date.now(); haptic(); } break; }
     case 'deck-go': { if(S.ui.ovEdit || Date.now() - (S.ui.ovPressAt || 0) < 500) break; const i = +b.dataset.i, fromOv = !!S.ui.overview; S.ui.overview = false; S.ui.deckI = i; renderWorkout(); requestAnimationFrame(() => deckGo(i, !fromOv)); break; }
     case 'deck-ov': S.ui.overview = !S.ui.overview; S.ui.ovEdit = false; renderWorkout(); if(!S.ui.overview) requestAnimationFrame(() => deckGo(S.ui.deckI || 0, false)); break;
     case 'exhist': openExHistory(b.dataset.n); break;
@@ -5891,15 +5896,15 @@ document.addEventListener('click', e => {
     case 'se-save': saveSetEdit(); break;
     case 'se-del': {
       const E = S.ui.se; if(!E) break;
-      if(S.ui.armedAct === 'sedel:' + E.id){ disarmAct(); deleteSet(E.id); toast('Set deleted'); setEditDone(E); }
-      else armButton('se-del', 'sedel:' + E.id, 'Delete set', 'Tap again to delete');
+      if(S.ui.armedAct === 'sedel:' + E.id){ if(!armSoon()){ disarmAct(); deleteSet(E.id); toast('Set deleted'); setEditDone(E); } }
+      else { armButton('se-del', 'sedel:' + E.id, 'Delete set', 'Tap again to delete'); S.ui.armedAt = Date.now(); }
       break;
     }
     case 'finish': finish(); break;
     case 'cancel-session': {
       const s = activeSession(); if(!s) break;
-      if(S.ui.armedAct === 'cancel'){ disarmAct(); deleteSession(s.id); toast('Workout discarded'); selectTab(0); }
-      else armAct('cancel', renderWorkout);
+      if(S.ui.armedAct === 'cancel'){ if(!armSoon()){ disarmAct(); deleteSession(s.id); toast('Workout discarded'); selectTab(0); } }
+      else { armAct('cancel', renderWorkout); S.ui.armedAt = Date.now(); }
       break;
     }
     case 'sheet-close': closeSheet(); break;
