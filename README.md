@@ -1,6 +1,6 @@
 # Plates
 
-A training app for your phone with Claude as your coach. Log a set with one tap, build your own workouts and keep them in folders or just train freely, do a quick morning check-in, and see your records from 1RM to your longest run. Every evening Claude reads the log, writes a short review and sets a recommended weight and rep target for your next workout.
+A training app for your phone with a coach who reads your log every evening. Log a set with one tap, build your own workouts and keep them in folders or just train freely, do a quick morning check-in, and see your records from 1RM to your longest run. Every evening the coach reads the log, writes a short review and sets a recommended weight and rep target for your next workout.
 
 **The app:** https://sebastianfroiland.github.io/toppform/
 
@@ -22,6 +22,6 @@ All the code is in `src/app.html`: the liquid glass design, five pages you can s
 python3 src/build.py
 ```
 
-The app talks directly to GitHub's GraphQL API. Every change becomes a commit in the data repo. If something else has written to the repo in the meantime (for example Claude's evening review), the app fetches the latest version and tries again.
+The app talks directly to GitHub's GraphQL API. Every change becomes a commit in the data repo. If something else has written to the repo in the meantime (for example the coach's evening review), the app fetches the latest version and tries again.
 
 The data model is described in the README of the data repo.

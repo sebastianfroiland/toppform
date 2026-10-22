@@ -1,5 +1,4 @@
 <title>Plates</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <script>
 /* Put the saved look on the page before anything paints, so the app never flashes a default look while it opens */
 (function(){ try{ var l = JSON.parse(localStorage.getItem('tl.look') || 'null'), r = document.documentElement, k;
@@ -10,10 +9,10 @@
 }catch(e){} })();
 </script>
 <style>
-/* Plates (formerly Toppform). Built on the Liquid Glass kit from Sebastian's starter kit, now always in the calm Claude
+/* Plates (formerly Toppform). Built on the Liquid Glass kit from Sebastian's starter kit, now always in the calm paper
    look (the Paper tokens below: warm surfaces, serif headings, clay accent). Settings window from NFA.
-   Layout: five swipeable pages (Today is the chat with Claude, Workout, Log, Body, Records), a compact tab bar, a menu button
-   top left that opens a Claude style sidebar, a gear in the top right,
+   Layout: five swipeable pages (Today is the chat with your coach, Workout, Log, Body, Records), a compact tab bar, a menu button
+   top left that opens a plain sidebar, a gear in the top right,
    and sheets that slide up from the bottom. */
 :root {
   --font: -apple-system, "SF Pro Text", "SF Pro Display", Inter, system-ui, sans-serif;
@@ -707,7 +706,7 @@ body.scrolled .edge { opacity: 1; }
 #setBtn { transition: transform .35s var(--spring), opacity .3s; }
 body.scrolled:not(.set-open) #setBtn { opacity: 0; pointer-events: none; transform: scale(.8); }
 
-/* ---------- menu button and sidebar, after the Claude app: a plain list with line icons, dim section labels,
+/* ---------- menu button and sidebar: a plain list with line icons, dim section labels,
    your name at the bottom and a white pill for a new workout ---------- */
 #menuBtn { position: fixed; z-index: 21; overflow: visible; top: calc(env(safe-area-inset-top, 0px) + 12px); left: max(16px, env(safe-area-inset-left, 0px), calc((100vw - 560px) / 2 + 16px)); transition: transform .35s var(--spring), opacity .3s; }
 #menuBtn svg { width: 21px; height: 21px; color: var(--text); }
@@ -846,7 +845,7 @@ input.field[type=date]::-webkit-date-and-time-value { text-align: left; margin: 
 body.resting .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 130px); }
 
 /* ---------- page parts ---------- */
-/* the top bar: the page title centred between the menu button and the gear, like the Claude app. A small line under
+/* the top bar: the page title centred between the menu button and the gear. A small line under
    it shows the save status or the sets in a running workout, and only when there is something to say. */
 .top { height: 42px; margin: -2px 56px 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .top h1 { margin: 0; max-width: 100%; font-size: 25px; letter-spacing: -.02em; line-height: 1.12; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1206,7 +1205,7 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .coach-top .chip { min-height: 30px; padding: 0 11px; font-size: 13px; }
 .coach .report { margin-top: 10px; }
 .coach .fbmeta { margin: 8px 0 0; }
-/* Purple, the mascot, hides behind the Coach Claude card with his hands on its edge and peeks at you now and then.
+/* Purple, the mascot, hides behind the coach card with his hands on its edge and peeks at you now and then.
    Head, cap and the backs of his hands sit in a box that ends at the card's edge, so they vanish behind it; his fingers
    hang over the front. They are moved by springs in purpleTick, not by transitions, so he stretches, squashes and wobbles. */
 .pp { position: relative; z-index: 2; height: 58px; margin-top: -14px; pointer-events: none; }
@@ -1850,7 +1849,7 @@ document.addEventListener('focusout', () => setTimeout(() => { for(const el of [
 const COLS = ['sessions','sets','body','checkins','routines','folders','plans','feedback','requests','messages','food','posts','social'];
 const emptySnap = () => ({sessions:new Map(), sets:new Map(), body:new Map(), checkins:new Map(), routines:new Map(), folders:new Map(), plans:new Map(), feedback:new Map(), requests:new Map(), messages:new Map(), food:new Map(), posts:new Map(), social:new Map(), meta:new Map()});
 const S = {
-  db:null, uid:null, mode:'connecting', backend:'local', inflight:0, needsConnect:false, readonly:false, loaded:new Set(), autoOpened:false,
+  mode:'connecting', backend:'local', inflight:0, needsConnect:false, loaded:new Set(), autoOpened:false,
   snap: emptySnap(),
   pending: loadJSON('tl.pending.v1', []),
   tab:0, activeId: ls.get('tl.active'),
@@ -1872,6 +1871,8 @@ function normDoc(col, d){
   }
   else if(col === 'checkins'){ if(KNEE_EN[d.knee]) c.knee = KNEE_EN[d.knee]; if(SORE_EN[d.sore]) c.sore = SORE_EN[d.sore]; }
   else if(col === 'routines'){ if(TITLE_EN[d.name]) c.name = TITLE_EN[d.name]; if(d.items && !Array.isArray(d.items)) c.items = []; else if(d.items && d.items.some(i => bad(i) || NAME_EN[i.name])) c.items = d.items.filter(i => !bad(i)).map(i => Object.assign({}, i, {name: nm(i.name)})); }
+  else if(col === 'messages'){ if(d.from === 'claude') c.from = 'coach'; }
+  else if(col === 'folders'){ if(d.id === 'claude' && /claude/i.test(d.name || '')) c.name = 'Coach Workouts'; }
   else if(col === 'food' || col === 'posts'){
     if(d.ts != null && typeof d.ts !== 'number'){ const t = Date.parse(d.ts); c.ts = isNaN(t) ? Date.parse((typeof d.date === 'string' ? d.date : todayISO()) + 'T12:00:00') : t; }
     if(d.photos && (!Array.isArray(d.photos) || d.photos.some(x => typeof x !== 'string'))) c.photos = Array.isArray(d.photos) ? d.photos.filter(x => typeof x === 'string') : [];
@@ -1997,8 +1998,8 @@ function applyLook(){
   // Before your settings have loaded, keep the look the page opened with instead of flashing the default one
   if(!D.meta.settings && ls.get('tl.look')) return;
   const st = ST(), root = document.documentElement;
-  if(st.theme === 'light' || st.theme === 'dark') root.dataset.theme = st.theme; else if(!inClaude()) delete root.dataset.theme;
-  // One look: Claude's warm paper surfaces with the clay accent. You choose light or dark, text size, font and spacing.
+  if(st.theme === 'light' || st.theme === 'dark') root.dataset.theme = st.theme; else delete root.dataset.theme;
+  // One look: warm paper surfaces with the clay accent. You choose light or dark, text size, font and spacing.
   root.dataset.style = 'paper';
   root.classList.add('noglow'); root.classList.remove('calm');
   for(const k of ['font', 'density']){ const v = st[k], def = DEF[k]; if(v && v !== def) root.dataset[k] = v; else delete root.dataset[k]; }
@@ -2032,7 +2033,7 @@ addEventListener('orientationchange', () => setTimeout(fixGap, 300));
 document.addEventListener('gesturestart', e => e.preventDefault());
 
 /* ---------- storage ----------
-   Three places the app can save to: your GitHub repo (the home screen app), the artifact database (inside Claude),
+   Two places the app can save to: your GitHub repo (the home screen app), or this phone alone until it is connected.
    or just this phone. Every change goes through one queue that survives bad reception. */
 function savePending(){
   const v = JSON.stringify(S.pending);
@@ -2074,42 +2075,12 @@ function dropPhotoPuts(id){ for(let i = S.pending.length - 1; i >= S.inflight; i
 function scheduleFlush(ms){ clearTimeout(flushT); flushT = setTimeout(flush, ms == null ? (S.backend === 'gh' ? 700 : 0) : ms); }
 function retryLater(){ retryMs = Math.min(retryMs ? retryMs * 2 : 2000, 30000); clearTimeout(retryT); retryT = setTimeout(() => { retryT = null; flush(); }, retryMs); }
 async function flush(){
-  if(S.inflight || S.readonly || !S.pending.length) return;
+  if(S.inflight || !S.pending.length) return;
   if(S.backend === 'gh') return ghFlush();
-  if(S.backend === 'db' && S.mode === 'live') return dbFlush();
 }
 window.addEventListener('online', () => { retryMs = 0; flush(); ghCheck(); });
 document.addEventListener('visibilitychange', () => { if(!document.hidden){ flush(); ghCheck(); tickRest(); } });
 
-function base(){ return S.db.doc('data/users/' + S.uid + '/logg'); }
-const refFor = (col, id) => col === 'meta' ? base() : base().collection(col).doc(id);
-async function dbFlush(){
-  S.inflight = 1;
-  try{
-    while(S.pending.length){
-      const p = S.pending[0];
-      try{ const ref = refFor(p.col, p.id); if(p.op === 'set') await ref.set(p.data); else await ref.delete(); S.pending.shift(); savePending(); retryMs = 0; }
-      catch(e){
-        const code = e && e.code;
-        if(code === 'invalid_argument' || code === 'transform_error'){ S.readonly = true; break; }
-        if(code === 'quota_exceeded'){ toast('Storage is full'); break; }
-        if(['revoked','not_granted','capability_disabled','capability_removed'].includes(code)){ S.mode = 'local'; break; }
-        retryLater(); break;
-      }
-    }
-  } finally { S.inflight = 0; renderStatus(); }
-}
-function mapOf(q){ const m = new Map(); q.docs.forEach(d => { const v = d.data(); if(v) m.set(d.id, v); }); return m; }
-function dbSubscribe(){
-  const onErr = e => { console.warn('db', e); if(e && e.code === 'revoked') S.mode = 'local'; renderStatus(); };
-  const order = {sessions:['startedAt',500], sets:['ts',1000], body:['date',300], checkins:['date',400], plans:['date',30]};
-  for(const col of COLS){
-    let q = base().collection(col);
-    if(order[col]) q = q.orderBy(order[col][0], 'desc').limit(order[col][1]);
-    q.onSnapshot(snap => { S.snap[col] = mapOf(snap); loadedCol(col); refresh(); }, onErr);
-  }
-  base().onSnapshot(d => { const m = new Map(); if(d.exists) m.set('logg', d.data()); S.snap.meta = m; loadedCol('meta'); refresh(); }, onErr);
-}
 
 const GH = { cfg: loadJSON('tl.gh', null), head: null, branch: 'main', files: {}, index: {}, bad: new Set(), authError: false };
 const GQL = 'https://api.github.com/graphql';
@@ -2301,7 +2272,7 @@ function maybeAutoOpen(){
   if(activeSession()) selectTab(1);
 }
 function loadedCol(c){ S.loaded.add(c); if(S.loaded.has('sessions') && S.loaded.has('sets') && S.loaded.has('meta')) maybeAutoOpen(); }
-let tabsApi = null, sheetApi = null, sheetMode = null, sampleFn = null, downloadsApi = null;
+let tabsApi = null, sheetApi = null, sheetMode = null;
 const VIEWS = ['v-today','v-workout','v-log','v-body','v-food'];
 const pager = $('#pager');
 function setView(i){
@@ -2320,7 +2291,7 @@ function setView(i){
   document.body.classList.toggle('scrolled', $('#' + VIEWS[i]).scrollTop > 8);
   tickRest();
 }
-/* The reply box sits above the tab bar on Today, which is the chat with Claude */
+/* The reply box sits above the tab bar on Today, which is the chat with your coach */
 function dockVis(v){
   v = Math.max(0, Math.min(1, v));
   $('#dock').style.opacity = $('#dockfade').style.opacity = v;
@@ -2342,7 +2313,6 @@ VIEWS.forEach((id, j) => $('#' + id).addEventListener('scroll', e => {
   if(document.body.classList.contains('kb') && !typingField(document.activeElement)) document.body.classList.remove('kb');
 }, {passive:true}));
 addEventListener('hashchange', routeHash);
-const inClaude = () => !!(window.claude && typeof window.claude.use === 'function');
 const standalone = () => { try{ return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; }catch(e){ return false; } };
 
 async function init(){
@@ -2355,20 +2325,8 @@ async function init(){
     if(back) setTimeout(renderRoutineSheet, 0);
   }});
   refresh();
-  if(!inClaude() && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if(GH.cfg && GH.cfg.token){ await ghStart(); return; }
-  if(inClaude()){
-    S.backend = 'db';
-    try{
-      const [db, user, sample, downloads] = await Promise.all(['db','user','sample','downloads'].map(n => window.claude.use(n).catch(() => null)));
-      sampleFn = sample; downloadsApi = downloads;
-      const uid = user ? await user.id() : null;
-      if(!db || !uid){ goLocal(); return; }
-      S.db = db; S.uid = uid; S.mode = 'live';
-      dbSubscribe(); renderStatus(); flush();
-    }catch(e){ console.warn(e); goLocal(); }
-    return;
-  }
   S.needsConnect = true; S.ui.skipConnect = ls.get('tl.skip') === '1'; goLocal();
 }
 function goLocal(){ S.backend = 'local'; S.mode = 'local'; refresh(); maybeAutoOpen(); }
@@ -2465,8 +2423,7 @@ function refresh(){
 function renderStatus(){
   let s = 'busy', t = '', note = '';
   const gh = S.backend === 'gh';
-  if(S.readonly){ s = 'off'; t = 'Read only'; note = 'You only have view access, so what you log stays on this phone.'; }
-  else if(S.full){ s = 'off'; t = 'Not saved'; note = gh ? 'Phone storage is full. Keep the app open until it is online, so your changes reach GitHub.' : 'Phone storage is full, so new changes are lost when the app closes. Connect GitHub or download a copy under Settings, Data.'; }
+  if(S.full){ s = 'off'; t = 'Not saved'; note = gh ? 'Phone storage is full. Keep the app open until it is online, so your changes reach GitHub.' : 'Phone storage is full, so new changes are lost when the app closes. Connect GitHub or download a copy under Settings, Data.'; }
   else if(gh && GH.authError){ s = 'off'; t = 'Token rejected'; note = 'GitHub no longer accepts your token. Everything you log is kept on this phone. Create a new token and reconnect under Settings, Data.'; }
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
   else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
@@ -2498,7 +2455,7 @@ function checkinStreak(){
   while(D.checkins.has(d)){ n++; d = addDays(d, -1); }
   return n;
 }
-/* Purple, the mascot: climbs up behind the Coach Claude card when Today comes up (one hand, the other, then a careful
+/* Purple, the mascot: climbs up behind the coach card when Today comes up (one hand, the other, then a careful
    look), peeks at you now and then, drums his fingers while he waits, and when tapped jumps with fright and drops out of
    sight: his cap flies up, hangs in the air for a moment, wobbles and falls after him. Then he climbs back.
    Every part rides a spring (y in px from the peek position, r in degrees), and speed stretches and squashes him. */
@@ -4629,9 +4586,9 @@ function msgWhen(m){
 function threadHtml(re, noComposer, limit){
   const ms = msgsFor(re), last = ms[ms.length - 1], who = re === 'app' ? 'Plates' : coach().short;
   // newest first, so the latest message and Claude's latest answer sit at the top
-  let h = (last && last.from !== 'claude' ? '<div class="waiting">' + esc(who) + ' answers ' + whenCoach() + '</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
+  let h = (last && last.from !== 'coach' ? '<div class="waiting">' + esc(who) + ' answers ' + whenCoach() + '</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'coach' ? '' : ' me') + '">' + esc(m.text || '') +
     (m.photos && m.photos.length ? '<div class="ph">' + m.photos.map(photoTag).join('') + '</div>' : '') +
-    '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(msgWhen(m)) + '</small></div>').join('');
+    '<small>' + (m.from === 'coach' ? esc(who) + ' · ' : '') + esc(msgWhen(m)) + '</small></div>').join('');
   return (h ? '<div class="thread">' + h + '</div>' : '') + (noComposer ? '' : composerHtml(re));
 }
 function composerHtml(re){
@@ -4647,18 +4604,18 @@ function composerHtml(re){
    and answers about the app put one on the gear. */
 const tsOf = x => x.createdAt || Date.parse((x.date || '1970-01-01') + 'T20:00:00');
 const seenAt = k => +(ls.get(k) || 0);
-const claudeMsgs = app => [...vmap('messages').values()].filter(m => m && m.from === 'claude' && (m.re === 'app') === app);
-const coachItems = () => D.feedback.concat(claudeMsgs(false));
+const coachMsgs = app => [...vmap('messages').values()].filter(m => m && m.from === 'coach' && (m.re === 'app') === app);
+const coachItems = () => D.feedback.concat(coachMsgs(false));
 // a review or answer counts as read once it has been on screen: on Today (the newest review and its thread) or open
 // under Earlier. Older than the last mark-all-read of earlier versions also counts as read.
 const itemKey = x => x.re != null ? 'm:' + (x.id || x.createdAt) : 'f:' + fbId(x);
 const seenKeys = () => { try{ return new Set(JSON.parse(ls.get('tl.seenKeys') || '[]')); }catch(e){ return new Set(); } };
 const unseen = () => { const s = seenAt('tl.seen'), k = seenKeys(); return coachItems().filter(x => tsOf(x) > s && !k.has(itemKey(x))); };
 const coachUnread = () => unseen().length;
-const shownOnToday = () => { const fb = D.feedback[0], re = fb ? fbId(fb) : 'general'; return (fb ? [fb] : []).concat(msgsFor(re).filter(m => m.from === 'claude')); };
-const appUnread = () => { const s = seenAt('tl.seenApp'); return claudeMsgs(true).filter(x => tsOf(x) > s).length; };
+const shownOnToday = () => { const fb = D.feedback[0], re = fb ? fbId(fb) : 'general'; return (fb ? [fb] : []).concat(msgsFor(re).filter(m => m.from === 'coach')); };
+const appUnread = () => { const s = seenAt('tl.seenApp'); return coachMsgs(true).filter(x => tsOf(x) > s).length; };
 function markCoachRead(shown){ const k = seenKeys(); (shown || shownOnToday()).forEach(x => k.add(itemKey(x))); ls.set('tl.seenKeys', JSON.stringify([...k].slice(-400))); renderBadges(); }
-function markAppRead(){ const t = Math.max.apply(null, [0].concat(claudeMsgs(true).map(tsOf))); if(t > seenAt('tl.seenApp')) ls.set('tl.seenApp', String(t)); renderBadges(); }
+function markAppRead(){ const t = Math.max.apply(null, [0].concat(coachMsgs(true).map(tsOf))); if(t > seenAt('tl.seenApp')) ls.set('tl.seenApp', String(t)); renderBadges(); }
 function renderBadges(){
   const n = coachUnread(), a = appUnread(), b = $('#coach-badge'), g = $('#set-badge');
   b.hidden = !n; b.textContent = n > 9 ? '9+' : String(n);
@@ -4704,10 +4661,9 @@ function renderReviews(){
     const f = list.find(x => fbId(x) === S.ui.fbKey);
     html = '<select class="sel block" id="fb-sel" aria-label="Choose date">' + opts(list.map(x => [fbId(x), [dShort(x.date), FB_KIND[x.kind] || 'Feedback'].filter(Boolean).join(' · ') + (x.label ? ' (' + x.label + ')' : '')]), S.ui.fbKey) + '</select>' +
       '<div><p class="fbmeta">' + esc(fbLabel(f)) + '</p><div class="report">' + reportHtml(f.text) + '</div>' + composerHtml(fbId(f)) + threadHtml(fbId(f), true) + '</div>';
-    markCoachRead([f].concat(msgsFor(fbId(f)).filter(m => m.from === 'claude')));
+    markCoachRead([f].concat(msgsFor(fbId(f)).filter(m => m.from === 'coach')));
   }
-  if(sampleFn) html += '<div class="srow" style="border-top:1px solid var(--line)"><div><b>Summarise now</b></div><select class="sel" id="ai-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-primary wide" data-a="ai-run-set">Summarise</button><div class="report" id="ai-out"></div>';
-  else if(S.backend === 'gh'){
+  if(S.backend === 'gh'){
     const reqs = [...vmap('requests').values()].filter(r => r && r.type === 'overview');
     html += '<div class="srow" style="border-top:1px solid var(--line);padding-inline:0"><div><b>Ask for an overview</b><small>' + (reqs.length ? 'Waiting: ' + esc(reqs.map(r => r.label).join(', ')) : 'Arrives with tonight\'s review') + '</small></div><select class="sel" id="req-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-glass wide" data-a="ask-overview">Ask ' + esc(coach().short) + '</button>';
   }
@@ -5134,7 +5090,7 @@ function openExHistory(name){
 }
 
 /* ---------- sidebar ----------
-   The menu button top left opens a list like the Claude app: quick actions first, then Coach, your saved workouts
+   The menu button top left opens a list: quick actions first, then Coach, your saved workouts
    and what you did lately, and at the bottom your name (opens Settings) and a white New workout pill. */
 const IC = {
   play: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z"/></svg>',
@@ -5348,7 +5304,7 @@ function soPost(){
 }
 
 // Your membership grows with the workouts you log: Starter, Regular, Pro, Elite
-const TIERS = [[0, 'Starter'], [10, 'Regular'], [50, 'Pro'], [150, 'Elite']];
+const TIERS = [[0, 'Rookie'], [10, 'Regular'], [50, 'Veteran'], [150, 'Legend']];
 function tier(){
   const n = D.sessions.filter(x => x.kind !== 'styrke' || setsOf(x.id).length).length;
   let i = 0; while(i + 1 < TIERS.length && n >= TIERS[i + 1][0]) i++;
@@ -5416,11 +5372,9 @@ function renderSettings(){
   p.feedback = '<div id="fb-panel"></div>';
   p.updates = '<div id="upd-panel"></div>';
   const store = S.backend === 'gh' ? srow('GitHub', esc(GH.cfg.owner + '/' + GH.cfg.repo), '<button class="btn-glass btn-small" id="ghd-btn" data-a="gh-disconnect">Disconnect</button>')
-    : S.backend === 'db' ? srow('Saved in Claude', '', '')
     : srow('Phone only', '', '<button class="btn-glass btn-small" data-a="gh-show">Connect</button>');
   p.data = store + (S.backend === 'gh' && GH.stuck ? srow('Saving stopped', esc(GH.stuck), '<button class="btn-glass btn-small" data-a="gh-retry">Retry</button>') : '') + srow('Logged', plural(D.sessions.length, 'session') + ' · ' + plural(D.sets.length, 'set') + ' · ' + plural(D.checkins.size, 'check-in'), '') +
-    srow('Export', 'CSV', '<button class="btn-glass btn-small" data-a="export">Download</button>') +
-    srow('Copy for Claude', 'Last 30 days as text', '<button class="btn-glass btn-small" data-a="copy-summary">Copy</button>');
+    srow('Export', 'CSV', '<button class="btn-glass btn-small" data-a="export">Download</button>');
   setHTML($('#setPanels'), Object.keys(p).map(k => '<div class="set-panel' + (k === S.ui.setPanel ? ' on' : '') + '" data-p="' + k + '">' + p[k] + '</div>').join(''));
   renderFeedbackPanel(); renderUpdates(); renderXP();
   if(S.ui.setPanel === 'feedback') markAppRead(); else renderBadges();
@@ -5514,10 +5468,11 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.33.0', date: '2026-10-22', items: [['own433', 'The app stands on its own, with no link to any other app and two fewer rows under Settings, Data'], ['coachmsg433', 'Messages from your coach are marked as from the coach; older ones still show'], ['tiers433', 'Membership levels are now Rookie, Regular, Veteran and Legend'], ['log433', 'The changelog talks about your coach, not a company']]},
   {v: '4.32.0', date: '2026-10-22', items: [['patch432', 'A settings change is laid over a fresh copy of your settings file, so an old change on another phone no longer wipes newer ones'], ['stuck432', 'When GitHub keeps refusing a save, the app says so and offers Retry under Settings, Data, instead of waiting for network forever'], ['photos432', 'Photos taken before the phone was connected are uploaded as files, not inside the data'], ['phone432', 'Phone only mode says once you connect instead of promising an answer tonight'], ['retake432', 'A meal the coach could not read has a Retake photo button, keeping the meal and its time'], ['unread432', 'Only reviews and answers you have actually seen count as read, and Today points to unread ones in earlier reviews'], ['skip432', 'Try without saving is remembered, so the GitHub form does not come back at every start'], ['fist432', 'A fist width typed in the welcome steps is saved when you tap Next'], ['gunnar432', 'The creatures round a coach keep going after you tap them'], ['group432', 'Post on Groups writes to the group you are in, or goes to the Feed'], ['sophotos432', 'A post shows all its photos, not just the first'], ['robust432', 'Broken meals, photos, notes or exercise likes in the data no longer block Food, Social or Settings']]},
   {v: '4.31.0', date: '2026-10-22', items: [['connect431', 'Connecting GitHub asks what to keep when this phone has changes and the repo already has data'], ['full431', 'A full phone says Not saved until a save works, and Phone only keeps one version of each change'], ['photo431', 'Meal photos in Phone only are stored at 720 px, so storage lasts'], ['sothumb431', 'Photos in a new Social post show as small thumbnails with a remove button'], ['dbl431', 'A double tap on Log set logs one set, and Remove, Delete set and Discard never confirm by themselves'], ['stale431', 'A workout left open for 12 hours is saved and no longer blocks today'], ['fit431', 'Body fits a small phone, flashcards fit at text L, and a page that is still too tall scrolls inside its list instead of the page'], ['slide431', 'Slide mode shows 122.5 kg and 15:00 in full'], ['goals431', 'Goal rings count added weight on body weight lifts, Last counts cardio, and chips never read the same'], ['picker431', 'Closing the exercise picker goes back to the workout you are making, and a new workout starts in My Workouts'], ['plan431', 'Yesterday\'s plan stops setting the cards once you have trained after it'], ['max431', 'The estimated max counts a long set as 12 reps']]},
   {v: '4.30.0', date: '2026-10-22', items: [['workoutc430', 'Workout C is a strength workout again, not cardio'], ['dates430', 'A bad date or an empty entry in your data no longer blanks the app'], ['guard430', 'A page that cannot draw no longer freezes the tabs, start-up or saving'], ['month430', 'A month file the app could not read on GitHub is never written over; its changes wait on the phone'], ['chart430', 'Reading a chart no longer hides it'], ['deck430', 'The cards land on the right exercise when they are shrunk to fit']]},
-  {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face, instead of Claude'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
+  {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
   {v: '4.28.0', date: '2026-10-21', items: [['setedit428', 'Tap a logged set to change its weight, reps or RIR, or to delete it, also on earlier days in Log'], ['fast428', 'Logging a set is about twice as fast, so the card answers right away'], ['smooth428', 'New sets pop in, and Records, Body and Food ease in when you switch'], ['tick428', 'The slider ticks when you let go after a drag']]},
   {v: '4.27.0', date: '2026-10-21', items: [['prog427', 'Progress made new: a ring for each goal, your lifts as chips with the goals first, and a dashed goal line on the curve'], ['goal427', 'Tap a goal to see where you are, where you are going and your curve'], ['body427', 'Body has a period switch and three plain numbers: workouts, sets and sleep'], ['food427', 'Food is calmer: a week strip, one calorie ring split by protein, carbs and fat, and the calories beside each meal'], ['guide427', 'How to snap sits behind the question mark'], ['next427', 'A workout you already did today is not offered again'], ['fix427', 'Fixes: set numbers after a delete, cardio kept when you finish without Done, 1RM tests without RIR, no rest timer when you log a past day, and the minus in Overview works']]},
   {v: '4.26.0', date: '2026-10-21', items: [['restcard', 'The rest is on the card: it waits with the planned time and starts by itself when you log a set'], ['restroom2', 'No rest bar over the cards, so they get the room']]},
@@ -5528,18 +5483,18 @@ const UPDATES = [
   {v: '4.24.0', date: '2026-10-21', items: [['wavearm', 'Gunnar waves with his whole arm: it swings up from the elbow and his hand waves beside his face']]},
   {v: '4.23.0', date: '2026-10-21', items: [['gunnarwave2', 'Gunnar waves bigger and smoother when tapped, and now and then on his own'], ['eyes', 'Gunnar opens his eyes while he waves'], ['sniff', 'A butterfly sometimes lands on Gunnar\'s nose and he sniffs it'], ['wings', 'Butterflies beat their wings in 3D, glide and rest']]},
   {v: '4.22.0', date: '2026-10-21', items: [['bubble', 'A note bubble on every card opens how it went and your note, so the whole card always fits'], ['notespanel', 'Settings, Notes: every note and rating, by exercise'], ['halfkg', 'The weight slider moves in half kilos'], ['nudge', 'Tap beside the marker to move it one step, with a tick on iPhone. iPhone allows no ticks while you drag']]},
-  {v: '4.21.2', date: '2026-10-21', items: [['nosuperset', 'No supersets: Claude no longer plans them and the app never shows one'], ['feelrow', 'Loved it, Good, Meh and Disliked sit as four even buttons across the card']]},
+  {v: '4.21.2', date: '2026-10-21', items: [['nosuperset', 'No supersets: the coach no longer plans them and the app never shows one'], ['feelrow', 'Loved it, Good, Meh and Disliked sit as four even buttons across the card']]},
   {v: '4.21.1', date: '2026-10-21', items: [['fitcard', 'The whole flashcard fits during rest: How was it and the note show after the last set'], ['restroom', 'Cards use the room above the rest bar']]},
   {v: '4.21.0', date: '2026-10-21', items: [['gunnarwave', 'Tap Gentle Gunnar: he lifts his hand and waves while butterflies flutter out, and one lands on his beanie'], ['butterflies', 'Two butterflies keep Gunnar company while his box is open']]},
   {v: '4.20.1', date: '2026-10-21', items: [['warmslide', 'Warm-up and cardio use the same sliders as the exercises when Weight and reps is set to Slide'], ['warmact', 'The warm-up activity picker shows again with sliders on']]},
   {v: '4.20.0', date: '2026-10-21', items: [['warmlog', 'Warm-up logs time and distance from the machine, with the pace and how it compares with last time'], ['warmfeel', 'Rate the warm-up: Easy, Good or Hard'], ['notarget', 'No Target box on the cards. Reset sits by RIR once you change the numbers']]},
   {v: '4.19.0', date: '2026-10-21', items: [['coaches', 'Meet the coaches: tap one and it steps forward to say how it trains and who it suits'], ['gunnar', 'Gentle Gunnar, the calm coach for new lifters, with his own portrait'], ['setcoach', 'The same coach boxes in Settings, Coach']]},
-  {v: '4.18.0', date: '2026-10-21', items: [['purple', 'Purple hides behind the Coach Claude card, peeks at you and drums his fingers. Tap him'], ['tabbar', 'The tab bar stays put: a haptic tick no longer counts as typing'], ['prefill', 'Every card starts on the recommended weight, reps and RIR, with no tips under it'], ['reset', 'Reset on a card puts the recommended numbers back after you change them'], ['warm', 'Warm-up is just Done or Not done, no timer']]},
-  {v: '4.17.0', date: '2026-10-21', items: [['purple', 'Purple peeks over the Coach Claude card with his coffee'], ['tabbar', 'The tab bar no longer blinks away while you scroll']]},
+  {v: '4.18.0', date: '2026-10-21', items: [['purple', 'Purple hides behind the coach card, peeks at you and drums his fingers. Tap him'], ['tabbar', 'The tab bar stays put: a haptic tick no longer counts as typing'], ['prefill', 'Every card starts on the recommended weight, reps and RIR, with no tips under it'], ['reset', 'Reset on a card puts the recommended numbers back after you change them'], ['warm', 'Warm-up is just Done or Not done, no timer']]},
+  {v: '4.17.0', date: '2026-10-21', items: [['purple', 'Purple peeks over the coach card with his coffee'], ['tabbar', 'The tab bar no longer blinks away while you scroll']]},
   {v: '4.16.0', date: '2026-10-21', items: [['fist', 'Food photos use your fist beside the plate, so you can hold the phone close and at a slight angle'], ['snap', 'Snap-a-meal'], ['progress', 'Records and Body share one Progress tab, five tabs in all'], ['goalbar', 'A progress bar with a percentage under every goal, and one for all goals']]},
   {v: '4.15.0', date: '2026-10-21', items: [['social', 'Social in the side menu: a feed like Strava with your workouts, posts and photos, kudos and comments'], ['groups', 'Groups with a weekly board, and your own profile with eight weeks of training'], ['samples', 'Sample athletes and groups until friends can join']]},
-  {v: '4.14.0', date: '2026-10-21', items: [['foodphoto', 'Food is photo only: snap the plate with your hand beside it and Claude works out foods, portions and calories'], ['camera', 'A guided camera with the plate circle, your hand outline and a level'], ['hand', 'Measure your hand once, the ruler for portion sizes, under Settings, Coach'], ['range', 'Every meal shows a likely range and how sure Claude is']]},
-  {v: '4.13.0', date: '2026-10-21', items: [['food', 'Food page: log meals with a photo or a few words, and Claude estimates calories and macros'], ['goaltypes', 'Three kinds of goal: strength, endurance and health'], ['trainers', 'Pick a trainer, Guide, Builder or Elite, under Settings, Coach'], ['welcome', 'Welcome steps for a new account: trainer, exercises you love and goals']]},
+  {v: '4.14.0', date: '2026-10-21', items: [['foodphoto', 'Food is photo only: snap the plate with your hand beside it and your coach works out foods, portions and calories'], ['camera', 'A guided camera with the plate circle, your hand outline and a level'], ['hand', 'Measure your hand once, the ruler for portion sizes, under Settings, Coach'], ['range', 'Every meal shows a likely range and how sure the coach is']]},
+  {v: '4.13.0', date: '2026-10-21', items: [['food', 'Food page: log meals with a photo or a few words, and your coach estimates calories and macros'], ['goaltypes', 'Three kinds of goal: strength, endurance and health'], ['trainers', 'Pick a trainer, Guide, Builder or Elite, under Settings, Coach'], ['welcome', 'Welcome steps for a new account: trainer, exercises you love and goals']]},
   {v: '4.12.0', date: '2026-10-21', items: [['lockcard', 'Lock screen card: lock the phone during a workout and see time, sets, exercises and progress']]},
   {v: '4.11.0', date: '2026-10-21', items: [['prefs', 'Exercise preferences in Settings: Love, Fine or Avoid for every exercise, with a reason if you like'], ['libtag', 'Loved and avoided exercises are marked when you add one']]},
   {v: '4.10.2', date: '2026-10-21', items: [['haptic2', 'Haptics that work on new iPhones: every button, RIR, switch and tap on a slider ticks']]},
@@ -5548,9 +5503,9 @@ const UPDATES = [
   {v: '4.9.3', date: '2026-10-19', items: [['liftcard', 'A lift card on Records with a picker like the tab bar, small drawings for each lift and a curve that fills the box'], ['rm', '1RM test joined into the lift card, set to the lift you are looking at']]},
   {v: '4.9.2', date: '2026-10-19', items: [['records', 'Records is goals and the 1RM test and fits the screen'], ['best', 'Best lifts and cardio bests in their own window, from the sidebar or the 1RM card']]},
   {v: '4.9.1', date: '2026-10-19', items: [['top', 'Titles centred in the top bar, no date line'], ['cards', 'Flashcards fit the screen, Skip next to Log set'], ['jiggle', 'Hold an exercise in Overview to move or remove it'], ['checkin', 'Check-in on one line in Log'], ['fit', 'Log and Body fit the home screen app']]},
-  {v: '4.9.0', date: '2026-10-19', items: [['side', 'Sidebar like the Claude app, from the menu button top left'], ['tier', 'Membership at the bottom of the sidebar that grows with your workouts'], ['fit', 'Workout, Log and Body fit the screen without scrolling'], ['figure', 'A new body figure in 3D: drag to turn it, top muscles beside it'], ['curve', 'Charts without the shade under the line'], ['gear', 'Plain white settings gear'], ['numbers', 'Fewer numbers on Body']]},
-  {v: '4.8.0', date: '2026-10-19', items: [['today', 'Today is just the chat with Coach Claude, always open'], ['plan', 'Today\'s plan from Claude as a message with a start button'], ['split', 'Progress split into Body and Records'], ['simple', 'Simpler words and fewer numbers'], ['next', 'Next workout on Workout shows the planned weights and starts right away'], ['week', 'This week shows your goal, tap a day to open it in Log'], ['checkin', 'Morning check-in moved to Log']]},
-  {v: '4.7.0', date: '2026-10-19', items: [['coach', 'Coach Claude first on Today, folds to one line once read'], ['badge', 'Red count for new messages from Claude'], ['progress', 'Progress and Records on one page'], ['body', 'Body map, front and back, with guidance'], ['lifts', 'Fewer records, each opens into a smooth chart'], ['goals', 'Up to three goals that Claude words and plans around'], ['rir', 'Reps in reserve instead of partials'], ['del', 'Remove an exercise next to Swap'], ['slide', 'Smoother sliders, drag down for finer steps'], ['notify', 'Notification when rest is over'], ['level', 'Beginner or Experienced level'], ['chat', 'Cleaner message box without the orange ring'], ['claude', 'One calm Claude look, liquid glass removed'], ['flash', 'No flash of another look when the app opens'], ['gear', 'New settings gear'], ['box', 'Settings sections open in the same size box'], ['fbup', 'Feedback and Updates in Settings']]},
+  {v: '4.9.0', date: '2026-10-19', items: [['side', 'Sidebar from the menu button top left'], ['tier', 'Membership at the bottom of the sidebar that grows with your workouts'], ['fit', 'Workout, Log and Body fit the screen without scrolling'], ['figure', 'A new body figure in 3D: drag to turn it, top muscles beside it'], ['curve', 'Charts without the shade under the line'], ['gear', 'Plain white settings gear'], ['numbers', 'Fewer numbers on Body']]},
+  {v: '4.8.0', date: '2026-10-19', items: [['today', 'Today is just the chat with your coach, always open'], ['plan', 'Today\'s plan from your coach as a message with a start button'], ['split', 'Progress split into Body and Records'], ['simple', 'Simpler words and fewer numbers'], ['next', 'Next workout on Workout shows the planned weights and starts right away'], ['week', 'This week shows your goal, tap a day to open it in Log'], ['checkin', 'Morning check-in moved to Log']]},
+  {v: '4.7.0', date: '2026-10-19', items: [['coach', 'Your coach first on Today, folds to one line once read'], ['badge', 'Red count for new messages from your coach'], ['progress', 'Progress and Records on one page'], ['body', 'Body map, front and back, with guidance'], ['lifts', 'Fewer records, each opens into a smooth chart'], ['goals', 'Up to three goals that your coach words and plans around'], ['rir', 'Reps in reserve instead of partials'], ['del', 'Remove an exercise next to Swap'], ['slide', 'Smoother sliders, drag down for finer steps'], ['notify', 'Notification when rest is over'], ['level', 'Beginner or Experienced level'], ['chat', 'Cleaner message box without the orange ring'], ['claude', 'One calm paper look, liquid glass removed'], ['flash', 'No flash of another look when the app opens'], ['gear', 'New settings gear'], ['box', 'Settings sections open in the same size box'], ['fbup', 'Feedback and Updates in Settings']]},
   {v: '4.6.1', date: '2026-10-19', items: [['paper', 'Paper always wins over the glass amount'], ['newest', 'Newest message on top']]},
   {v: '4.6.0', date: '2026-10-19', items: [['clay', 'Clay accent with flat buttons'], ['paper', 'Paper style']]},
   {v: '4.5.0', date: '2026-10-19', items: [['name', 'New name and icon'], ['dock', 'Reply box above the tab bar'], ['finish', 'Finish and Discard at the top of a workout'], ['past', 'Log workouts on past days'], ['looks', 'More Look options']]},
@@ -5570,32 +5525,6 @@ function rate(key, v){
   saveMeta({ratings: rt}); haptic();
 }
 
-let aiCtl = null;
-async function runAI(periodKey, outEl, btn){
-  if(!sampleFn) return;
-  const r = periodRange(periodKey), st = ST();
-  const prompt = 'You are an experienced personal trainer. Write an overview in English for ' + (st.name || 'the user') + ' covering ' + r.label + ', based on the training log below.\n' +
-    'Training philosophy: few working sets to failure, knee-friendly exercise choices, and a balance of strength, cardio and mobility.\n' +
-    'Write 3 to 5 short paragraphs, each with a short heading on its own line starting with "## ". No bullet lists and no dashes. Be concrete and use the numbers. ' +
-    'Cover wins (records and progression), consistency against the goal of ' + (st.goal || 3) + ' strength sessions a week and the morning check-ins, knee and foot, sleep and energy, and 2 to 3 concrete changes for the next period. Max 230 words.\n\nLOG\n' + buildSummary(r);
-  if(btn) btn.disabled = true;
-  outEl.innerHTML = '<p class="sub">Thinking…</p>';
-  aiCtl = new AbortController();
-  try{
-    const res = await sampleFn(prompt, {signal: aiCtl.signal, cache: false, onText: ({text}) => { outEl.innerHTML = reportHtml(text); }});
-    outEl.innerHTML = reportHtml(res.text);
-    const id = 'ai-' + r.id;
-    queue('set', 'feedback', id, {id, kind: periodKey.startsWith('m') ? 'monthly' : 'period', date: todayISO(), label: r.label, text: res.text, createdAt: Date.now(), source:'app'});
-  }catch(e){
-    outEl.innerHTML = e && e.text ? reportHtml(e.text) : '';
-    if(e && e.code !== 'cancelled') toast('Could not summarise right now');
-  }finally{ if(btn) btn.disabled = false; }
-}
-async function copySummary(){
-  const text = 'Here is my training log for the last 30 days. Look it over as my coach.\n\n' + buildSummary(periodRange('30'));
-  try{ await navigator.clipboard.writeText(text); toast('Copied'); }
-  catch(e){ openSheet('copy', shTop('Copy text', ''), '<textarea class="field" id="copy-ta" rows="12">' + esc(text) + '</textarea>', true); setTimeout(() => { const t = $('#copy-ta'); if(t){ t.focus(); t.select(); } }, 300); }
-}
 async function exportCSV(){
   const q = v => { const s = v == null ? '' : String(v); return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const rows = [['type','date','workout','exercise_or_activity','set','kg','reps','rir','partials','time_sec','distance_m','effort','knee_foot','notes']];
@@ -5606,7 +5535,6 @@ async function exportCSV(){
   }
   for(const c of [...D.checkins.values()].sort((a,b) => a.date < b.date ? -1 : 1)) rows.push(['checkin', c.date, '', '', '', c.kg || '', '', '', '', '', '', '', c.knee || '', [c.sleep ? c.sleep + ' h sleep' : '', c.energy ? 'energy ' + c.energy : '', c.sore ? 'sore ' + c.sore : '', c.note || ''].filter(Boolean).join(', ')]);
   const name = 'plates-' + todayISO() + '.csv', data = '﻿' + rows.map(r => r.map(q).join(',')).join('\n');
-  if(downloadsApi){ try{ await downloadsApi.save({filename: name, data}); }catch(e){ if(e && e.code !== 'declined') toast('Download not available here'); } return; }
   const url = URL.createObjectURL(new Blob([data], {type:'text/csv'})), a = document.createElement('a');
   a.href = url; a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
 }
@@ -6126,9 +6054,6 @@ document.addEventListener('click', e => {
     case 'gh-disconnect': if(S.ui.armedAct === 'ghd'){ disarmAct(); ghDisconnect(); } else armButton('ghd-btn', 'ghd', 'Disconnect', 'Tap again'); break;
     case 'ask-overview': { const key = $('#req-period').value, r = periodRange(key), id = newId(); queue('set', 'requests', id, {id, type:'overview', period:key, label:r.label, date:todayISO(), createdAt:Date.now()}); toast(coach().short + ' writes it tonight'); renderReviews(); break; }
     case 'feedback-open': openReviews(); break;
-    case 'ai-run': openSheet('ai', shTop('Overview', periodRange(periodKey()).label), '<div class="report" id="ai-sheet-out"></div>', true); runAI(periodKey(), $('#ai-sheet-out'), null); break;
-    case 'ai-run-set': runAI($('#ai-period').value, $('#ai-out'), b); break;
-    case 'copy-summary': copySummary(); break;
     case 'export': exportCSV(); break;
     case 'sound': saveSettings({sound: !ST().sound}); setTimeout(() => { ensureAudio(); if(ST().sound) beep(); tickRest(); }, 0); break;
     case 'rest-close': stopRest(); break;

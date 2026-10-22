@@ -1,6 +1,6 @@
 """Builds the Plates app (formerly Toppform) for GitHub Pages.
 
-The source is app.html (the page body, the same file that can be published as an artifact in Claude).
+The source is app.html (the page body).
 This script wraps it in a full HTML document with a manifest and service worker, and draws the icons.
 
 Run from the repo root: python3 src/build.py   (writes index.html, sw.js, the manifest and icons to the root, which GitHub Pages serves)
@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.32.0"
+VERSION = "4.33.0"
 
 HEAD = """<!doctype html>
 <html lang="en">
@@ -24,7 +24,7 @@ HEAD = """<!doctype html>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Plates">
-<meta name="description" content="Training log with Claude as your coach">
+<meta name="description" content="Training log with a coach who reads it every evening">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
@@ -58,7 +58,7 @@ self.addEventListener('notificationclick', e => {
 MANIFEST = {
     "name": "Plates",
     "short_name": "Plates",
-    "description": "Training log with Claude as your coach",
+    "description": "Training log with a coach who reads it every evening",
     "lang": "en",
     "start_url": "./",
     "scope": "./",
@@ -117,7 +117,6 @@ def build():
         shutil.copyfile(f, DIST / "art" / f.name)
     body = (ROOT / "app.html").read_text(encoding="utf-8")
     body = re.sub(r"^<title>.*?</title>\s*", "", body, flags=re.S)
-    body = re.sub(r'^<meta name="claude:viewport-fit-sides"[^>]*>\s*', "", body)
     (DIST / "index.html").write_text(HEAD + body + TAIL, encoding="utf-8")
     (DIST / "sw.js").write_text(SW.replace("__VERSION__", VERSION).replace("__ART__", ", ".join("'./art/" + f.name + "'" for f in art)), encoding="utf-8")
     (DIST / "manifest.webmanifest").write_text(json.dumps(MANIFEST, ensure_ascii=False, indent=2), encoding="utf-8")
