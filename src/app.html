@@ -2638,7 +2638,7 @@ const hintOf = h => h && !/super\s?set/i.test(h) ? h : '';
 // the rest, right on the card: it waits with the planned time and starts by itself when you log a set
 const REST_BOX = '<div class="rst idle" data-r="rest"><div class="rst-l">Rest<span data-r="rst-n"></span></div><div class="rst-t" data-r="rst-t">0:00</div>' +
   '<button class="ib" data-a="sound" aria-label="Sound when rest is over" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button><button class="ib" data-a="rest-close" data-r="rst-x" aria-label="Stop the rest" hidden><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button><span class="rst-bar"><i data-r="rst-bar"></i></span></div>';
-const restPlan = (ex, s) => s && s.template === 'T' ? 180 : infoOf(ex.name).kind === 'b' ? ST().restB : ST().restI;
+const restPlan = (ex, s) => isTestS(s) ? 180 : infoOf(ex.name).kind === 'b' ? ST().restB : ST().restI;
 const TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const delBtn = k => '<button class="ib" data-a="ex-del" data-k="' + k + '" aria-label="Remove exercise">' + TRASH + '</button>';
 const BUBBLE = '<svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg>';
@@ -2964,7 +2964,9 @@ function warmDone(k){
 /* Cardio workout: pick the machines and minutes, then one card per machine like a strength workout, each with the
    timer, the distance and a note. It is saved as cardio (kind kondis, template C) with the machines in exercises, so
    Records and the evening review see every machine on its own. */
-const isCardioS = s => !!s && s.template === 'C';
+const isCardioS = s => !!s && s.kind === 'kondis' && s.template === 'C';
+// a 1RM test is marked by its ladder, so a routine whose id happens to be T is never taken for one
+const isTestS = s => !!s && s.template === 'T' && !!(s.exercises && s.exercises[0] && s.exercises[0].rm);
 const cardioEx = (name, min) => ({k: newId(), name, cardio: true, planned: 1, min: min || 10, hint: ''});
 const cardioAct = names => { const u = [...new Set(names)]; return u.length === 1 ? u[0] : 'Mixed'; };
 const cardioTitle = names => [...new Set(names)].join(', ') || 'Cardio';
@@ -4322,7 +4324,7 @@ function renderLiftHead(p){
   } else {
     const sr = liftSeries(p.name), val = sr.reps ? p.maxReps.reps : Math.round(p.e1.sc * 2) / 2, unit = sr.reps ? 'reps' : 'kg';
     const pts = sr.e1, diff = pts.length > 1 ? Math.round((pts[pts.length - 1].y - pts[0].y) * 2) / 2 : 0;
-    const test = D.sessions.filter(x => x.template === 'T' && x.exercises && x.exercises[0] && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
+    const test = D.sessions.filter(x => isTestS(x) && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
     const tested = test ? setsOf(test.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0] : null;
     const bs = sr.reps ? p.maxReps : p.e1.x, sub = gtxt || (tested ? 'Tested ' + fmt(tested.weight) + ' kg · ' + dDay(test.date) : 'Best set ' + (sr.reps ? bs.reps + ' reps' : wTxt(bs.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + bs.reps) + ' · ' + dDay(bs.date));
     head = '<div class="lc-head"><button class="lc-name" data-a="exhist" data-n="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + esc(sub) + '</small></button>' +
@@ -5605,7 +5607,7 @@ const RM_STEPS = [[.5, 5, 'Warm-up'], [.7, 3, 'Warm-up'], [.82, 1, 'Warm-up'], [
 const rmLadder = goal => { const st = ST().step || 2.5; return RM_STEPS.map(([f, r, l]) => ({w: Math.max(0, Math.round(goal * f / st) * st), r, l})); };
 function rmEstimate(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc / (ST().step || 2.5)) * (ST().step || 2.5) : 0; }
 function renderRmCard(){
-  const tests = D.sessions.filter(x => x.template === 'T' && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 2);
+  const tests = D.sessions.filter(x => isTestS(x) && x.kind === 'styrke').slice().sort((a, b) => b.startedAt - a.startedAt).slice(0, 2);
   const rows = tests.map(x => { const name = (x.exercises && x.exercises[0] || {}).name; const best = setsOf(x.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0];
     return name ? '<div class="li rmrow"><span>' + esc(name) + ' <small>' + esc(dShort(x.date)) + '</small></span><b>' + (best ? fmt(best.weight) + ' kg' : !x.endedAt ? 'Running' : 'No single') + '</b></div>' : ''; }).join('');
   setHTML($('#rm-card'), '<div class="hd"><h2>1RM test</h2></div>' + (rows ? '<div class="rmlist">' + rows + '</div>' : '<p class="sub" style="margin-top:4px">Find your max for one rep, step by step.</p>') +
