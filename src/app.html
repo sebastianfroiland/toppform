@@ -3619,7 +3619,7 @@ function helloFig(){
 
 /* Goals: at most three, in your own words. Claude rewrites each one short and formal in the evening review (the
    formal field) and plans around them until you change them. A goal tied to a lift and a target shows how close you are. */
-const goals = () => (D.meta.goals || []).filter(g => g && g.text).slice(0, 3);
+const goals = () => { const gl = D.meta.goals; return (Array.isArray(gl) ? gl : gl && typeof gl === 'object' ? Object.values(gl) : []).filter(g => g && g.text).slice(0, 3); };
 function saveMeta(patch){ queue('set', 'meta', 'logg', Object.assign({}, D.meta, patch, {updatedAt: Date.now()})); }
 function liftNow(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc * 2) / 2 : 0; }
 /* Three kinds of goal: Strength (a lift and a number), Endurance (a distance and a time) and Health (body weight,
@@ -3636,6 +3636,20 @@ function healthNow(m){
   if(m === 'week') return D.sessions.filter(x => x.date >= since && (x.kind !== 'styrke' || setsOf(x.id).length)).length;
   return null;
 }
+// where a body weight or body fat goal started: saved with the goal, else your value the day you set it, else your first one after
+function healthFrom(g){
+  if(g.from != null) return g.from;
+  const xs = g.metric === 'kg' ? D.weightSeries.map(x => ({date: x.date, v: x.kg})) : g.metric === 'fat' ? [...vmap('body').values()].filter(x => x && x.fat).map(x => ({date: x.date, v: +x.fat})).sort((a, c) => a.date < c.date ? -1 : 1) : [];
+  if(!xs.length) return null;
+  const c = g.createdAt ? new Date(g.createdAt) : null, day = c && !isNaN(c) ? isoLocal(c) : String(g.date || '');
+  return (xs.filter(x => x.date <= day).pop() || xs[0]).v;
+}
+// a weight on a body weight lift is what you add (or the help a machine gives), as the goal sheet asks for it
+const goalKg = (w, info) => info.bw ? wTxt(Math.max(0, w), info) + (w > 0 ? ' kg' : '') : fmt(w) + ' kg';
+const addedMax = (sc, info) => Math.round((info.bw === 'bw' ? sc - bodyKg() : info.bw === 'assist' ? bodyKg() - sc : sc) * 2) / 2;
+// the longest you have gone on one machine in one go, in metres
+const longestM = act => cardioEntries().reduce((m, e) => e.act === act && +e.distM > m ? +e.distM : m, 0);
+const distTxt = m => kmLabel(m < 1000 ? Math.round(m) : Math.round(m / 100) * 100);
 function goalStat(g){
   const t = goalType(g);
   if(t === 'strength'){
@@ -3647,12 +3661,14 @@ function goalStat(g){
       return {st: g.lift + ' · best ' + best + ' of ' + g.reps + ' reps' + (best >= g.reps ? ' · reached ✓' : ''), pct: best / g.reps}; }
     if(!g.target) return {st: g.lift};
     // a weight, or a weight for reps like 100 kg × 10: compare estimated maxes so every set counts
-    const now = pr.e1 ? pr.e1.sc : 0, want = g.reps ? score(g.target, g.reps, info) : g.target;
-    return {st: g.lift + ' · ' + (g.reps ? 'best ≈ ' + fmt(Math.round(now * 2) / 2) + ' kg max, goal ' + fmt(g.target) + ' × ' + g.reps : fmt(Math.round(now * 2) / 2) + ' of ' + fmt(g.target) + ' kg') + (now >= want ? ' · reached ✓' : ''), pct: now / want};
+    const now = pr.e1 ? pr.e1.sc : 0, want = score(g.target, g.reps || 1, info);
+    return {st: g.lift + ' · ' + (g.reps ? 'best ≈ ' + goalKg(addedMax(now, info), info) + ' max, goal ' + goalKg(g.target, info) + ' × ' + g.reps : goalKg(addedMax(now, info), info) + ' of ' + goalKg(g.target, info)) + (now >= want ? ' · reached ✓' : ''), pct: now / want};
   }
   if(t === 'endurance'){
     if(!g.act || !g.distM) return {st: ''};
     const pts = cardioSeries(g.act, g.distM), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0, km = fmt(g.distM / 1000) + ' km';
+    // a distance with no time is reached once you have gone that far in one go
+    if(!g.timeSec){ const far = longestM(g.act), ok = far >= g.distM * .98; return {st: g.act + ' ' + km + ' · longest ' + distTxt(far) + (ok ? ' · reached ✓' : ''), pct: ok ? 1 : far / g.distM}; }
     if(!best) return {st: g.act + ' ' + km + ' · no timed one yet'};
     return {st: g.act + ' ' + km + ' · best ' + mmss(best) + (g.timeSec ? ' of ' + mmss(g.timeSec) + (best <= g.timeSec ? ' · reached ✓' : '') : ''), pct: g.timeSec ? g.timeSec / best : null};
   }
@@ -3660,14 +3676,14 @@ function goalStat(g){
   const [name, unit] = HEALTH_M[g.metric], now = healthNow(g.metric);
   if(now == null) return {st: name + ' · no data yet'};
   let pct = null;
-  if(g.target != null){ const from = g.from != null ? g.from : now; pct = from === g.target ? (now === g.target ? 1 : 0) : (from - now) / (from - g.target); if(g.metric === 'sleep' || g.metric === 'week') pct = now / g.target; }
+  if(g.target != null){ const f0 = healthFrom(g), from = f0 != null ? f0 : now; pct = from === g.target ? (now === g.target ? 1 : 0) : (from - now) / (from - g.target); if(g.metric === 'sleep' || g.metric === 'week') pct = now / g.target; }
   return {st: name + ' · ' + fmt(now) + ' ' + unit + (g.target != null ? ' · target ' + fmt(g.target) : ''), pct};
 }
 /* The goals card: a ring per goal with a short name, and a dashed slot for each kind still free. A tap opens the goal
    with its curve and the goal line, and the fields to change it. */
 function goalShort(g){
   const t = goalType(g);
-  if(t === 'strength' && g.lift) return [shortName(g.lift), g.target ? fmt(g.target) + ' kg' + (g.reps ? ' × ' + g.reps : '') : g.reps ? g.reps + ' in a row' : 'Get stronger'];
+  if(t === 'strength' && g.lift) return [shortName(g.lift), g.target ? goalKg(g.target, infoOf(g.lift)) + (g.reps ? ' × ' + g.reps : '') : g.reps ? g.reps + ' in a row' : 'Get stronger'];
   if(t === 'endurance' && g.act && g.distM) return [g.act + ' ' + kmLabel(g.distM), g.timeSec ? 'Under ' + mmss(g.timeSec) : 'Go the distance'];
   if(t === 'health' && g.metric && HEALTH_M[g.metric]) return [HEALTH_M[g.metric][0], g.target != null ? fmt(g.target) + ' ' + HEALTH_M[g.metric][1] : 'Keep track'];
   return [GOAL_T[t], g.formal || g.text];
@@ -3689,7 +3705,8 @@ function goalLine(g){
   const t = goalType(g);
   if(t === 'strength' && g.lift){
     if(g.reps && !g.target) return {y: g.reps, label: 'Goal ' + g.reps + ' reps', reps: true};
-    if(g.target) return {y: g.reps ? Math.round(score(g.target, g.reps, infoOf(g.lift)) * 2) / 2 : g.target, label: 'Goal ' + fmt(g.target) + (g.reps ? ' × ' + g.reps : ' kg'), reps: false};
+    const info = infoOf(g.lift);
+    if(g.target) return {y: g.reps || info.bw ? Math.round(score(g.target, g.reps || 1, info) * 2) / 2 : g.target, label: 'Goal ' + (g.reps ? (info.bw ? wTxt(g.target, info) : fmt(g.target)) + ' × ' + g.reps : goalKg(g.target, info)), reps: false};
     return null;
   }
   if(t === 'endurance' && g.timeSec) return {y: g.timeSec, label: 'Goal under ' + mmss(g.timeSec)};
@@ -3721,13 +3738,14 @@ function goalNow(g){
   const t = goalType(g);
   if(t === 'strength' && g.lift){
     const pr = strengthPRs().find(x => x.name === g.lift), info = infoOf(g.lift);
-    const want = g.target ? fmt(g.target) + ' kg' + (g.reps ? ' × ' + g.reps : ' max') : g.reps ? g.reps + ' reps' : '';
+    const want = g.target ? goalKg(g.target, info) + (g.reps ? ' × ' + g.reps : ' max') : g.reps ? g.reps + ' reps' : '';
     if(!pr) return ['Not logged yet', want];
     if(g.reps && !g.target) return [(pr.maxReps ? pr.maxReps.reps : Math.max(0, ...D.sets.filter(x => x.exercise === g.lift).map(x => +x.reps || 0))) + ' reps', want];
-    if(!g.reps) return ['≈ ' + fmt(Math.round(pr.e1.sc * 2) / 2) + ' kg max', want];
+    if(!g.reps) return ['≈ ' + goalKg(addedMax(pr.e1.sc, info), info) + ' max', want];
     const b = pr.e1.x; return [wTxt(b.weight || 0, info) + ' kg × ' + b.reps, want];
   }
-  if(t === 'endurance' && g.act && g.distM){ const pts = cardioSeries(g.act, g.distM), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0; return [best ? mmss(best) : 'Not timed yet', g.timeSec ? 'Under ' + mmss(g.timeSec) : kmLabel(g.distM)]; }
+  if(t === 'endurance' && g.act && g.distM && !g.timeSec){ const far = longestM(g.act); return [far ? distTxt(far) : 'Not logged yet', kmLabel(g.distM)]; }
+  if(t === 'endurance' && g.act && g.distM){ const pts = cardioSeries(g.act, g.distM), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0; return [best ? mmss(best) : 'Not timed yet', 'Under ' + mmss(g.timeSec)]; }
   if(t === 'health' && g.metric && HEALTH_M[g.metric]){ const u = HEALTH_M[g.metric][1], now = healthNow(g.metric); return [now == null ? 'No data yet' : fmt(now) + ' ' + u, g.target != null ? fmt(g.target) + ' ' + u : '']; }
   return ['', ''];
 }
@@ -3768,7 +3786,7 @@ function saveGoal(id){
   if(!text){ toast('Write the goal first'); $('#g-text').focus(); return; }
   const list = goals(), old = id ? list.find(x => x.id === id) : null;
   if(!old && list.length >= 3){ toast('Three goals at a time'); return; }
-  if(old && old.type === t && t === 'health' && old.metric === f.metric && old.from != null) f.from = old.from;
+  if(old && old.type === t && t === 'health' && old.metric === f.metric){ const fr = healthFrom(old); if(fr != null) f.from = fr; }
   const g = Object.assign({}, old || {id: newId(), createdAt: Date.now()}, f, {text, date: todayISO()});
   for(const k of Object.keys(f)) if(g[k] == null) delete g[k];
   if(!old || old.text !== text) delete g.formal;
@@ -4350,10 +4368,11 @@ function pinItem(id){
   if(c) return {cardio: true, act: c[1], dist: +c[2], name: c[1] + ' ' + kmLabel(+c[2]), id};
   return strengthPRs().find(p => p.name === id) || {name: id, info: infoOf(id), empty: true, id};
 }
+const lcPins = () => { const p = ST().lcPins; return (Array.isArray(p) ? p : typeof p === 'string' ? [p] : []).filter(x => x && typeof x === 'string').slice(0, 5); };
 function lcState(){
   const ids = [];
   for(const g of goals()){ const t = goalType(g); if(t === 'strength' && g.lift) ids.push(g.lift); else if(t === 'endurance' && g.act && g.distM) ids.push('c:' + g.act + ':' + g.distM); }
-  const nGoal = new Set(ids).size, pins = (ST().lcPins || []).filter(Boolean).slice(0, 5);
+  const nGoal = new Set(ids).size, pins = lcPins();
   (pins.length ? pins : keyLifts(5).map(p => p.name)).forEach(id => ids.push(id));
   const favs = [...new Set(ids)].slice(0, 8).map(pinItem), saved = S.ui.lcLift || ls.get('tl.lcLift');
   const i = Math.max(0, favs.findIndex(p => p.name === saved));
@@ -4405,7 +4424,7 @@ function renderLiftHead(p){
     const bs = sr.reps ? p.maxReps : p.e1.x, sub = gtxt || (tested ? 'Tested ' + fmt(tested.weight) + ' kg · ' + dDay(test.date) : 'Best set ' + (sr.reps ? bs.reps + ' reps' : wTxt(bs.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + bs.reps) + ' · ' + dDay(bs.date));
     head = '<div class="lc-head"><button class="lc-name" data-a="exhist" data-n="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + esc(sub) + '</small></button>' +
       '<div class="lc-num"><span><strong>' + fmt(val) + '</strong> ' + unit + '</span>' + (diff ? '<small class="' + (diff > 0 ? 'up' : 'dn') + '">' + (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) + ' ' + unit + ' since ' + esc(dDay(pts[0].x)) + '</small>' : '<small>' + (sr.reps ? 'most in a set' : 'estimated max') + '</small>') + '</div></div>';
-    foot = lcFoot(sr.reps ? '' : '<button class="btn-glass" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button>');
+    foot = lcFoot(sr.reps || p.info.bw ? '' : '<button class="btn-glass" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button>');
   }
   setHTML($('#lc-head'), head); setHTML($('#lc-foot'), foot);
 }
@@ -4444,7 +4463,7 @@ function openPins(){
 }
 function renderPins(){
   const P = S.ui.pins; if(!P || !$('#pin-res')) return;
-  const pins = (ST().lcPins || []).slice(0, 5), q = norm(P.q);
+  const pins = lcPins(), q = norm(P.q);
   setHTML($('#pin-top'), (pins.length ? '<div class="pin-sel">' + pins.map((id, i) => { const p = pinItem(id); return '<button class="chip on" data-a="pin" data-id="' + esc(id) + '"><i>' + (i + 1) + '</i>' + pinIcon(p) + esc(p.name) + '<span aria-hidden="true">×</span></button>'; }).join('') + '</div>' : '<p class="sub">Nothing chosen, so Records shows your goal lifts and the lifts you log most.</p>') +
     (pins.length ? '<button class="btn-quiet" data-a="pin-auto" style="margin-top:2px">Back to automatic</button>' : ''));
   const row = (id, label, icon) => { const on = pins.includes(id); return '<button class="pin-row' + (on ? ' on' : '') + '" data-a="pin" data-id="' + esc(id) + '" aria-pressed="' + on + '">' + icon + '<span>' + esc(label) + '</span><i class="ck" aria-hidden="true"></i></button>'; };
@@ -4456,7 +4475,7 @@ function renderPins(){
   setHTML($('#pin-res'), html || '<p class="sub" style="margin-top:12px">No lift called that</p>');
 }
 function togglePin(id){
-  const pins = (ST().lcPins || []).slice(0, 5), i = pins.indexOf(id);
+  const pins = lcPins(), i = pins.indexOf(id);
   if(i >= 0) pins.splice(i, 1); else if(pins.length >= 5){ toast('Five at a time. Tap one above to take it off'); return; } else pins.push(id);
   saveSettings({lcPins: pins}); haptic();
   if(i < 0){ S.ui.lcLift = pinItem(id).name; ls.set('tl.lcLift', S.ui.lcLift); }
