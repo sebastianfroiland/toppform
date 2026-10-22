@@ -1235,6 +1235,54 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 button.day { font: inherit; color: inherit; cursor: pointer; transition: transform .3s var(--spring); }
 button.day:active { transform: scale(.94); }
 #week .gbar { margin-top: 10px; height: 6px; }
+/* the week: one pill per workout in the goal (strength, then cardio), the skips left, and the streak flame */
+.wkrow { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.wkrow small { flex: none; color: var(--dim); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.wkrow small.risk { color: var(--down); font-weight: 600; }
+.pills { flex: 1; min-width: 0; display: flex; gap: 4px; }
+.pills i { flex: 1; height: 8px; border-radius: 4px; background: var(--fill-2); transition: background .5s var(--ease); }
+.pills i.s { background: var(--g1); }
+.pills i.k { background: color-mix(in srgb, var(--text) 70%, transparent); }
+.pills i.gap { margin-left: 6px; }
+.flame { flex: none; width: 16px; height: 16px; fill: var(--g1); }
+.flame .fi { fill: #f6c35b; }
+.cold > .flame, .cold .flame { fill: var(--fill-2); }
+.cold .flame .fi, .risk .flame .fi { fill: transparent; }
+.risk > .flame { fill: var(--dim); }
+.flamebtn { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 12px 0 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--fill); color: var(--dim); font: 600 12.5px/1 var(--font); transition: transform .35s var(--spring); }
+.flamebtn:active { transform: scale(.94); }
+.flamebtn b { color: var(--text); font-size: 15px; font-weight: 700; margin-left: 1px; font-variant-numeric: tabular-nums; }
+.m.v { color: var(--dim); font-size: 13px; font-weight: 700; }
+#start-card .qr { margin-top: 4px; gap: 0; }
+#start-card .qr .btn-quiet { padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#start-card .why { margin-top: 12px; }
+#start-card .later { opacity: .6; }
+/* the streak sheet and the streak on Social, You */
+.stk { display: flex; flex-direction: column; gap: 14px; padding-bottom: 6px; }
+.stk-top { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 12px; }
+.stk-top .flame { grid-row: 1 / 3; width: 58px; height: 58px; }
+.stk-top b { font: 700 40px/1 var(--font); letter-spacing: -.03em; font-variant-numeric: tabular-nums; align-self: end; }
+.stk-top span { grid-column: 2; color: var(--dim); font-size: 14px; font-weight: 600; margin-top: -2px; }
+.stk-top b + span { grid-row: 2; }
+.stk-top small { grid-column: 1 / -1; color: var(--dim); font-size: 13px; margin-top: 10px; }
+.stk-top.sm .flame { width: 40px; height: 40px; }
+.stk-top.sm b { font-size: 30px; }
+.stk-h { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; }
+.stk-h i { aspect-ratio: 1; border-radius: 9px; background: var(--fill-2); display: grid; place-items: center; }
+.stk-h i.ok { background: color-mix(in srgb, var(--g1) 16%, var(--fill)); }
+.stk-h i.ok .flame { width: 62%; height: 62%; }
+.stk-h i.now { background: none; box-shadow: inset 0 0 0 1.5px var(--g1); }
+.stk-h i.pre { background: none; box-shadow: inset 0 0 0 1px var(--line); }
+.stk-h + .so-bl { margin-top: -8px; }
+.stk-r { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.stk-r p { margin: 0; padding: 9px 2px; border-bottom: 1px solid var(--line); font-size: 14.5px; color: var(--dim); }
+.stk-r b { color: var(--text); font-weight: 600; }
+.so-stk .wkrow { margin-top: 0; }
+.so-share { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-size: 15px; }
+.so-share svg { width: 18px; height: 18px; fill: none; stroke: var(--g1); stroke-width: 1.9; stroke-linejoin: round; }
+.so-fl { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; font-style: normal; font-size: 12.5px; font-weight: 700; color: var(--dim); vertical-align: 1px; font-variant-numeric: tabular-nums; }
+.so-fl .flame { width: 13px; height: 13px; }
+.so-br .so-fl { margin: 0 2px 0 0; }
 .lift .lnum { flex: none; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
 .lift .lnum small { font-size: 11px; color: var(--dim); }
 /* the red count on a tab and on the gear, like other apps */
@@ -1783,7 +1831,7 @@ const KNEE = {good:'Good', some:'Noticeable', pain:'Painful'};
 const ENERGY = {1:'Empty', 2:'Low', 3:'OK', 4:'Good', 5:'Great'};
 const SORE = {none:'None', some:'Some', lots:'A lot'};
 const ACCENTS = {clay:['#d97757','#d97757'], aurora:['#5b5bff','#00b89c'], sunset:['#ff7a45','#ff3d77'], ocean:['#2f6bff','#00c6e0'], forest:['#16a05a','#9fd13a'], grape:['#9a5dff','#ff5fa8'], gold:['#f5a524','#ff6a3d'], mint:['#00b89c','#5ac8fa'], cherry:['#ff3b5c','#a33bff']};
-const DEF = {name:'', start:'', weeks:0, goal:3, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true, trainer:'', onboarded:false, kcal:0, protein:0, handSide:'left'};
+const DEF = {name:'', start:'', weeks:0, goal:3, cardioGoal:0, step:2.5, restB:150, restI:90, sound:false, rotation:true, input:'buttons', view:'list', theme:'system', text:'M', glow:true, accent:'aurora', warm:'', warmMin:5, autoNext:true, awake:true, haptics:true, glass:'normal', corners:'round', font:'system', tint:'aurora', density:'comfy', labels:true, c1:'#5b5bff', c2:'#00b89c', style:'paper', level:'new', notify:false, lockCard:true, trainer:'', onboarded:false, kcal:0, protein:0, handSide:'left'};
 const WARM_ACTS = ['Row','Bike','SkiErg','Elliptical','Run','Walk','Mobility','Other'];
 // Machines for a cardio workout, one card each. Row and SkiErg show metres like the Concept2 screens, the rest km.
 const CARDIO_M = ['Bike','SkiErg','Row','Run','Elliptical','Walk'];
@@ -2493,18 +2541,67 @@ function folderList(){
   if(D.routines.some(r => !r.folder || !folders.some(f => f.id === r.folder))) folders.push({id: MINE, name: 'My Workouts', order: 9999});
   return folders;
 }
+/* Move to tomorrow: today becomes a rest day and the planned workout waits for tomorrow. It writes today's plan with
+   moved {at, why}, copied from the plan that held today (or with the workout that was due, when there was none), so
+   tomorrow the same plan carries over until the evening review writes a new one. It uses one of the week's skips. */
+const MOVE_WHY = ['Tired', 'Sore', 'No time', 'Sick'];
+const movedToday = () => { const p = todaysPlan(); return !!(p && p.moved && p.date === todayISO()) && !streakInfo().today; };
+function canMove(){
+  const p = todaysPlan();
+  if(activeSession() || streakInfo().today || movedToday() || (p && p.suggest === 'rest')) return false;
+  return !!(p && p.suggest) || !!suggested();
+}
+function askMove(){
+  const si = streakInfo();
+  if(si.spare > 0){ moveToday(); return; }
+  openSheet('move', shTop('No skips left', 'Move to tomorrow'), '<p class="sub" style="margin:4px 2px 16px">' + (si.prev ? 'Moving it puts your ' + si.prev + ' week streak at risk. Two workouts in one day can still save the week.' : 'Moving it leaves this week one workout short, unless you do two in one day.') + '</p>' +
+    '<button class="btn-primary wide" data-a="move-ok">Move anyway</button><button class="btn-quiet" data-a="sheet-close" style="margin-top:4px">Keep it today</button>', false);
+}
+function moveToday(){
+  const t = todayISO(), base = todaysPlan(), left = streakInfo().spare - 1, sug = suggested();
+  ls.set('tl.moveUndo', JSON.stringify({d: t, prev: D.plans.get(t) || null}));
+  const doc = Object.assign({}, base || {}, {date: t, moved: {at: Date.now()}});
+  if(!doc.suggest && sug) doc.suggest = sug;
+  queue('set', 'plans', t, doc);
+  haptic(); toast('Moved to tomorrow' + (left > 0 ? ' · ' + plural(left, 'skip') + ' left' : left === 0 ? ' · no skips left' : ''));
+}
+function moveUndo(){
+  const t = todayISO(), u = loadJSON('tl.moveUndo', null), p = D.plans.get(t);
+  if(u && u.d === t){ if(u.prev) queue('set', 'plans', t, u.prev); else if(p) queue('delete', 'plans', t); }
+  else if(p){ const c = Object.assign({}, p); delete c.moved; queue('set', 'plans', t, c); }
+  ls.del('tl.moveUndo'); haptic(); toast('Back on for today');
+}
+function moveWhy(w){
+  const t = todayISO(), p = D.plans.get(t); if(!p || !p.moved) return;
+  const m = Object.assign({}, p.moved); if(m.why === w) delete m.why; else m.why = w;
+  queue('set', 'plans', t, Object.assign({}, p, {moved: m})); haptic();
+}
 /* The next workout: what it is, the weights Claude planned for each exercise, and a button that starts it right away */
 function renderNext(){
-  const plan = todaysPlan(), sug = routineById(suggested());
+  const plan = todaysPlan(), sug = routineById(suggested()), all = D.routines.length ? ' · ' + D.routines.length : '';
   const title = plan && plan.suggest === 'rest' ? 'Rest day' : plan && plan.suggest === 'cardio' ? 'Cardio day' : sug ? sug.name : 'Start a workout';
+  // the bottom row: all workouts, and moving today's workout to tomorrow when one is planned and not done yet
+  const foot = canMove() ? '<div class="two qr"><button class="btn-quiet" data-a="workouts">All workouts' + all + '</button><button class="btn-quiet" data-a="move">Move to tomorrow</button></div>'
+    : '<button class="btn-quiet" data-a="workouts" style="margin-top:4px">All workouts' + all + '</button>';
+  if(movedToday()){
+    const why = plan.moved.why || '', cardio = plan.suggest === 'cardio', what = cardio ? 'Cardio' : sug ? sug.name : 'Your workout', sp = streakInfo().spare;
+    // what waits for tomorrow, quietly, in the room the workout had
+    const rows = cardio ? cardioDefault().map(b => [cardioIcon(b.name) + esc(b.name), b.min + ' min']) : sug ? (sug.items || []).map(x => [esc(x.name), plural(x.sets || 1, 'set')]) : [];
+    setHTML($('#start-card'), '<div class="hd"><h2>Rest day</h2><small>' + (sp > 0 ? plural(sp, 'skip') + ' left' : 'No skips left') + '</small></div>' +
+      '<p class="sub" style="margin-top:6px">' + esc(what) + ' moves to tomorrow.</p>' +
+      '<div class="row why">' + MOVE_WHY.map(w => '<button class="chip" data-a="move-why" data-w="' + esc(w) + '" aria-pressed="' + (why === w) + '">' + esc(w) + '</button>').join('') + '</div>' +
+      (rows.length ? '<p class="lab" style="margin:16px 0 0">Tomorrow</p><div class="nx scrolly later">' + rows.map(([a, b]) => '<div class="nxr"><span' + (cardio ? ' class="nxc"' : '') + '>' + a + '</span><small>' + b + '</small></div>').join('') + '</div>' : '<div class="scrolly" style="min-height:0"></div>') +
+      '<button class="btn-glass wide" data-a="move-undo" style="margin-top:12px">Undo</button>' +
+      '<button class="btn-quiet" data-a="workouts" style="margin-top:4px">All workouts' + all + '</button>');
+    return;
+  }
   if(plan && plan.suggest === 'cardio'){
     // a cardio day: the machines Claude planned (or the ones from last time) and one button that starts them as cards
     const P = cardioDefault(), done = D.sessions.some(x => x.kind === 'kondis' && x.date === todayISO() && x.endedAt);
     setHTML($('#start-card'), '<div class="hd"><h2>Cardio day</h2><small>' + (done ? 'Done ✓' : P.reduce((a, b) => a + b.min, 0) + ' min') + '</small></div>' +
       '<div class="nx scrolly">' + P.map(b => '<div class="nxr"><span class="nxc">' + cardioIcon(b.name) + esc(b.name) + '</span><small>' + b.min + ' min</small></div>').join('') + '</div>' +
       '<button class="' + (done ? 'btn-glass' : 'btn-primary') + ' wide" data-a="cardio" style="margin-top:12px">' + (done ? 'Another round' : 'Start cardio') + '</button>' +
-      '<div class="two" style="margin-top:10px"><button class="btn-glass" data-a="quick">Quick start</button>' + (sug ? '<button class="btn-glass" data-a="start" data-id="' + esc(sug.id) + '">' + esc(sug.name) + '</button>' : '<button class="btn-glass" data-a="cardio-log">Log cardio</button>') + '</div>' +
-      '<button class="btn-quiet" data-a="workouts" style="margin-top:4px">All workouts' + (D.routines.length ? ' · ' + D.routines.length : '') + '</button>');
+      '<div class="two" style="margin-top:10px"><button class="btn-glass" data-a="quick">Quick start</button>' + (sug ? '<button class="btn-glass" data-a="start" data-id="' + esc(sug.id) + '">' + esc(sug.name) + '</button>' : '<button class="btn-glass" data-a="cardio-log">Log cardio</button>') + '</div>' + foot);
     return;
   }
   let html = '<div class="hd"><h2>' + esc(title) + '</h2>' + (sug ? '<small>Next up</small>' : '') + '</div>';
@@ -2512,8 +2609,7 @@ function renderNext(){
     return '<div class="nxr"><span>' + esc(x.name) + '</span><small>' + (tg && tg.w != null ? esc(wTxt(tg.w, info) + (info.bw ? '' : ' kg') + (tg.lo ? ' × ' + tg.lo + (tg.hi && tg.hi !== tg.lo ? ' to ' + tg.hi : '') : '')) : plural(x.sets || 1, 'set')) + '</small></div>'; }).join('') + '</div>';
   html += (sug ? '<button class="btn-primary wide" data-a="start" data-id="' + esc(sug.id) + '" style="margin-top:12px">Start ' + esc(sug.name) + '</button>' : '') +
     (sug ? '' : '<p class="sub" style="margin-top:6px">Start empty and add exercises as you go, or save your own workouts.</p><div class="scrolly" style="min-height:0"></div>') +
-    '<div class="two" style="margin-top:10px"><button class="' + (sug ? 'btn-glass' : 'btn-primary') + '" data-a="quick">Quick start</button><button class="btn-glass" data-a="cardio">Cardio</button></div>' +
-    '<button class="btn-quiet" data-a="workouts" style="margin-top:4px">All workouts' + (D.routines.length ? ' · ' + D.routines.length : '') + '</button>';
+    '<div class="two" style="margin-top:10px"><button class="' + (sug ? 'btn-glass' : 'btn-primary') + '" data-a="quick">Quick start</button><button class="btn-glass" data-a="cardio">Cardio</button></div>' + foot;
   setHTML($('#start-card'), html);
 }
 /* Every saved workout in its folders, in a sheet from the Workout page */
@@ -2533,24 +2629,107 @@ function renderStart(){
   html += '<div class="row" style="margin-top:14px"><button class="chip" data-a="routine-new">+ Workout</button><button class="chip" data-a="folder-new">+ Folder</button></div>';
   setHTML($('#wo-list'), html);
 }
+/* Streak. The week is the unit: the weekly goal is strength plus cardio, and the days left over are skips (3 + 2
+   leaves 2). A day that ends without a workout uses a skip by itself, moving a workout to tomorrow uses one right
+   away, a workout logged afterwards for a past day gives its skip back, and two workouts in one day earn one. A week
+   that reaches its goal keeps the streak going; a week that ends short of it starts it over. */
+const didTrain = s => s.kind === 'styrke' ? setsOf(s.id).length > 0 : !!(s.endedAt || s.durationSec || (s.exercises || []).some(e => e && e.log && !e.skip));
+const goalSum = st => (+st.goal || 3) + (+st.cardioGoal || 0);
+const isoDay = d => typeof d === 'string' && /^\d{4}-\d\d-\d\d$/.test(d);
+// settings.goalLog keeps the total goal from the Monday it was set, so a higher goal never breaks the weeks already done
+const GOAL_START = '2000-01-03';
+function goalLogWith(patch){
+  const st = ST(), log = Object.assign({}, isObj(st.goalLog) ? st.goalLog : {});
+  if(!Object.keys(log).length) log[GOAL_START] = goalSum(st);
+  log[mondayOf(todayISO())] = goalSum(Object.assign({}, st, patch));
+  return log;
+}
+function goalIn(mon){
+  const log = ST().goalLog, ks = isObj(log) ? Object.keys(log).filter(k => isoDay(k) && +log[k] > 0).sort() : [];
+  let g = 0; for(const k of ks){ if(k > mon) break; g = +log[k]; }
+  return g || goalSum(ST());
+}
+let streakMemo = null;
+function streakInfo(){
+  const t = todayISO();
+  if(streakMemo && streakMemo.D === D && streakMemo.t === t) return streakMemo.v;
+  const mon = mondayOf(t), by = new Map(), kinds = {s: 0, k: 0};
+  let first = null, today = false;
+  for(const s of D.sessions){
+    if(!s || !isoDay(s.date) || !didTrain(s)) continue;
+    const m = mondayOf(s.date); by.set(m, (by.get(m) || 0) + 1);
+    if(m === mon) kinds[s.kind === 'styrke' ? 's' : 'k']++;
+    if(!first || s.date < first) first = s.date;
+    if(s.date === t) today = true;
+  }
+  const g = goalSum(ST()), n = by.get(mon) || 0, plan = D.plans.get(t), moved = !!(plan && plan.moved) && !today;
+  const left = Math.max(0, g - n), spare = dayDiff(addDays(mon, 6), t) + 1 - (today || moved ? 1 : 0) - left;
+  let prev = 0, best = 0, run = 0;
+  if(first){
+    const m0 = mondayOf(first);
+    for(let m = addDays(mon, -7); m >= m0; m = addDays(m, -7)){ if((by.get(m) || 0) >= goalIn(m)) prev++; else break; }
+    for(let m = m0; m < mon; m = addDays(m, 7)){ if((by.get(m) || 0) >= goalIn(m)){ run++; best = Math.max(best, run); } else run = 0; }
+  }
+  const done = n >= g, weeks = prev + (done ? 1 : 0);
+  const v = {goal: g, n, kinds, left, spare, skips: Math.max(0, 7 - g), today, moved, prev, weeks, best: Math.max(best, weeks), done, risk: !done && spare < 0, by, first, mon};
+  streakMemo = {D, t, v};
+  return v;
+}
+const FLAME = '<svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.4 2.6 5 4.4 7 1.6 1.8 2.6 3.7 2.6 6a7 7 0 0 1-14 0c0-2.6 1.3-4.6 3-6 .2 1.8.9 3 2.2 3.6-.3-3.8.6-7.6 1.8-10.6Z"/><path class="fi" d="M12 21a3.2 3.2 0 0 1-3.2-3.2c0-1.6 1.1-2.7 2.1-3.6.3 1 .9 1.6 1.6 1.9.1-1.2.5-2.3 1.1-3.1.9 1.3 1.6 2.5 1.6 4.4A3.2 3.2 0 0 1 12 21Z"/></svg>';
+// the week as pills, one per workout in the goal: strength first, then cardio; a workout of the other kind fills a free pill
+function weekPills(){
+  const si = streakInfo(), st = ST(), gs = +st.goal || 3, gc = +st.cardioGoal || 0;
+  let s = si.kinds.s, k = si.kinds.k;
+  const pills = [];
+  for(let i = 0; i < gs; i++) pills.push(s > 0 ? (s--, 's') : '');
+  for(let i = 0; i < gc; i++) pills.push(k > 0 ? (k--, 'k') : '');
+  for(let i = 0; i < pills.length; i++) if(!pills[i]){ if(s > 0){ s--; pills[i] = 's'; } else if(k > 0){ k--; pills[i] = 'k'; } }
+  return '<div class="pills" role="img" aria-label="' + Math.min(si.n, si.goal) + ' of ' + si.goal + ' workouts this week">' + pills.map((x, i) => '<i class="' + x + (gc && i === gs ? ' gap' : '') + '"></i>').join('') + '</div>';
+}
+function skipText(si){
+  if(si.done) return 'Goal reached ✓';
+  if(si.risk) return si.prev ? 'Double up to save it' : 'Next week starts it';
+  return si.spare ? plural(si.spare, 'skip') + ' left' : 'No skips left';
+}
+const flameBtn = si => '<button class="flamebtn' + (si.weeks ? '' : ' cold') + (si.risk ? ' risk' : '') + '" data-a="streak" aria-label="Streak: ' + plural(si.weeks, 'week') + '">' + FLAME + '<b>' + si.weeks + '</b>' + (si.weeks === 1 ? 'week' : 'weeks') + '</button>';
 function renderWeek(){
-  const t = todayISO(), mon = mondayOf(t), days = [0,1,2,3,4,5,6].map(i => addDays(mon, i)), L = ['M','T','W','T','F','S','S'], st = ST();
+  const t = todayISO(), mon = mondayOf(t), days = [0,1,2,3,4,5,6].map(i => addDays(mon, i)), L = ['M','T','W','T','F','S','S'], si = streakInfo();
   const by = new Map();
   for(const s of D.sessions){ if(s.date < mon || s.date > days[6]) continue; if(!by.has(s.date)) by.set(s.date, []); by.get(s.date).push(s); }
-  let ns = 0, k = 0;
   const cells = days.map((d, i) => {
     const list = (by.get(d) || []).slice().sort((a,b) => (a.startedAt||0) - (b.startedAt||0));
     let marks = list.map(s => {
-      if(s.kind === 'styrke'){ if(!setsOf(s.id).length) return ''; ns++; const ab = /^Workout\s+(\S+)$/.exec(sessionTitle(s)); return '<span class="m s">' + esc(ab ? ab[1] : sessionTitle(s).charAt(0)) + '</span>'; }
-      k++; return '<span class="m k">' + esc(s.activity === 'Mixed' ? 'C' : (s.activity || '?').charAt(0)) + '</span>';
+      if(s.kind === 'styrke'){ if(!setsOf(s.id).length) return ''; const ab = /^Workout\s+(\S+)$/.exec(sessionTitle(s)); return '<span class="m s">' + esc(ab ? ab[1] : sessionTitle(s).charAt(0)) + '</span>'; }
+      return '<span class="m k">' + esc(s.activity === 'Mixed' ? 'C' : (s.activity || '?').charAt(0)) + '</span>';
     }).join('');
+    const pl = D.plans.get(d);
+    if(pl && pl.moved && !list.some(didTrain)) marks += '<span class="m v" aria-label="Moved">›</span>';
     if(D.checkins.has(d)) marks += '<span class="m c"></span>';
     return '<button class="day' + (d === t ? ' today' : '') + (d > t ? ' future' : '') + '" data-a="week-day" data-d="' + d + '" aria-label="' + esc(dLong(d)) + '"><small>' + L[i] + '</small><b>' + (+d.slice(8)) + '</b><div class="marks">' + marks + '</div></button>';
   }).join('');
-  const goal = st.goal || 3, left = Math.max(0, goal - ns);
-  setHTML($('#week'), '<div class="hd"><h2>This week</h2><small>' + (left ? ns + ' of ' + goal + ' workouts' : 'Goal reached ✓') + (k ? ' · ' + plural(k, 'cardio', 'cardio') : '') + '</small></div><div class="gbar"><i style="width:' + Math.min(100, Math.round(ns / goal * 100)) + '%"></i></div>' +
+  setHTML($('#week'), '<div class="hd"><h2>This week</h2>' + flameBtn(si) + '</div>' +
+    '<div class="wkrow">' + weekPills() + '<small class="' + (si.risk ? 'risk' : '') + '">' + skipText(si) + '</small></div>' +
     '<div class="strip">' + cells + '</div>');
 }
+
+/* The streak sheet from the flame: the streak, this week's pills and skips, the last twelve weeks and the rules */
+function openStreak(){
+  const si = streakInfo(), cells = [];
+  for(let i = 11; i >= 0; i--){
+    const m = addDays(si.mon, -7 * i), n = si.by.get(m) || 0, now = i === 0, ok = now ? si.done : n >= goalIn(m), before = !si.first || m < mondayOf(si.first);
+    cells.push('<i class="' + (before ? 'pre' : ok ? 'ok' : now ? 'now' : 'miss') + '" title="' + esc(dShort(m)) + '">' + (ok ? FLAME : '') + '</i>');
+  }
+  const rules = [['Your week', plural(si.goal, 'workout') + ' and ' + plural(si.skips, 'skip')], ['A day off', 'uses a skip by itself'], ['Move to tomorrow', 'uses one too'],
+    ['Forgot to log?', 'log it on that day and the skip comes back'], ['Two in one day', 'earns a skip back'], ['Goal by Sunday', 'and the streak grows']];
+  openSheet('streak', shTop('Streak', ''), '<div class="stk">' +
+    '<div class="stk-top' + (si.weeks ? '' : ' cold') + (si.risk ? ' risk' : '') + '">' + FLAME + '<b>' + si.weeks + '</b><span>' + (si.weeks === 1 ? 'week' : 'weeks') + ' in a row</span><small>' + (si.risk ? 'At risk this week' : si.best > si.weeks ? 'Best ' + plural(si.best, 'week') : si.weeks ? 'Your best yet' : 'Reach your goal this week to start it') + '</small></div>' +
+    '<div><p class="lab">This week · ' + Math.min(si.n, si.goal) + ' of ' + si.goal + '</p><div class="wkrow">' + weekPills() + '<small class="' + (si.risk ? 'risk' : '') + '">' + skipText(si) + '</small></div></div>' +
+    '<div class="stk-h">' + cells.join('') + '</div><p class="so-bl"><span>12 weeks ago</span><span>This week</span></p>' +
+    '<div class="stk-r">' + rules.map(([a, b]) => '<p><b>' + esc(a) + '</b> ' + esc(b) + '</p>').join('') + '</div>' +
+    '<div class="two"><button class="btn-glass" data-a="streak-goal">Weekly goal</button><button class="btn-primary" data-a="streak-share">Share</button></div></div>', true);
+}
+const streakText = si => si.weeks ? (si.weeks === 1 ? 'First week of my streak done. ' : si.weeks + ' weeks in a row. ') + (si.done ? 'This week\'s goal is in the bag.' : 'Week ' + (si.weeks + 1) + ' is on.') : 'Starting a streak this week. ' + si.goal + ' workouts, ' + plural(si.skips, 'skip') + '.';
+function shareStreak(){ S.ui.soTab = 'feed'; S.ui.soGroup = null; S.ui.soDraft = {text: streakText(streakInfo()), photos: [], group: ''}; openSide(); }
 
 /* ---------- workout ---------- */
 function renderWorkout(){
@@ -4537,7 +4716,7 @@ function renderCoach(){
   const plan = todaysPlan(), act = activeSession(), sug = act ? null : routineById(suggested());
   let chat = '';
   if(plan && plan.message) chat += '<div class="msg plan"><b>Today\'s plan</b>' + esc(plan.message) +
-    (act ? '<button class="chip" data-a="resume">Continue workout</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
+    (act ? '<button class="chip" data-a="resume">Continue workout</button>' : movedToday() ? '<button class="chip" data-a="move-undo">Moved to tomorrow · Undo</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
     '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date) || 'Today') + '</small></div>';
   chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
   // answers in earlier reviews that have not been seen yet are pointed at, not quietly marked read
@@ -4627,7 +4806,7 @@ document.addEventListener('change', e => { const t = e.target; if(t.dataset && t
 
 function buildSummary(r){
   const st = ST(), lines = [];
-  lines.push('User: ' + (st.name || 'unknown') + '. Plan start ' + (st.start || 'not set') + (st.weeks ? ', ' + st.weeks + ' weeks' : '') + ', goal ' + (st.goal || 3) + ' strength sessions a week. Period ' + r.from + ' to ' + r.to + '.');
+  lines.push('User: ' + (st.name || 'unknown') + '. Plan start ' + (st.start || 'not set') + (st.weeks ? ', ' + st.weeks + ' weeks' : '') + ', goal ' + (st.goal || 3) + ' strength and ' + (+st.cardioGoal || 0) + ' cardio sessions a week, streak ' + plural(streakInfo().weeks, 'week') + '. Period ' + r.from + ' to ' + r.to + '.');
   lines.push('Method: 1 to 2 hard working sets. reps = full reps, N RIR = reps left in reserve, +N = partial reps after failure (older entries). BW = bodyweight.');
   const gs = goals(); if(gs.length) lines.push('Goals: ' + gs.map((g, i) => (i + 1) + '. ' + (g.formal || g.text) + (g.lift && g.target ? ' (' + g.lift + ' 1RM ' + g.target + ' kg)' : '')).join(' '));
   lines.push('\nSESSIONS');
@@ -5017,13 +5196,14 @@ const sl = (a, icon, label, extra, attrs) => '<button class="sl" data-a="' + a +
    are samples (marked Sample) and only what you do is saved: your posts in data/posts, and kudos, comments and groups
    in data/social.json. When a shared backend arrives, the samples are swapped for real people. */
 const SO_PEOPLE = {
-  ida: {name: 'Ida Berg', city: 'Bergen', hue: 14}, jonas: {name: 'Jonas Lie', city: 'Oslo', hue: 205}, emma: {name: 'Emma Solheim', city: 'Bergen', hue: 150},
-  mats: {name: 'Mats Haugen', city: 'Trondheim', hue: 265}, sara: {name: 'Sara Nygaard', city: 'Stavanger', hue: 40}
+  ida: {name: 'Ida Berg', city: 'Bergen', hue: 14, streak: 23}, jonas: {name: 'Jonas Lie', city: 'Oslo', hue: 205, streak: 9}, emma: {name: 'Emma Solheim', city: 'Bergen', hue: 150, streak: 41},
+  mats: {name: 'Mats Haugen', city: 'Trondheim', hue: 265, streak: 4}, sara: {name: 'Sara Nygaard', city: 'Stavanger', hue: 40, streak: 15}
 };
 const SO_GROUPS = [
   {id: 'bergen-lifters', name: 'Bergen Lifters', about: 'Heavy days and honest reps. A weekly board for total volume.', members: ['ida', 'jonas', 'mats'], count: 128, hue: 14, metric: 'volume'},
   {id: 'sub20', name: 'Sub 20 5K', about: 'Chasing a 5 km under 20 minutes together. Weekly distance board.', members: ['ida', 'sara', 'emma', 'jonas'], count: 342, hue: 205, metric: 'distance'},
-  {id: 'pullup-club', name: 'Pull-Up Club', about: 'One more rep than last week. Thirty in a row is the dream.', members: ['emma', 'jonas', 'sara'], count: 76, hue: 150, metric: 'workouts'}
+  {id: 'pullup-club', name: 'Pull-Up Club', about: 'One more rep than last week. Thirty in a row is the dream.', members: ['emma', 'jonas', 'sara'], count: 76, hue: 150, metric: 'workouts'},
+  {id: 'show-up', name: 'Show Up Club', about: 'Your weekly goal, week after week. The board ranks streaks.', members: ['emma', 'ida', 'sara', 'jonas', 'mats'], count: 211, hue: 28, metric: 'streak'}
 ];
 const SO_IC = {
   kudos: '<svg viewBox="0 0 24 24"><path d="M7 21H4.5A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11H7m0 10V11m0 10h9.7a2 2 0 0 0 2-1.7l1.2-7A2 2 0 0 0 17.9 10H14V5.5A2.5 2.5 0 0 0 11.5 3L7 11"/></svg>',
@@ -5033,8 +5213,12 @@ const SO_IC = {
   run: '<svg viewBox="0 0 24 24"><circle cx="14.5" cy="4.5" r="1.8"/><path d="m8 21 3-6 3 2 1 4M6 12l3-3.5 4 1 2.5 3.5 3 .5M11 15l2-5.5"/></svg>',
   row: '<svg viewBox="0 0 24 24"><path d="M3 19.5h18M5 19.5l2-3.5h7M14 16l5.5-4M8.5 16l1.5-5 4.5 1.5"/><circle cx="9.5" cy="7.8" r="1.6"/></svg>',
   back: '<svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>',
-  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  streak: '<svg viewBox="0 0 24 24"><path d="M12 2.5c.6 3.4 2.6 5 4.4 7 1.6 1.8 2.6 3.7 2.6 6a7 7 0 0 1-14 0c0-2.6 1.3-4.6 3-6 .2 1.8.9 3 2.2 3.6-.3-3.8.6-7.6 1.8-10.6Z"/></svg>'
 };
+// everyone's streak in weeks: yours from your log, the samples' made up
+const soStreak = who => who === 'me' ? streakInfo().weeks : SO_PEOPLE[who].streak || 0;
+const soFl = who => { const n = soStreak(who); return n ? '<em class="so-fl" aria-label="' + plural(n, 'week') + ' streak">' + FLAME + n + '</em>' : ''; };
 const soName = who => who === 'me' ? (ST().name || 'You') : SO_PEOPLE[who].name;
 const soIni = n => String(n || 'You').split(/\s+/).map(w => w.charAt(0)).join('').slice(0, 2).toUpperCase();
 const soAv = (who, cls) => '<i class="so-av' + (who === 'me' ? ' me' : '') + (cls ? ' ' + cls : '') + '"' + (who !== 'me' ? ' style="--h:' + SO_PEOPLE[who].hue + '"' : '') + '>' + esc(soIni(soName(who))) + '</i>';
@@ -5082,6 +5266,13 @@ function soMine(){
     }
   }
   for(const p of D.posts) out.push({id: p.id, who: 'me', ts: p.ts, kind: 'note', text: p.text, photos: p.photos || [], groups: p.group ? [p.group] : [], post: true});
+  // the week that last grew the streak shows as its own card, dated when that week's goal was reached
+  const si = streakInfo(), wm = si.done ? si.mon : si.prev ? addDays(si.mon, -7) : null;
+  if(wm){
+    const g = wm === si.mon ? si.goal : goalIn(wm), xs = D.sessions.filter(x => isoDay(x.date) && x.date >= wm && x.date <= addDays(wm, 6) && didTrain(x)).map(x => x.endedAt || x.startedAt || 0).sort((a, b) => a - b);
+    const n = si.done ? si.weeks : si.prev;
+    if(xs.length >= g) out.push({id: 'streak-' + wm, who: 'me', ts: xs[g - 1] || Date.parse(wm + 'T12:00:00'), kind: 'streak', title: n === 1 ? 'First week of the streak' : n + ' weeks in a row', text: 'Weekly goal reached: ' + plural(g, 'workout') + '.', streak: n});
+  }
   return out;
 }
 function soRoute(seed){
@@ -5109,7 +5300,7 @@ function soStats(p){
 function soCard(p){
   const mine = p.who === 'me', k = soKudos(p.id), kc = (p.kudos || 0) + (k ? 1 : 0), cs = (p.cs || []).map(([who, text]) => ({who, text})).concat(soComments(p.id).map(c => ({who: 'me', text: c.text, id: c.id})));
   const city = mine ? '' : SO_PEOPLE[p.who].city, ic = SO_IC[p.kind === 'note' ? '' : p.kind] || '';
-  let h = '<article class="so-card" data-id="' + esc(p.id) + '"><div class="so-h">' + soAv(p.who) + '<span><b>' + esc(soName(p.who)) + '</b><small>' + soWhen(p.ts) + (city ? ' · ' + city : '') + '</small></span>' +
+  let h = '<article class="so-card" data-id="' + esc(p.id) + '"><div class="so-h">' + soAv(p.who) + '<span><b>' + esc(soName(p.who)) + soFl(p.who) + '</b><small>' + soWhen(p.ts) + (city ? ' · ' + city : '') + '</small></span>' +
     (mine ? '' : '<em class="so-sample">Sample</em>') + '</div>';
   if(p.title) h += '<h3 class="so-t">' + ic + '<span>' + esc(p.title) + '</span></h3>';
   if(p.text) h += '<p class="so-tx">' + esc(p.text) + '</p>';
@@ -5158,17 +5349,24 @@ function soGroupsHtml(){
 function soGroupHtml(id){
   const g = soAllGroups().find(x => x.id === id); if(!g) return soGroupsHtml();
   const joined = soJoinedIds().has(g.id), wk = soMyWeek(soWeekStart());
-  const unit = {volume: ['Volume', v => kNum(v) + ' kg'], distance: ['Distance', v => fmt(Math.round(v * 10) / 10) + ' km'], workouts: ['Workouts', v => String(v)]}[g.metric];
-  const val = who => { if(who === 'me') return wk[g.metric]; let h = 0; for(const c of (g.id + who)) h = (h * 31 + c.charCodeAt(0)) % 9973; return g.metric === 'volume' ? 4000 + h % 9000 : g.metric === 'distance' ? 8 + h % 28 : 1 + h % 5; };
+  const unit = {volume: ['Volume', v => kNum(v) + ' kg'], distance: ['Distance', v => fmt(Math.round(v * 10) / 10) + ' km'], workouts: ['Workouts', v => String(v)], streak: ['Streak', v => plural(v, 'week')]}[g.metric];
+  const val = who => { if(g.metric === 'streak') return soStreak(who); if(who === 'me') return wk[g.metric]; let h = 0; for(const c of (g.id + who)) h = (h * 31 + c.charCodeAt(0)) % 9973; return g.metric === 'volume' ? 4000 + h % 9000 : g.metric === 'distance' ? 8 + h % 28 : 1 + h % 5; };
   const board = g.members.concat(joined ? ['me'] : []).map(w => ({w, v: val(w)})).sort((a, b) => b.v - a.v);
   const feed = soSamples().concat(soMine()).filter(p => (p.groups || []).includes(g.id)).sort((a, b) => b.ts - a.ts);
   return '<button class="so-back" data-a="so-group-x">' + SO_IC.back + 'Groups</button>' +
     '<div class="so-gh" style="--h:' + g.hue + '"><i class="so-gc big">' + esc(soIni(g.name)) + '</i><h3>' + esc(g.name) + '</h3><p>' + esc(g.about) + '</p>' +
     '<div class="so-gm"><span class="so-stack">' + g.members.slice(0, 4).map(w => soAv(w, 'xs')).join('') + (joined ? soAv('me', 'xs') : '') + '</span>' + plural(g.count + (joined && !g.own ? 1 : 0), 'member') + '</div>' +
     (g.own ? '' : '<button class="so-join big' + (joined ? ' on' : '') + '" data-a="so-join" data-id="' + esc(g.id) + '">' + (joined ? 'Joined' : 'Join group') + '</button>') + '</div>' +
-    '<div class="so-board"><div class="hd"><h2>This week</h2><small>' + unit[0] + '</small></div>' + board.map((r, i) => '<div class="so-br' + (r.w === 'me' ? ' me' : '') + '"><em>' + (i + 1) + '</em>' + soAv(r.w, 'xs') + '<span>' + esc(soName(r.w)) + '</span><b>' + esc(unit[1](r.v)) + '</b></div>').join('') +
+    '<div class="so-board"><div class="hd"><h2>' + (g.metric === 'streak' ? 'Longest streaks' : 'This week') + '</h2><small>' + unit[0] + '</small></div>' + board.map((r, i) => '<div class="so-br' + (r.w === 'me' ? ' me' : '') + '"><em>' + (i + 1) + '</em>' + soAv(r.w, 'xs') + '<span>' + esc(soName(r.w)) + '</span>' + (g.metric === 'streak' ? '' : soFl(r.w)) + '<b>' + esc(unit[1](r.v)) + '</b></div>').join('') +
     (joined ? '' : '<p class="so-hint">Join to see yourself on the board</p>') + '</div>' +
     (joined ? soComposer(g.id) : '') + feed.map(soCard).join('');
+}
+function soStreakHtml(){
+  const si = streakInfo();
+  return '<div class="so-wk so-stk"><div class="hd"><h2>Streak</h2><small>' + (si.best > si.weeks ? 'Best ' + plural(si.best, 'week') : '') + '</small></div>' +
+    '<div class="stk-top sm' + (si.weeks ? '' : ' cold') + (si.risk ? ' risk' : '') + '">' + FLAME + '<b>' + si.weeks + '</b><span>' + (si.weeks === 1 ? 'week' : 'weeks') + ' in a row</span></div>' +
+    '<div class="wkrow">' + weekPills() + '<small class="' + (si.risk ? 'risk' : '') + '">' + skipText(si) + '</small></div>' +
+    '<button class="btn-glass wide so-share" data-a="so-streak-share">' + SO_IC.streak + 'Share your streak</button></div>';
 }
 function soYouHtml(){
   const st = ST(), tr = tier(), wk = soMyWeek(soWeekStart()), n = D.sessions.filter(x => x.endedAt && (x.kind !== 'styrke' || setsOf(x.id).length)).length;
@@ -5177,7 +5375,7 @@ function soYouHtml(){
   const act = activeSession(), sug = act ? null : routineById(suggested()), t = todayISO();
   const mine = soMine().sort((a, b) => b.ts - a.ts).slice(0, 10);
   return '<div class="so-me">' + soAv('me', 'big') + '<h3>' + esc(st.name || 'You') + '</h3><p>' + tr.name + ' · ' + plural(n, 'workout') + '</p>' +
-    '<div class="so-ff"><span><b>5</b>Following</span><span><b>3</b>Followers</span><span><b>' + soJoinedIds().size + '</b>Groups</span></div></div>' +
+    '<div class="so-ff"><span><b>5</b>Following</span><span><b>3</b>Followers</span><span><b>' + soJoinedIds().size + '</b>Groups</span></div></div>' + soStreakHtml() +
     '<div class="so-wk"><div class="hd"><h2>This week</h2><small>' + (tr.next ? plural(tr.next, 'workout') + ' to ' + tr.up : 'Top level') + '</small></div>' +
     '<div class="so-st"><div><small>Workouts</small><b>' + wk.workouts + '</b></div><div><small>Time</small><b>' + soMin(wk.min) + '</b></div><div><small>Volume</small><b>' + kNum(wk.volume) + ' kg</b></div></div>' +
     '<div class="so-bars">' + weeks.map((w, i) => '<i style="--v:' + (w.n / mx) + '" class="' + (i === 7 ? 'now' : '') + '"><b>' + (w.n || '') + '</b></i>').join('') + '</div><p class="so-bl"><span>8 weeks ago</span><span>This week</span></p></div>' +
@@ -5242,7 +5440,8 @@ function renderSettings(){
   p.general = srow('Name', '', '<input class="field small" data-set="name" value="' + esc(st.name) + '" placeholder="First name" autocomplete="off">') +
     srow('Start date', '', '<input class="field small" type="date" data-set="start" value="' + esc(st.start) + '">') +
     srow('Length', '', sel('weeks', [[0,'No end date'],[8,'8 weeks'],[12,'12 weeks'],[16,'16 weeks'],[26,'26 weeks'],[52,'52 weeks']], st.weeks)) +
-    srow('Weekly goal', 'Strength sessions', sel('goal', [1,2,3,4,5,6,7].map(n => [n, String(n)]), st.goal));
+    srow('Strength a week', '', sel('goal', [1,2,3,4,5,6,7].map(n => [n, String(n)]), st.goal)) +
+    srow('Cardio a week', '', sel('cardioGoal', [[0, 'None'],1,2,3,4,5,6,7].map(n => Array.isArray(n) ? n : [n, String(n)]), st.cardioGoal || 0));
   const nx = Object.values(xpAll()).filter(v => v && v.p), nl = nx.filter(v => v.p === 'love').length, na = nx.filter(v => v.p === 'avoid').length;
   p.coach = '<p class="hint" style="margin:12px 6px 4px">Your coach plans your workouts and talks to you in their own voice.</p>' + coachPick(trainerId(), true, 'inset') +
     srow('Tips', 'Explanations on cards, like what RIR means', seg('level', [['new','Show'],['pro','Hide']], st.level === 'pro' ? 'pro' : 'new')) +
@@ -5373,6 +5572,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.36.0', date: '2026-10-22', items: [['cardio436', 'Set how many cardio sessions you want a week under Settings, General, next to strength'], ['streak436', 'A streak: every week you reach your goal keeps it going. The days left over are skips, and a day off uses one by itself'], ['move436', 'Move to tomorrow on the Workout page turns today into a rest day and keeps the workout for tomorrow'], ['social436', 'Your streak shows on Social, and the Show Up Club ranks streaks']]},
   {v: '4.35.0', date: '2026-10-22', items: [['tip435', 'Your coach\'s tip for each exercise waits behind the note bubble, folded until you tap it: how to do it, not the numbers']]},
   {v: '4.34.0', date: '2026-10-22', items: [['purple434', 'Purple no longer peeks over the coach card on Today']]},
   {v: '4.33.0', date: '2026-10-22', items: [['own433', 'The app stands on its own, with no link to any other app and two fewer rows under Settings, Data'], ['coachmsg433', 'Messages from your coach are marked as from the coach; older ones still show'], ['tiers433', 'Membership levels are now Rookie, Regular, Veteran and Legend'], ['log433', 'The changelog talks about your coach, not a company']]},
@@ -5711,6 +5911,13 @@ document.addEventListener('click', e => {
     case 'resume': closeSheet(); selectTab(1); break;
     case 'goto-workout': selectTab(1); break;
     case 'cardio': openCardioPlan(); break;
+    case 'move': askMove(); break;
+    case 'move-ok': closeSheet(); moveToday(); break;
+    case 'move-undo': moveUndo(); break;
+    case 'move-why': moveWhy(b.dataset.w); break;
+    case 'streak': openStreak(); break;
+    case 'streak-goal': closeSheet(); openSettings('general'); break;
+    case 'streak-share': closeSheet(); shareStreak(); break;
     case 'hist': openDetail(b.dataset.id); break;
     case 'checkin-day': openCheckin(b.dataset.d); break;
     case 'cal-day': S.ui.calDay = b.dataset.d; if(b.dataset.d.slice(0, 7) !== S.ui.calMonth) S.ui.calMonth = b.dataset.d.slice(0, 7); renderLog(); syncFit(); break;
@@ -5760,6 +5967,7 @@ document.addEventListener('click', e => {
       break;
     }
     case 'so-tab': S.ui.soTab = b.dataset.v; S.ui.soGroup = null; renderSide(); $('#side-panel .side-body').scrollTop = 0; break;
+    case 'so-streak-share': S.ui.soTab = 'feed'; S.ui.soGroup = null; S.ui.soDraft = {text: streakText(streakInfo()), photos: [], group: ''}; renderSide(); { const sb = $('#side-panel .side-body'); if(sb) sb.scrollTop = 0; } break;
     case 'so-kudos': {
       const id = b.dataset.id, on = !soKudos(id);
       b.classList.toggle('on', on); b.classList.remove('pop'); void b.offsetWidth; if(on) b.classList.add('pop'); haptic();
@@ -5982,7 +6190,9 @@ function saveSettings(patch){
 }
 document.addEventListener('change', e => {
   const t = e.target;
-  if(t.dataset && t.dataset.set){ const k = t.dataset.set, numeric = ['weeks','goal','step','restB','restI','warmMin','kcal','protein'].includes(k); saveSettings({[k]: numeric ? num(t.value) : t.value.trim()}); if(k === 'warm') renderSettings(); return; }
+  if(t.dataset && t.dataset.set){ const k = t.dataset.set, numeric = ['weeks','goal','cardioGoal','step','restB','restI','warmMin','kcal','protein'].includes(k), p = {[k]: numeric ? num(t.value) : t.value.trim()};
+    if(k === 'goal' || k === 'cardioGoal') p.goalLog = goalLogWith(p);
+    saveSettings(p); if(k === 'warm') renderSettings(); return; }
   if(t.id === 'pr-filter'){ S.ui.prFilter = t.value; renderAllLifts(); return; }
   if(t.id === 'pr-sort'){ S.ui.prSort = t.value; renderAllLifts(); return; }
   if(t.id === 'fb-sel'){ S.ui.fbKey = t.value; renderReviews(); return; }
