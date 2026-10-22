@@ -4991,7 +4991,7 @@ function openExHistory(name){
   for(const x of D.sets){ if(x.exercise !== name || seen.has(x.sessionId)) continue; seen.add(x.sessionId); sess.push(x.sessionId); if(sess.length >= 15) break; }
   const pr = strengthPRs().find(p => p.name === name);
   const rows = sess.map(sid => { const xs = setsOf(sid).filter(x => x.exercise === name).sort((a, b) => a.n - b.n);
-    return '<div class="exr"><b>' + esc(dShort(xs[0].date)) + '</b><div class="logged" style="margin-top:8px">' + xs.map(x => '<button class="setchip" data-a="set" data-id="' + esc(x.id) + '"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join('') + '</div></div>'; }).join('');
+    return '<div class="exr"><b>' + esc(dShort(xs[0].date)) + '</b><div class="logged" style="margin-top:8px">' + xs.map(x => '<button class="setchip" data-a="set" data-id="' + esc(x.id) + '" data-back="hist:' + esc(name) + '"><i>' + x.n + '</i>' + esc(setText(x, info)) + '</button>').join('') + '</div></div>'; }).join('');
   let top = '';
   if(pr){
     let lastW = null; const shown = [];
@@ -5640,7 +5640,8 @@ function openSetEdit(id, back){
     '<div><p class="lab">Reps in reserve</p><div class="rir-b" role="group" aria-label="Reps in reserve">' + [0, 1, 2, 3, 4, 5].map(n => '<button data-a="se-rir" data-v="' + n + '" aria-pressed="' + (x.rir === n) + '">' + rirTxt(n) + '</button>').join('') + '</div></div>' +
     '<button class="btn-primary wide" data-a="se-save">Save</button><button class="btn-quiet danger" data-a="se-del" id="se-del">Delete set</button></div>', false);
 }
-function setEditDone(E){ S.ui.se = null; if(E && E.back && vmap('sessions').get(E.back)) openDetail(E.back); else closeSheet(); }
+// Save and Delete go back to where the set was opened: the workout in Log, the exercise history, or the card
+function setEditDone(E){ S.ui.se = null; const b = E && E.back || ''; if(b.slice(0, 5) === 'hist:') openExHistory(b.slice(5)); else if(b && vmap('sessions').get(b)) openDetail(b); else closeSheet(); }
 function saveSetEdit(){
   const E = S.ui.se, x = E && D.sets.find(y => y.id === E.id); if(!x) return;
   const w = Math.max(0, num($('#se-w').value) || 0), reps = Math.max(0, Math.round(num($('#se-r').value) || 0));
