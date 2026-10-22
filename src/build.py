@@ -1,12 +1,12 @@
 """Builds the Plates app (formerly Toppform) for GitHub Pages.
 
-The source is app.html (the page body).
-This script wraps it in a full HTML document with a manifest and service worker, and draws the icons.
+The source is app.html (the page body). The images live in art/ at the repo root, where the page loads them from.
+This script wraps the page in a full HTML document with a manifest and service worker, and draws the icons.
 
 Run from the repo root: python3 src/build.py   (writes index.html, sw.js, the manifest and icons to the root, which GitHub Pages serves)
 The icons need Pillow. Without it the build keeps the committed icons, which only change when icon() does.
 """
-import json, random, re, shutil
+import json, random, re
 from pathlib import Path
 try:
     from PIL import Image, ImageDraw
@@ -15,7 +15,7 @@ except ImportError:
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.33.0"
+VERSION = "4.34.0"
 
 HEAD = """<!doctype html>
 <html lang="en">
@@ -115,10 +115,7 @@ def icon(size, inset=0.0):
 
 def build():
     (DIST / "icons").mkdir(parents=True, exist_ok=True)
-    (DIST / "art").mkdir(parents=True, exist_ok=True)
-    art = sorted(ROOT.glob("*.webp"))   # Purple, the mascot on Today, in parts
-    for f in art:
-        shutil.copyfile(f, DIST / "art" / f.name)
+    art = sorted((DIST / "art").glob("*.webp"))   # the coach portraits and Purple's parts, cached for offline use
     body = (ROOT / "app.html").read_text(encoding="utf-8")
     body = re.sub(r"^<title>.*?</title>\s*", "", body, flags=re.S)
     (DIST / "index.html").write_text(HEAD + body + TAIL, encoding="utf-8")
