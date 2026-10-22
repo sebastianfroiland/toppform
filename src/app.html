@@ -2964,9 +2964,10 @@ function warmDone(k){
 /* Cardio workout: pick the machines and minutes, then one card per machine like a strength workout, each with the
    timer, the distance and a note. It is saved as cardio (kind kondis, template C) with the machines in exercises, so
    Records and the evening review see every machine on its own. */
-const isCardioS = s => !!s && s.kind === 'kondis' && s.template === 'C';
-// a 1RM test is marked by its ladder, so a routine whose id happens to be T is never taken for one
-const isTestS = s => !!s && s.template === 'T' && !!(s.exercises && s.exercises[0] && s.exercises[0].rm);
+// A routine's id is stored as the template too, so a routine whose id happens to be C or T must not pass for a cardio
+// workout or a 1RM test: cardio is kondis or has machine cards, and a 1RM test has its ladder
+const isCardioS = s => !!s && s.template === 'C' && (s.kind === 'kondis' || (s.exercises || []).some(e => e && e.cardio));
+const isTestS = s => !!s && s.template === 'T' && (!!(s.exercises && s.exercises[0] && s.exercises[0].rm) || !routineById('T'));
 const cardioEx = (name, min) => ({k: newId(), name, cardio: true, planned: 1, min: min || 10, hint: ''});
 const cardioAct = names => { const u = [...new Set(names)]; return u.length === 1 ? u[0] : 'Mixed'; };
 const cardioTitle = names => [...new Set(names)].join(', ') || 'Cardio';
