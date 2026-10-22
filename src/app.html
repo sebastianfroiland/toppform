@@ -1945,7 +1945,8 @@ const bodyKg = () => (D.weightSeries.length ? D.weightSeries[D.weightSeries.leng
 function score(w, r, info){
   const load = info.bw === 'bw' ? bodyKg() + w : info.bw === 'assist' ? bodyKg() - w : w;
   if(load <= 0) return r;
-  return r <= 1 ? load : load * (1 + r/30);
+  // the estimate (Epley) only holds for a few reps, so a long set counts as 12 and never makes a huge max
+  return r <= 1 ? load : load * (1 + Math.min(r, 12)/30);
 }
 const weekNo = iso => { const st = ST().start; if(!st) return 0; const d = dayDiff(iso, st); return d < 0 ? 0 : Math.floor(d/7) + 1; };
 
