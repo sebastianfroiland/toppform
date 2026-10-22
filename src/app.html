@@ -552,11 +552,16 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit.tight .top { margin-bottom: 10px; }
 .vin.fit.tight .nxr { padding: 5px 0; }
 .vin.fit.tight .card .hd + * { margin-top: 4px; }
-.ex.tight { padding: 15px 16px; }
-.ex.tight .exs { height: 36px; margin-top: 8px; }
+.ex.tight { padding: 13px 16px; }
+.ex.tight .exs { height: 34px; margin-top: 6px; }
+.ex.tight .last { margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ex.tight .steppers.slide { gap: 4px; }
+.ex.tight .logged { margin-top: 6px; }
+.ex.tight .steppers { margin-top: 8px; }
+.ex.tight .rir { margin-top: 6px; }
+.ex.tight .rir .lab { margin-bottom: 4px; }
 .ex.tight .steppers.slide .stp { min-height: 44px; }
-.ex.tight .logrow { margin-top: 8px; }
+.ex.tight .logrow { margin-top: 6px; }
 .ex.tight .logrow button, .ex.tight .btn-primary.wide { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
 .ex.tight .ctm { margin-top: 10px; padding: 10px 12px 10px 15px; row-gap: 9px; }
 .ex.tight .ctm-l b { font-size: 40px; }
@@ -1360,7 +1365,9 @@ button.day:active { transform: scale(.94); }
 .rst-bar { grid-area: bar; height: 5px; border-radius: 3px; background: var(--fill-2); overflow: hidden; }
 .rst-bar i { display: block; height: 100%; width: 0; background: var(--accent-grad); transition: width .5s linear; }
 .rst.idle .rst-bar { display: none; }
-.ex.tight .rst { margin-top: 8px; padding-top: 7px; padding-bottom: 9px; }
+.ex.tight .rst { margin-top: 6px; padding-top: 7px; padding-bottom: 9px; }
+.ex.tight .rst:not(.idle) { row-gap: 6px; }
+.ex.cramp .rst.idle, .ex.cramp .exs { display: none; }
 .ex.snug .rst.idle .rst-l span { display: none; }
 .ex.tight .rst.idle { padding-top: 4px; padding-bottom: 4px; }
 .ex.tight .rst > .ib { width: 34px; height: 34px; }
@@ -2372,12 +2379,16 @@ function syncFit(){
 function fitCards(){
   const wrap = $('#cards'), on = wrap.classList.contains('deck-on'), cur = S.ui.deckI || 0, box = wrap.clientWidth + 'x' + wrap.clientHeight;
   [...wrap.querySelectorAll(':scope > .ex')].forEach((el, j) => {
-    if(!on || el.offsetParent === null){ if(el._fit){ el.classList.remove('snug', 'tight'); el.style.zoom = ''; el._fit = null; } return; }
+    if(!on || el.offsetParent === null){ if(el._fit){ el.classList.remove('snug', 'tight', 'cramp'); el.style.zoom = ''; el._fit = null; } return; }
     if(Math.abs(j - cur) > 1) return;
-    const sig = box + '|' + el.className.replace(/\b(snug|tight)\b/g, '') + '|' + el.innerHTML.length;
+    const sig = box + '|' + el.className.replace(/\b(snug|tight|cramp)\b/g, '') + '|' + el.innerHTML.length;
     if(el._fit === sig) return;
-    fitBox(el, () => el.scrollHeight > el.clientHeight + 1, true);
-    el._fit = box + '|' + el.className.replace(/\b(snug|tight)\b/g, '') + '|' + el.innerHTML.length;
+    // still too tall at the smallest size (a small phone with large text): the setup field and the waiting rest go
+    // before the card has to scroll, so Log set stays in view
+    const over = () => el.scrollHeight > el.clientHeight + 1;
+    el.classList.remove('cramp');
+    if(!fitBox(el, over, true)){ el.classList.add('cramp'); fitBox(el, over, true); }
+    el._fit = box + '|' + el.className.replace(/\b(snug|tight|cramp)\b/g, '') + '|' + el.innerHTML.length;
   });
 }
 addEventListener('resize', () => { if(D) syncFit(); });
