@@ -1345,6 +1345,18 @@ button.day:active { transform: scale(.94); }
 .npl { display: flex; flex-direction: column; gap: 6px; }
 .npl .npi { max-width: none; }
 .sheet-body .feel { margin-top: 0; }
+/* the coach's tip in the notes sheet: a folded row with the coach's face and today's target, open on a tap */
+.cotip { flex: none; border-radius: 18px; background: color-mix(in srgb, var(--g1) 9%, var(--fill)); border: 1px solid color-mix(in srgb, var(--g1) 28%, var(--line)); overflow: hidden; }
+.cotip-h { display: flex; align-items: center; gap: 11px; width: 100%; padding: 10px 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cotip-h .av { width: 34px; height: 34px; }
+.cotip-h span { flex: 1; min-width: 0; }
+.cotip-h b { display: block; font-size: 15px; font-weight: 650; }
+.cotip-c { flex: none; width: 20px; height: 20px; fill: none; stroke: var(--g1); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .35s var(--ease); }
+.cotip.open .cotip-c { transform: rotate(180deg); }
+.cotip-b { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .35s var(--ease), opacity .25s; }
+.cotip.open .cotip-b { grid-template-rows: 1fr; opacity: 1; }
+.cotip-b p { min-height: 0; overflow: hidden; margin: 0; padding: 0 14px; font-family: ui-serif, "New York", Georgia, serif; font-size: 16px; line-height: 1.45; overflow-wrap: anywhere; }
+.cotip.open .cotip-b p { padding-bottom: 13px; }
 .ntg { margin: 16px 2px 0; }
 .ntg h3 { margin: 0 4px 7px; font-size: 15px; font-weight: 650; }
 .nti { padding: 9px 12px; border-radius: 14px; background: var(--fill); border: 1px solid var(--line); margin-bottom: 6px; }
@@ -2614,9 +2626,9 @@ const BUBBLE = '<svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 
 const noteBtn = k => '<button class="ib nb" data-a="ex-notes" data-k="' + k + '" aria-label="Notes">' + BUBBLE + '<i class="nbd" hidden></i></button>';
 function paintNoteBtn(el, ex, s){
   const b = el.querySelector('[data-a="ex-notes"]'); if(!b) return;
-  const has = !!((ex.note && ex.note.trim()) || ex.feel), prev = !has && prevNotes(ex.name, s.id).length > 0;
+  const has = !!((ex.note && ex.note.trim()) || ex.feel), tip = !!tipOf(ex), prev = !has && (tip || prevNotes(ex.name, s.id).length > 0);
   b.classList.toggle('on', has); b.querySelector('.nbd').hidden = !prev;
-  b.setAttribute('aria-label', has ? 'Notes, added' : prev ? 'Notes, earlier ones' : 'Notes');
+  b.setAttribute('aria-label', has ? 'Notes, added' : tip ? 'Notes, a tip from ' + coach().short : prev ? 'Notes, earlier ones' : 'Notes');
 }
 const rirRow = k => '<div class="rir" data-r="rir"><p class="lab"><span>Reps in reserve</span><span class="rir-u">RIR</span><button class="chip tg-reset" data-a="ex-reset" data-k="' + k + '" data-r="reset" hidden>Reset</button></p><div class="rir-b" role="group" aria-label="Reps in reserve">' +
   [0, 1, 2, 3, 4, 5].map(n => '<button data-a="rir" data-k="' + k + '" data-v="' + n + '" aria-pressed="false">' + rirTxt(n) + '</button>').join('') + '</div></div>';
@@ -5361,6 +5373,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.35.0', date: '2026-10-22', items: [['tip435', 'Your coach\'s tip for each exercise waits behind the note bubble, folded until you tap it: how to do it, not the numbers']]},
   {v: '4.34.0', date: '2026-10-22', items: [['purple434', 'Purple no longer peeks over the coach card on Today']]},
   {v: '4.33.0', date: '2026-10-22', items: [['own433', 'The app stands on its own, with no link to any other app and two fewer rows under Settings, Data'], ['coachmsg433', 'Messages from your coach are marked as from the coach; older ones still show'], ['tiers433', 'Membership levels are now Rookie, Regular, Veteran and Legend'], ['log433', 'The changelog talks about your coach, not a company']]},
   {v: '4.32.0', date: '2026-10-22', items: [['patch432', 'A settings change is laid over a fresh copy of your settings file, so an old change on another phone no longer wipes newer ones'], ['stuck432', 'When GitHub keeps refusing a save, the app says so and offers Retry under Settings, Data, instead of waiting for network forever'], ['photos432', 'Photos taken before the phone was connected are uploaded as files, not inside the data'], ['phone432', 'Phone only mode says once you connect instead of promising an answer tonight'], ['retake432', 'A meal the coach could not read has a Retake photo button, keeping the meal and its time'], ['unread432', 'Only reviews and answers you have actually seen count as read, and Today points to unread ones in earlier reviews'], ['skip432', 'Try without saving is remembered, so the GitHub form does not come back at every start'], ['fist432', 'A fist width typed in the welcome steps is saved when you tap Next'], ['gunnar432', 'The creatures round a coach keep going after you tap them'], ['group432', 'Post on Groups writes to the group you are in, or goes to the Feed'], ['sophotos432', 'A post shows all its photos, not just the first'], ['robust432', 'Broken meals, photos, notes or exercise likes in the data no longer block Food, Social or Settings']]},
@@ -5545,11 +5558,20 @@ function prevNotes(name, sid){
   return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
 }
 /* The bubble on a card opens a small sheet with how it went (on an exercise), the note, and the notes from earlier
-   times, so everything about the exercise stays one tap from its card without taking room on it. */
+   times, so everything about the exercise stays one tap from its card without taking room on it. The coach's tip for
+   today (the target's `note`) sits folded at the top and opens when asked for. It never repeats the weight, reps or
+   RIR: the card already starts on those, so the tip is about how (technique, setup, a backup machine). */
+const tipOf = ex => { const tg = !ex.warm && !ex.cardio && targetFor(ex.name); return tg && typeof tg.note === 'string' && tg.note.trim() ? tg : null; };
+function tipHtml(ex){
+  const tg = tipOf(ex); if(!tg) return '';
+  const c = coach();
+  return '<div class="cotip"><button class="cotip-h" data-a="tip" aria-expanded="false">' + coachAv(c, 34) + '<span><b>Tip from ' + esc(c.short) + '</b></span>' +
+    '<svg class="cotip-c" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="cotip-b"><p>' + esc(tg.note.trim()) + '</p></div></div>';
+}
 function openNotes(k){
   const s = activeSession(), ex = s && s.exercises.find(e => e.k === k); if(!ex) return;
   const prev = prevNotes(ex.name, s.id), t = timed(ex);
-  openSheet('notes', shTop(ex.name, ex.warm ? 'Warm-up' : 'Notes'),
+  openSheet('notes', shTop(ex.name, ex.warm ? 'Warm-up' : 'Notes'), tipHtml(ex) +
     (t ? '' : '<div><p class="lab">How was it?</p><div class="feel">' + FEEL.map(([v, l]) => '<button class="chip" data-a="feel" data-k="' + k + '" data-v="' + v + '" aria-pressed="' + (ex.feel === v) + '">' + l + '</button>').join('') + '</div></div>') +
     '<div><label class="lab" for="nt-' + k + '">' + (t ? 'Note' : 'How it felt') + '</label><textarea id="nt-' + k + '" class="field exn" data-exnote="' + k + '" rows="2" placeholder="' + (t ? 'Like damper, level or watts' : 'Like the rope worked, or a tight shoulder') + '">' + esc(ex.note || '') + '</textarea></div>' +
     (prev.length ? '<div><p class="lab">Earlier</p><div class="npl">' + prev.map(n => '<div class="npi"><small>' + esc(dShort(n.date)) + '</small>' + esc(n.note) + '</div>').join('') + '</div></div>' : '') +
@@ -5851,6 +5873,7 @@ document.addEventListener('click', e => {
     case 'log-past': openPast(b.dataset.d); break;
     case 'start-past': startSession(b.dataset.id || null, b.dataset.d); break;
     case 'cardio-past': closeSheet(); setTimeout(() => openCardio({date: b.dataset.d}), 0); break;
+    case 'tip': { const w = b.closest('.cotip'), open = !w.classList.contains('open'); w.classList.toggle('open', open); b.setAttribute('aria-expanded', open); haptic(); break; }
     case 'feel': { const s = activeSession(), ex = s && s.exercises.find(e => e.k === b.dataset.k); if(ex){ const v = ex.feel === b.dataset.v ? '' : b.dataset.v; saveExField(ex.k, 'feel', v); b.parentElement.querySelectorAll('[data-a="feel"]').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.v === v))); haptic(); } break; }
     case 'ex-notes': openNotes(b.dataset.k); break;
     case 'add-warm': addWarm(); break;
