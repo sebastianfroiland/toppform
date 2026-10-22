@@ -1917,11 +1917,19 @@ const wTxt = (w, info) => info.bw === 'bw' ? (w ? '+' + fmt(w) : 'BW') : info.bw
 // RIR is reps in reserve. Older sets logged partial reps after failure instead, shown as +N.
 const rirTxt = n => n >= 5 ? '5+' : String(n);
 const setText = (s, info) => wTxt(s.weight || 0, info) + ' × ' + (s.reps||0) + (s.partials ? '+' + s.partials : '') + (s.rir != null ? ' (' + rirTxt(s.rir) + ' RIR)' : '');
+// A workout with nothing done for 12 hours was left open by mistake. It stops being the current workout, so a new
+// one can start and today's sets never land on an old day; closeStale then saves it as it was.
+const STALE_MS = 12 * 3600e3;
+function staleS(s){
+  const now = Date.now();
+  if(now - Math.max(s.startedAt || 0, s.loggedAt || 0, s.updatedAt || 0) <= STALE_MS) return false;
+  return !setsOf(s.id).some(x => now - (x.ts || 0) <= STALE_MS);
+}
 function activeSession(){
   const m = vmap('sessions');
-  if(S.activeId && m.has(S.activeId)){ const s = m.get(S.activeId); if(s && !s.endedAt) return s; }
+  if(S.activeId && m.has(S.activeId)){ const s = m.get(S.activeId); if(s && !s.endedAt && Array.isArray(s.exercises) && !staleS(s)) return s; }
   const now = Date.now();
-  for(const s of D.sessions){ if((s.kind === 'styrke' || s.template === 'C') && !s.endedAt && now - (s.startedAt||0) < 6*3600e3) return s; }
+  for(const s of D.sessions){ if((s.kind === 'styrke' || s.template === 'C') && !s.endedAt && Array.isArray(s.exercises) && now - (s.startedAt||0) < 6*3600e3) return s; }
   return null;
 }
 const routineById = id => D.routines.find(r => r.id === id) || null;
@@ -2606,6 +2614,7 @@ function renderWeek(){
 /* ---------- workout ---------- */
 function renderWorkout(){
   const s = activeSession();
+  if(!s && S.activeId) setTimeout(closeStale);
   $('#live-dot').hidden = !s;
   $('#wo-idle').hidden = !!s; $('#wo-live').hidden = !s; $('#wo-acts').hidden = !s;
   if(!s){
@@ -3196,6 +3205,16 @@ function finish(){
   S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.expanded.clear(); S.ui.noteFor = null; lockCardClear();
   for(const k of Object.keys(CT)) delete CT[k]; ctSave();
   selectTab(0);
+}
+// the workout left open: saved with its sets and ended at the last one, or removed when nothing was done in it
+function closeStale(){
+  const s = S.activeId && vmap('sessions').get(S.activeId);
+  if(!s || s.endedAt || !staleS(s)) return;
+  const sets = setsOf(s.id), day = /^\d{4}-\d\d-\d\d$/.test(s.date || '') ? ' from ' + dShort(s.date) : '';
+  S.activeId = null; ls.del('tl.active'); stopRest(); S.ui.expanded.clear(); S.ui.noteFor = null; lockCardClear();
+  for(const k of Object.keys(CT)) delete CT[k]; ctSave();
+  if(!sets.length && !s.note && !s.knee && !s.rpe && !(s.exercises || []).some(e => e && e.log)) queue('delete', 'sessions', s.id);
+  else { updateSession(s.id, {endedAt: Math.max(s.startedAt || 0, ...sets.map(x => x.ts || 0))}); toast('Workout' + day + ' saved'); }
 }
 /* A finished quick workout is kept as a workout in the Quick Workouts folder, so it can be started again */
 function saveQuick(s){
