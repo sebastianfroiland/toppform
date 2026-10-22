@@ -1892,7 +1892,10 @@ const ready = last => !!last && last.sets.some(s => (s.reps||0) >= 10);
 function todaysPlan(){
   const t = todayISO();
   if(D.plans.has(t)) return D.plans.get(t);
-  return [...D.plans.values()].filter(p => p && p.date && p.date <= t && dayDiff(t, p.date) <= 1).sort((a,b) => a.date < b.date ? 1 : -1)[0] || null;
+  // yesterday's plan carries over when no review wrote one for today, but only until you have trained after it:
+  // its targets and its workout were for that day
+  const p = [...D.plans.values()].filter(p => p && p.date && p.date <= t && dayDiff(t, p.date) <= 1).sort((a,b) => a.date < b.date ? 1 : -1)[0] || null;
+  return p && !D.sessions.some(s => s.endedAt && s.date >= p.date && (s.kind !== 'styrke' || setsOf(s.id).length)) ? p : null;
 }
 const targetFor = name => { const p = todaysPlan(); return p && p.targets ? p.targets[name] || null : null; };
 // RIR in a plan can be a range like "1-2": the card starts on the first number
