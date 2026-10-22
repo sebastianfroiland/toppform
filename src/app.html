@@ -540,6 +540,10 @@ input, textarea, select { font-family: inherit; color: inherit; font-size: 16px;
 .vin.fit { height: 100%; display: flex; flex-direction: column; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 76px); }
 .vin.fit > * { flex: none; }
 .vin.fit .grow { flex: 1 1 auto; min-height: min-content; display: flex; flex-direction: column; }
+/* when even the smallest version is too tall, a part with a list in it gives way: the list scrolls inside it, so the
+   page itself still fits */
+.vin.fit.squeeze .grow:has(.scrolly) { min-height: 0; }
+.vin.fit.squeeze .grow:has(.scrolly) > :not(.grow, .scrolly) { flex-shrink: 0; }
 .vin.fit > :last-child, .vin.fit .grow > :last-child { margin-bottom: 0; }
 /* When a fitted page or a flashcard is a little too tall it tightens step by step instead of scrolling: first the tips
    go (snug), then the spacing turns compact (tight), and last syncFit scales it down just enough. */
@@ -2328,12 +2332,19 @@ function syncFit(){
   const act = activeSession(), bar = $('#tabbar').getBoundingClientRect().top;
   for(const id of ['v-workout', 'v-log', 'v-body']){
     const vin = $('#' + id + ' .vin'), want = id !== 'v-workout' || !act || (ST().view === 'cards' && act.exercises.length > 0);
+    // a list that was squeezed last time keeps where you had scrolled it
+    const lists = [...vin.querySelectorAll('.scrolly')].map(x => [x, x.scrollTop]);
     vin.classList.toggle('fit', want);
+    vin.classList.remove('squeeze');
     if(!want){ vin.classList.remove('snug', 'tight'); vin.style.zoom = ''; continue; }
-    // the page must not scroll and nothing may end up behind the tab bar
-    const v = vin.parentElement;
-    const over = () => { const top = v.getBoundingClientRect().top; let bottom = 0; for(const c of vin.children){ if(c.offsetParent !== null) bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); } return v.scrollHeight > v.clientHeight + 1 || bottom > bar - top - 4; };
-    if(!fitBox(vin, over)) vin.classList.remove('fit');
+    // the page must not scroll and nothing may end up behind the tab bar; a part squeezed round its list must still
+    // show the rest of what is in it
+    const v = vin.parentElement, grows = [...vin.querySelectorAll('.grow:has(.scrolly)')];
+    const over = () => { const top = v.getBoundingClientRect().top; let bottom = 0; for(const c of vin.children){ if(c.offsetParent !== null) bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); } return v.scrollHeight > v.clientHeight + 1 || bottom > bar - top - 4 || (vin.classList.contains('squeeze') && grows.some(g => g.scrollHeight > g.clientHeight + 1)); };
+    if(fitBox(vin, over)) continue;
+    vin.classList.add('squeeze');
+    if(!fitBox(vin, over)) vin.classList.remove('fit', 'squeeze');
+    else lists.forEach(([x, t]) => { x.scrollTop = t; });
   }
   fitCards();
   drawLiftChart();
