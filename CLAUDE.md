@@ -87,6 +87,13 @@ Line numbers are from 4.34.0 and drift. Jump with `grep -n '^/\* ---------- ' sr
 - Sliders: the weight slider moves in half kilos. A tap beside the marker moves it one step (`rangeNudge`), and that tap is what makes the iPhone tick: since iOS 26.5 a web page cannot tick while a finger drags, so a drag only ticks once when you let go.
 - A tap on a logged set (on its card, or in a past workout in Log) opens it to change the weight, reps and RIR or to delete it (`openSetEdit`); the later sets move up so the numbers stay 1, 2, 3.
 
+### Week, streak and Move to tomorrow
+
+- The weekly goal is strength (`goal`) plus cardio (`cardioGoal`) from Settings, General. This week card on the Workout page shows one pill per workout in the goal (strength, then cardio; any workout fills a free pill), the skips left and a flame with the streak in weeks. The flame opens the streak sheet (`openStreak`): the streak, the last twelve weeks and the rules.
+- `streakInfo` counts it all from the log, nothing is stored: skips are 7 minus the goal, a day that ends without a workout uses one, two workouts in a day earn one, and a workout logged for a past day gives its skip back. A week counts when it reaches the goal of that week, which `goalLog` in settings keeps (`goalLogWith`), so raising the goal never breaks weeks already done.
+- Move to tomorrow sits next to All workouts while a planned workout is not done yet (`canMove`). It writes today's plan with `moved` {at, why}; the start card becomes a rest day with reason chips, what waits for tomorrow, and Undo (`moveUndo`, using `tl.moveUndo`). With no skips left it asks first. The next day the moved plan carries over until the evening review writes a new one.
+- Social shows everyone's streak by their name, the streak on You with Share, a card in the feed for the week that last grew it, and the Show Up Club, whose board ranks streaks.
+
 ### Food
 
 - The Food page is a week strip (tap a day, arrows move a week), one card with a calorie ring split by protein, carbs and fat (`foodRing`) and the macros beside it, the Snap-a-meal button with a question mark for the guide (`openFoodHelp`, also shown before the very first photo), and the meals with their calories on the right. Keep it that calm: no extra cards or explanations on the page.
