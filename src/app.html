@@ -381,6 +381,8 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .so-lifts b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .so-ph { margin: 0 -14px; }
 .so-ph img { display: block; width: 100%; max-height: 360px; object-fit: cover; }
+.so-ph.many { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.so-ph.many img { height: 170px; max-height: none; }
 .so-kl { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
 .so-stack { display: inline-flex; }
 .so-stack .so-av + .so-av { margin-left: -6px; }
@@ -1870,6 +1872,11 @@ function normDoc(col, d){
   }
   else if(col === 'checkins'){ if(KNEE_EN[d.knee]) c.knee = KNEE_EN[d.knee]; if(SORE_EN[d.sore]) c.sore = SORE_EN[d.sore]; }
   else if(col === 'routines'){ if(TITLE_EN[d.name]) c.name = TITLE_EN[d.name]; if(d.items && !Array.isArray(d.items)) c.items = []; else if(d.items && d.items.some(i => bad(i) || NAME_EN[i.name])) c.items = d.items.filter(i => !bad(i)).map(i => Object.assign({}, i, {name: nm(i.name)})); }
+  else if(col === 'food' || col === 'posts'){
+    if(d.ts != null && typeof d.ts !== 'number'){ const t = Date.parse(d.ts); c.ts = isNaN(t) ? Date.parse((typeof d.date === 'string' ? d.date : todayISO()) + 'T12:00:00') : t; }
+    if(d.photos && (!Array.isArray(d.photos) || d.photos.some(x => typeof x !== 'string'))) c.photos = Array.isArray(d.photos) ? d.photos.filter(x => typeof x === 'string') : [];
+    if(d.items && (!Array.isArray(d.items) || d.items.some(bad))) c.items = Array.isArray(d.items) ? d.items.filter(i => !bad(i)) : [];
+  }
   else if(col === 'plans'){ if(d.targets && Object.keys(d.targets).some(k => NAME_EN[k])){ const t = {}; for(const k in d.targets) t[nm(k)] = d.targets[k]; c.targets = t; } }
   return Object.keys(c).length ? Object.assign({}, d, c) : d;
 }
@@ -2042,22 +2049,28 @@ function savePending(){
   return ok;
 }
 let retryMs = 0, retryT = null, flushT = null;
-function queue(op, col, id, data){
+function queue(op, col, id, data, patch){
+  // a settings change also carries the patch it made (patch), so the upload lays it over a fresh copy of the file
+  // instead of sending the whole, possibly stale, copy from this phone
   if(S.backend === 'local' && S.mode === 'local'){
     // on the phone alone nothing is uploaded, so the queue keeps only the newest version of each doc, and a doc that
     // only ever lived on the phone needs no delete: removing a meal frees its photo
-    for(let i = S.pending.length - 1; i >= S.inflight; i--) if(S.pending[i].col === col && S.pending[i].id === id) S.pending.splice(i, 1);
-    if(op !== 'set' && !(S.snap[col] && S.snap[col].has(id))){ savePending(); refresh(); return; }
+    for(let i = S.pending.length - 1; i >= S.inflight; i--){ const p = S.pending[i]; if(p.col === col && p.id === id){ if(patch && p.patch) patch = Object.assign({}, p.patch, patch); S.pending.splice(i, 1); } }
+    if(op !== 'set' && !(S.snap[col] && S.snap[col].has(id))){ dropPhotoPuts(id); savePending(); refresh(); return; }
   }
   else if(op === 'set'){
     for(let i = S.pending.length - 1; i >= S.inflight; i--){
       const p = S.pending[i];
-      if(p.col === col && p.id === id){ if(p.op === 'set'){ p.data = data; savePending(); refresh(); scheduleFlush(); return; } break; }
+      if(p.col === col && p.id === id){ if(p.op === 'set'){ p.data = data; if(patch) p.patch = Object.assign({}, p.patch || {}, patch); savePending(); refresh(); scheduleFlush(); return; } break; }
     }
   }
-  S.pending.push({op, col, id, data: op === 'set' ? data : null});
+  if(op === 'delete') dropPhotoPuts(id);
+  const o = {op, col, id, data: op === 'set' ? data : null}; if(patch) o.patch = patch;
+  S.pending.push(o);
   savePending(); refresh(); scheduleFlush();
 }
+// a deleted meal or post takes the photos of its own that still wait for upload with it
+function dropPhotoPuts(id){ for(let i = S.pending.length - 1; i >= S.inflight; i--){ const p = S.pending[i]; if(p.col === 'photos' && (String(p.id).startsWith(id + '-') || String(p.id).startsWith('post-' + id + '-'))) S.pending.splice(i, 1); } }
 function scheduleFlush(ms){ clearTimeout(flushT); flushT = setTimeout(flush, ms == null ? (S.backend === 'gh' ? 700 : 0) : ms); }
 function retryLater(){ retryMs = Math.min(retryMs ? retryMs * 2 : 2000, 30000); clearTimeout(retryT); retryT = setTimeout(() => { retryT = null; flush(); }, retryMs); }
 async function flush(){
@@ -2172,6 +2185,21 @@ function commitMsg(ops){
 /* A file GitHub sent cut off or broken is never written, since the new file would hold only the new docs and the rest
    of that month would be gone. Changes that belong in it wait on the phone, behind the others, until it reads again. */
 const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
+/* Photos taken while the phone was alone sit as data URLs inside their docs. Before anything is uploaded they move to
+   data/photos, each put placed right before the doc that points at it, so the JSON files never carry images. */
+function photosOut(){
+  if(!S.pending.some(op => op.op === 'set' && op.data && JSON.stringify(op.data).indexOf('"data:image') >= 0)) return;
+  const out = [], isData = ph => typeof ph === 'string' && ph.startsWith('data:');
+  for(const op of S.pending){
+    const puts = [], move = (pid, url) => { const path = 'data/photos/' + pid + '.jpg'; puts.push({op: 'put', col: 'photos', id: pid, data: {b64: url.split(',')[1]}}); photoCache[path] = url; return path; };
+    if(op.op === 'set' && op.data){
+      if((op.col === 'food' || op.col === 'posts' || op.col === 'messages') && Array.isArray(op.data.photos)) op.data.photos = op.data.photos.map((ph, i) => isData(ph) ? move((op.col === 'posts' ? 'post-' : '') + op.id + '-' + i, ph) : ph);
+      if(op.col === 'meta' && op.data.hand && isData(op.data.hand.photo)){ op.data.hand = Object.assign({}, op.data.hand, {photo: move('hand-' + newId(), op.data.hand.photo)}); if(op.patch && op.patch.hand) op.patch.hand = op.data.hand; }
+    }
+    out.push(...puts, op);
+  }
+  S.pending.splice(0, S.pending.length, ...out); savePending();
+}
 const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
 // lays the phone's meta over the repo's: nested settings merge, lists keep what the repo had, everything else is the phone's
 const layOver = (base, top) => { const o = Object.assign({}, base); for(const k in top){ const a = o[k], b = top[k];
@@ -2180,6 +2208,7 @@ async function ghFlush(){
   if(!GH.head){ GH.emptyRepo = true; renderStatus(); return; }
   // just connected with changes on the phone and data in the repo: ask which should win before anything is written
   if(S.ui.askUpload){ if(Object.keys(GH.files).length){ if(!(sheetMode === 'upload' && document.body.classList.contains('sheet-open'))) askPhoneData(); renderStatus(); return; } S.ui.askUpload = false; }
+  photosOut();
   const held = ghHeld();
   if(held.length){ const h = new Set(held), go = S.pending.filter(op => !h.has(op)); S.pending.splice(0, S.pending.length, ...go, ...held); }
   const ops = S.pending.slice(0, Math.min(40, S.pending.length - held.length));
@@ -2194,7 +2223,7 @@ async function ghFlush(){
       if(op.col === 'photos'){ photoAdds.push({path: 'data/photos/' + op.id + '.jpg', contents: op.data.b64}); continue; }
       const path = ghPath(op);
       // settings from before the phone was connected (op.pre) never replace a meta file the repo already has; they are laid over it
-      if(op.col === 'meta'){ changed[path] = op.pre && GH.files[path] ? layOver(GH.files[path], op.data) : op.data; continue; }
+      if(op.col === 'meta'){ const fresh = changed[path] || GH.files[path]; changed[path] = !fresh ? op.data : op.pre ? layOver(fresh, op.patch || op.data) : op.patch ? Object.assign({}, fresh, op.patch, {updatedAt: op.data.updatedAt || Date.now()}) : op.data; continue; }
       const old = GH.index[op.col + '/' + op.id];
       if(old && old !== path) delete get(old)[op.id];
       if(op.op === 'set') get(path)[op.id] = op.data; else delete get(path)[op.id];
@@ -2203,12 +2232,13 @@ async function ghFlush(){
     const d = await gql(M_COMMIT, {i: {branch: {repositoryNameWithOwner: GH.cfg.owner + '/' + GH.cfg.repo, branchName: GH.branch}, message: {headline: commitMsg(ops)}, expectedHeadOid: GH.head, fileChanges: {additions}}});
     GH.head = d.createCommitOnBranch.commit.oid;
     Object.assign(GH.files, changed);
-    S.pending.splice(0, ops.length); savePending(); filesToSnap(); ghCache(); retryMs = 0; S.mode = 'live';
+    S.pending.splice(0, ops.length); savePending(); filesToSnap(); ghCache(); retryMs = 0; GH.fails = 0; GH.stuck = null; S.mode = 'live';
     again = S.pending.length > held.length;
   }catch(e){
     if(e && e.auth) GH.authError = true;
     else if(e && e.gql && /expect|head|oid|fast.?forward/i.test(e.message || '')){ try{ await ghLoad(); again = true; }catch(x){ retryLater(); } }
-    else { if(navigator.onLine === false || (e && e.net)) S.mode = 'offline'; retryLater(); }
+    else if(navigator.onLine === false || (e && e.net)){ S.mode = 'offline'; retryLater(); }
+    else { GH.fails = (GH.fails || 0) + 1; if(GH.fails >= 4){ GH.stuck = String(e && e.message || e || 'unknown error').slice(0, 140); console.warn('Saving stopped after repeated errors', e); } else retryLater(); }
   } finally { S.inflight = 0; refresh(); if(again) scheduleFlush(200); }
 }
 async function ghCheck(){
@@ -2238,7 +2268,7 @@ async function ghConnect(btn){
   try{
     const d = await gql(Q_HEAD, {o: owner, n: repo}, token);
     if(!d.repository) throw {auth:true};
-    GH.cfg = {owner, repo, token}; ls.set('tl.gh', JSON.stringify(GH.cfg));
+    GH.cfg = {owner, repo, token}; ls.set('tl.gh', JSON.stringify(GH.cfg)); ls.del('tl.skip');
     toast('Connected');
     // changes made on this phone before connecting wait until the question in askPhoneData is answered
     S.ui.askUpload = S.pending.length > 0;
@@ -2339,7 +2369,7 @@ async function init(){
     }catch(e){ console.warn(e); goLocal(); }
     return;
   }
-  S.needsConnect = true; goLocal();
+  S.needsConnect = true; S.ui.skipConnect = ls.get('tl.skip') === '1'; goLocal();
 }
 function goLocal(){ S.backend = 'local'; S.mode = 'local'; refresh(); maybeAutoOpen(); }
 
@@ -2441,6 +2471,7 @@ function renderStatus(){
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
   else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
   else if(gh && S.ui.askUpload && S.pending.length){ s = 'busy'; t = 'Not uploaded yet'; }
+  else if(gh && GH.stuck){ s = 'off'; t = 'Not saved'; note = 'GitHub refused the last save: ' + GH.stuck + '. Your changes stay on this phone. Retry under Settings, Data.'; }
   else if(S.mode === 'offline'){ s = 'busy'; t = S.pending.length ? 'Saves when online' : 'Offline'; }
   else if(S.mode === 'local'){ s = 'off'; t = S.pending.length ? 'Saved on phone' : 'Phone only'; if(!S.needsConnect) note = 'Not connected right now. What you log is kept on this phone and uploads when the app reconnects.'; }
   else if(S.mode === 'live'){ if(S.pending.length){ s = 'busy'; t = retryMs ? 'Waiting for network' : 'Saving'; } else { s = 'ok'; t = ''; } }
@@ -3657,7 +3688,7 @@ function helloFig(){
 /* Goals: at most three, in your own words. Claude rewrites each one short and formal in the evening review (the
    formal field) and plans around them until you change them. A goal tied to a lift and a target shows how close you are. */
 const goals = () => { const gl = D.meta.goals; return (Array.isArray(gl) ? gl : gl && typeof gl === 'object' ? Object.values(gl) : []).filter(g => g && g.text).slice(0, 3); };
-function saveMeta(patch){ queue('set', 'meta', 'logg', Object.assign({}, D.meta, patch, {updatedAt: Date.now()})); }
+function saveMeta(patch){ queue('set', 'meta', 'logg', Object.assign({}, D.meta, patch, {updatedAt: Date.now()}), patch); }
 function liftNow(name){ const p = strengthPRs().find(x => x.name === name); return p && p.e1 ? Math.round(p.e1.sc * 2) / 2 : 0; }
 /* Three kinds of goal: Strength (a lift and a number), Endurance (a distance and a time) and Health (body weight,
    body fat, sleep or workouts a week). Older goals without a type get one from what they say. */
@@ -3931,7 +3962,9 @@ function gnPlay(card){
   if(reduceMotion()) return;
   const now = performance.now();
   GN.quietTil = now + 2600;
-  const fig = card.querySelector('.cp-fig'); fig.style.animation = 'none'; void fig.offsetWidth; fig.style.animation = '';
+  const fig = card.querySelector('.cp-fig'); if(!fig) return;
+  fig.style.animation = 'none'; void fig.offsetWidth; fig.style.animation = '';
+  if(GN.card === card){ GN.fig = fig; GN.geo = null; }
   // the creatures take fright and come back a few seconds later
   // (when the box has just opened there are none of this coach's yet, so they come in right away)
   const had = GN.kind === card.dataset.v && GN.bfs.some(b => b.mode !== 'flee');
@@ -3968,7 +4001,7 @@ function gnTick(t){
   let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / P.dur; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
   GN.sniffs = GN.sniffs.filter(s0 => t - s0 < P.dur + 160);
   const fx = sn ? P.react(sn) : null, key = fx ? fx.join(' ') : '';
-  if(key !== GN.sc){ GN.sc = key; fig.style.scale = fx && fx[0] === 'scale' ? fx[1] : ''; fig.style.rotate = fx && fx[0] === 'rotate' ? fx[1] : ''; }
+  if(key !== GN.sc && fig){ GN.sc = key; fig.style.scale = fx && fx[0] === 'scale' ? fx[1] : ''; fig.style.rotate = fx && fx[0] === 'rotate' ? fx[1] : ''; }
   for(const b of GN.bfs){
     let tx, ty, k = P.k, c = P.c;
     if(b.mode === 'perch'){
@@ -4023,7 +4056,7 @@ function renderOb(){
     ['Measure your fist', 'Your fist is the ruler in food photos, so your coach can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
     ['What do you like?', 'Tap once to love an exercise, twice to avoid it.',
       '<div class="obx">' + OB_LIFTS.map(n => '<button data-a="ob-x" data-n="' + esc(n) + '" data-p="' + o.prefs[n] + '"><i class="l">' + XP_ICON.love + '</i><i class="x">' + XP_ICON.avoid + '</i>' + esc(n) + '</button>').join('') + '</div>'],
-    ['Your goals', 'One of each kind, all optional. Your coach words them clearly tonight.',
+    ['Your goals', 'One of each kind, all optional. Your coach words them clearly ' + whenCoach() + '.',
       OB_GOALS.map(([k, l, ph]) => '<div class="obg"><label class="lab" for="ob-g-' + k + '">' + l + '</label><textarea id="ob-g-' + k + '" class="field" rows="1" data-obg="' + k + '" placeholder="' + ph + '">' + esc(o.goals[k]) + '</textarea></div>').join('')]
   ];
   const [h, sub, body] = steps[o.step], last = o.step === steps.length - 1;
@@ -4053,7 +4086,7 @@ function finishOb(){
   }
   const settings = Object.assign({}, ST(), {name: o.name.trim() || ST().name, trainer: t.id, level: t.level, onboarded: true});
   saveMeta({settings, exPrefs: xp, goals: gs});
-  S.ui.ob = null; closeSheet(); toast('All set · ' + coach().short + ' plans around this tonight');
+  S.ui.ob = null; closeSheet(); toast('All set · ' + coach().short + ' plans around this ' + whenCoach());
 }
 
 /* Food: photo only. You snap the plate with your free hand in a fist beside it, and the fist is the ruler: Claude knows its
@@ -4135,14 +4168,14 @@ function renderFood(){
   const rows = xs.map(x => {
     const s = foodState(x), names = (x.items || []).map(i => i.name).filter(Boolean);
     const title = s === 'done' ? (names.length ? names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '') : x.text || 'Meal') : s === 'unclear' ? 'Photo unclear' : 'Photo saved';
-    const sub = s === 'done' ? (x.p != null ? Math.round(+x.p || 0) + ' g protein' : '') : s === 'unclear' ? 'Tap to see why' : coach().short + ' reads it tonight';
-    const end = s === 'done' && x.kcal != null ? '<span class="fkc"><b>' + kNum(x.kcal) + '</b><small>kcal</small></span>' : s === 'unclear' ? '<span class="fst bad">Retake</span>' : '<span class="fst">Tonight</span>';
+    const sub = s === 'done' ? (x.p != null ? Math.round(+x.p || 0) + ' g protein' : '') : s === 'unclear' ? 'Tap to see why' : coach().short + ' reads it ' + whenCoach();
+    const end = s === 'done' && x.kcal != null ? '<span class="fkc"><b>' + kNum(x.kcal) + '</b><small>kcal</small></span>' : s === 'unclear' ? '<span class="fst bad">Retake</span>' : '<span class="fst">' + (S.backend === 'gh' ? 'Tonight' : 'Later') + '</span>';
     return '<button class="fi" data-a="food-open" data-id="' + esc(x.id) + '"><span class="fph' + (x.photos && x.photos.length ? '' : ' none') + '">' + (x.photos && x.photos.length ? photoTag(x.photos[0]) : FOOD_IC) +
       (s === 'pending' ? '<i class="fdot"></i>' : '') + '</span><span class="ft"><small>' + esc((x.meal || 'Meal') + ' · ' + fClock.format(x.ts || Date.now())) + '</small><b>' + esc(title) + '</b>' + (sub ? '<em>' + esc(sub) + '</em>' : '') + '</span>' + end + '</button>';
   }).join('');
   const hand = handOf() ? '' : '<button class="fhand" data-a="hand-cal"><span>Measure your fist once, so ' + esc(coach().short) + ' can judge portions</span>' + arrowSvg(1) + '</button>';
   setHTML($('#food-list'), '<div class="hd"><h2>Meals</h2><small>' + (xs.length ? xs.length : '') + '</small></div>' + hand +
-    (rows || '<div class="fempty">' + CAM_IC + '<b>' + (d === t0 ? 'Nothing logged yet today' : 'Nothing logged this day') + '</b><span>Snap your plate with your fist beside it, and ' + esc(coach().short) + ' works out the rest tonight.</span></div>'));
+    (rows || '<div class="fempty">' + CAM_IC + '<b>' + (d === t0 ? 'Nothing logged yet today' : 'Nothing logged this day') + '</b><span>Snap your plate with your fist beside it, and ' + esc(coach().short) + ' works out the rest ' + whenCoach() + '.</span></div>'));
   hydratePhotos();
 }
 function openFood(id){
@@ -4155,8 +4188,9 @@ function openFood(id){
       '<div class="fdi tot"><span>Total' + (x.kcalLo != null && x.kcalHi != null ? '<small>Likely ' + kNum(x.kcalLo) + ' to ' + kNum(x.kcalHi) + ' kcal</small>' : '') + '</span><b>≈ ' + kNum(x.kcal || 0) + ' kcal</b></div></div>' +
       '<p class="fmac">' + Math.round(+x.p || 0) + ' g protein · ' + Math.round(+x.c || 0) + ' g carbs · ' + Math.round(+x.f || 0) + ' g fat</p>' +
       (x.conf ? '<p class="fconf" data-c="' + esc(x.conf) + '"><i></i>' + (CONF[x.conf] || x.conf) + '</p>' : '') + (x.note ? '<p class="fnote">' + esc(x.note) + '</p>' : '');
-  } else if(s === 'unclear') body = '<div class="fwait bad"><b>' + esc(coach().short) + ' could not read this photo</b><span>' + esc(x.note || 'Try again with the whole plate and your hand in view.') + '</span></div>';
-  else body = '<div class="fwait"><b>Waiting for ' + esc(coach().short) + '</b><span>Analysed in tonight’s review, with your fist as the ruler. You get the foods, portions, calories and how sure ' + esc(coach().short) + ' is.</span></div>';
+  } else if(s === 'unclear') body = '<div class="fwait bad"><b>' + esc(coach().short) + ' could not read this photo</b><span>' + esc(x.note || 'Try again with the whole plate and your hand in view.') + '</span></div>' +
+    '<button class="btn-primary wide" data-a="food-retake" data-id="' + esc(x.id) + '">' + CAM_IC + 'Retake photo</button>';
+  else body = '<div class="fwait"><b>Waiting for ' + esc(coach().short) + '</b><span>Analysed ' + (S.backend === 'gh' ? 'in tonight’s review' : 'once you connect') + ', with your fist as the ruler. You get the foods, portions, calories and how sure ' + esc(coach().short) + ' is.</span></div>';
   openSheet('food', shTop(x.meal || 'Meal', (x.date === todayISO() ? 'Today' : dDay(x.date)) + ' · ' + fClock.format(x.ts || Date.now())),
     '<div class="food-sheet">' + (x.photos && x.photos.length ? '<div class="fd-big">' + photoTag(x.photos[0]) + '</div>' : '') + seg2('fd-meal', MEALS.map(m => [m, m]), x.meal) + body +
     '<button class="btn-quiet danger" data-a="food-del" id="food-del">Delete meal</button></div>', true);
@@ -4168,11 +4202,13 @@ function storePhoto(id, url){
   S.pending.push({op: 'put', col: 'photos', id, data: {b64: url.split(',')[1]}}); photoCache[path] = url; savePending();
   return path;
 }
+// when the coach gets to it: in the evening review, or only once GitHub is connected
+const whenCoach = () => S.backend === 'gh' ? 'tonight' : 'once you connect';
 function saveFoodShot(url){
   const id = newId(), date = S.ui.foodDay || todayISO(), now = Date.now();
   queue('set', 'food', id, {id, date, ts: date === todayISO() ? now : new Date(date + 'T12:00:00').getTime(), meal: mealNow(), photos: [storePhoto(id + '-0', url)],
     hand: ST().handSide === 'right' ? 'right' : 'left', ref: 'fist', status: 'pending', createdAt: now, updatedAt: now});
-  toast('Saved · ' + coach().short + ' reads it tonight');
+  if(!S.full) toast('Saved · ' + coach().short + ' reads it ' + whenCoach());
 }
 
 /* Fist calibration: once, so Claude knows the size of the ruler in every food photo. Either a photo of the fist next to
@@ -4181,7 +4217,7 @@ const handOf = () => D.meta.hand || null;
 function handText(){
   const h = handOf(); if(!h) return 'Not set';
   if(h.widthCm) return 'Fist ' + fmt(h.widthCm) + ' cm wide' + (h.lengthCm ? ' · hand ' + fmt(h.lengthCm) + ' cm' : '');
-  return h.status === 'unclear' ? 'Photo unclear, try again' : 'Photo saved · ' + coach().short + ' measures it tonight';
+  return h.status === 'unclear' ? 'Photo unclear, try again' : 'Photo saved · ' + coach().short + ' measures it ' + whenCoach();
 }
 function handCalHtml(){
   const h = handOf();
@@ -4198,14 +4234,14 @@ function openHandCal(){ openSheet('hand', shTop('Your fist', 'The ruler in your 
 function paintHandCal(){ document.querySelectorAll('.hc').forEach(el => { const box = el.parentElement, open = !el.querySelector('.hc-type').hidden; box.innerHTML = handCalHtml(); if(open) box.querySelector('.hc-type').hidden = false; }); }
 function saveHandShot(url){
   saveMeta({hand: {photo: storePhoto('hand-' + newId(), url), side: ST().handSide === 'right' ? 'right' : 'left', ref: 'fist', status: 'pending', at: todayISO()}});
-  toast('Saved · ' + coach().short + ' measures your fist tonight'); paintHandCal();
+  if(!S.full) toast('Saved · ' + coach().short + ' measures your fist ' + whenCoach()); paintHandCal();
 }
 function saveHandTyped(){
   const len = num($('#hc-len').value), wid = num($('#hc-wid').value);
-  if(!wid || wid < 5 || wid > 13){ toast('A fist is usually 7 to 11 cm wide'); $('#hc-wid').focus(); return; }
-  if(len && (len < 12 || len > 26)){ toast('Hand length is usually 16 to 22 cm'); $('#hc-len').focus(); return; }
+  if(!wid || wid < 5 || wid > 13){ toast('A fist is usually 7 to 11 cm wide'); $('#hc-wid').focus(); return false; }
+  if(len && (len < 12 || len > 26)){ toast('Hand length is usually 16 to 22 cm'); $('#hc-len').focus(); return false; }
   saveMeta({hand: {lengthCm: len || null, widthCm: wid, from: 'tape', ref: 'fist', side: ST().handSide === 'right' ? 'right' : 'left', status: 'done', at: todayISO()}});
-  toast('Fist saved'); paintHandCal();
+  toast('Fist saved'); paintHandCal(); return true;
 }
 
 /* The guided camera: a live view with the plate circle and the hand drawn where they belong, a level that turns green
@@ -4238,7 +4274,7 @@ function camTilt(e){
 }
 function openCam(mode){
   const el = camEl();
-  CAMS.mode = mode; CAMS.shot = null;
+  CAMS.mode = mode; CAMS.shot = null; CAMS.retake = null;
   el.dataset.mode = mode; el.classList.toggle('left', ST().handSide !== 'right'); el.classList.remove('confirm', 'nocam'); el.hidden = false;
   $('#cam-tip').textContent = mode === 'hand' ? 'Your fist on the table, a bank card beside it' : 'Plate in the circle, your fist beside it';
   document.body.classList.add('cam-open');
@@ -4274,7 +4310,14 @@ function camShot(){
 function camUse(){
   const url = CAMS.shot; if(!url) return;
   const mode = CAMS.mode; closeCam();
-  if(mode === 'hand') saveHandShot(url); else saveFoodShot(url);
+  if(mode === 'hand') saveHandShot(url); else if(CAMS.retake) retakeFood(CAMS.retake, url); else saveFoodShot(url);
+}
+// a new photo for a meal the coach could not read keeps the meal, its time and kind, and waits for the review again
+function retakeFood(id, url){
+  const x = (D.food || []).find(f => f.id === id); if(!x){ saveFoodShot(url); return; }
+  const n = (x.retakes || 0) + 1;
+  queue('set', 'food', id, Object.assign({}, x, {photos: [storePhoto(id + '-r' + n, url)], status: 'pending', note: null, retakes: n, updatedAt: Date.now()}));
+  if(!S.full) toast('New photo saved · ' + coach().short + ' reads it ' + whenCoach());
 }
 
 /* Records: only the key lifts (your goals first, then the compound lifts you do most). Each one opens into a chart
@@ -4577,7 +4620,7 @@ const fbId = f => f.id || (f.kind || 'daily') + '-' + f.date;
 const photoCache = {};
 const msgsFor = re => [...vmap('messages').values()].filter(m => m && m.re === re).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 const fClock = new Intl.DateTimeFormat('en-GB', {hour: '2-digit', minute: '2-digit'});
-function photoTag(ph){ const src = ph.startsWith('data:') ? ph : photoCache[ph]; return '<img alt="Photo" ' + (src ? 'src="' + esc(src) + '"' : 'data-ph="' + esc(ph) + '"') + '>'; }
+function photoTag(ph){ if(typeof ph !== 'string' || !ph) return ''; const src = ph.startsWith('data:') ? ph : photoCache[ph]; return '<img alt="Photo" ' + (src ? 'src="' + esc(src) + '"' : 'data-ph="' + esc(ph) + '"') + '>'; }
 // the day and time under a message; a message without a date takes the day it was written
 function msgWhen(m){
   const at = new Date(+m.createdAt || Date.parse(m.createdAt) || Date.now()), ok = !isNaN(at);
@@ -4586,7 +4629,7 @@ function msgWhen(m){
 function threadHtml(re, noComposer, limit){
   const ms = msgsFor(re), last = ms[ms.length - 1], who = re === 'app' ? 'Plates' : coach().short;
   // newest first, so the latest message and Claude's latest answer sit at the top
-  let h = (last && last.from !== 'claude' ? '<div class="waiting">' + esc(who) + ' answers tonight</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
+  let h = (last && last.from !== 'claude' ? '<div class="waiting">' + esc(who) + ' answers ' + whenCoach() + '</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
     (m.photos && m.photos.length ? '<div class="ph">' + m.photos.map(photoTag).join('') + '</div>' : '') +
     '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(msgWhen(m)) + '</small></div>').join('');
   return (h ? '<div class="thread">' + h + '</div>' : '') + (noComposer ? '' : composerHtml(re));
@@ -4606,9 +4649,15 @@ const tsOf = x => x.createdAt || Date.parse((x.date || '1970-01-01') + 'T20:00:0
 const seenAt = k => +(ls.get(k) || 0);
 const claudeMsgs = app => [...vmap('messages').values()].filter(m => m && m.from === 'claude' && (m.re === 'app') === app);
 const coachItems = () => D.feedback.concat(claudeMsgs(false));
-const coachUnread = () => { const s = seenAt('tl.seen'); return coachItems().filter(x => tsOf(x) > s).length; };
+// a review or answer counts as read once it has been on screen: on Today (the newest review and its thread) or open
+// under Earlier. Older than the last mark-all-read of earlier versions also counts as read.
+const itemKey = x => x.re != null ? 'm:' + (x.id || x.createdAt) : 'f:' + fbId(x);
+const seenKeys = () => { try{ return new Set(JSON.parse(ls.get('tl.seenKeys') || '[]')); }catch(e){ return new Set(); } };
+const unseen = () => { const s = seenAt('tl.seen'), k = seenKeys(); return coachItems().filter(x => tsOf(x) > s && !k.has(itemKey(x))); };
+const coachUnread = () => unseen().length;
+const shownOnToday = () => { const fb = D.feedback[0], re = fb ? fbId(fb) : 'general'; return (fb ? [fb] : []).concat(msgsFor(re).filter(m => m.from === 'claude')); };
 const appUnread = () => { const s = seenAt('tl.seenApp'); return claudeMsgs(true).filter(x => tsOf(x) > s).length; };
-function markCoachRead(){ const t = Math.max.apply(null, [0].concat(coachItems().map(tsOf))); if(t > seenAt('tl.seen')) ls.set('tl.seen', String(t)); renderBadges(); }
+function markCoachRead(shown){ const k = seenKeys(); (shown || shownOnToday()).forEach(x => k.add(itemKey(x))); ls.set('tl.seenKeys', JSON.stringify([...k].slice(-400))); renderBadges(); }
 function markAppRead(){ const t = Math.max.apply(null, [0].concat(claudeMsgs(true).map(tsOf))); if(t > seenAt('tl.seenApp')) ls.set('tl.seenApp', String(t)); renderBadges(); }
 function renderBadges(){
   const n = coachUnread(), a = appUnread(), b = $('#coach-badge'), g = $('#set-badge');
@@ -4621,7 +4670,7 @@ function renderBadges(){
 function renderCoach(){
   const fb = D.feedback[0], re = fb ? fbId(fb) : 'general', n = msgsFor(re).length;
   setHTML($('#coach'), '<div class="coach-top">' + coachAv(coach(), 26) + '<h2>' + esc(coach().name) + '</h2>' + (D.feedback.length ? '<button class="chip" data-a="reviews">Earlier</button>' : '') + '</div>' +
-    (fb ? '<p class="fbmeta">' + esc(fbLabel(fb)) + '</p><div class="report">' + reportHtml(fb.text) + '</div>' : '<p class="sub" style="margin-top:8px">Your first evening review arrives tonight. Ask me anything in the box below.</p>'));
+    (fb ? '<p class="fbmeta">' + esc(fbLabel(fb)) + '</p><div class="report">' + reportHtml(fb.text) + '</div>' : '<p class="sub" style="margin-top:8px">Your first evening review arrives ' + whenCoach() + '. Ask me anything in the box below.</p>'));
   // today's plan from the coach is the first message in the chat, with a button that starts the planned workout
   const plan = todaysPlan(), act = activeSession(), sug = act ? null : routineById(suggested());
   let chat = '';
@@ -4629,6 +4678,9 @@ function renderCoach(){
     (act ? '<button class="chip" data-a="resume">Continue workout</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
     '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date) || 'Today') + '</small></div>';
   chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
+  // answers in earlier reviews that have not been seen yet are pointed at, not quietly marked read
+  const shownKeys = new Set(shownOnToday().map(itemKey)), other = unseen().filter(x => !shownKeys.has(itemKey(x))).length;
+  if(other) chat += '<button class="btn-quiet" data-a="reviews">' + plural(other, 'unread message') + ' in earlier reviews</button>';
   setHTML($('#chat'), chat);
   setHTML($('#dock'), composerHtml(re));
   dockVis(S.tab === 0 ? 1 : 0);
@@ -4652,6 +4704,7 @@ function renderReviews(){
     const f = list.find(x => fbId(x) === S.ui.fbKey);
     html = '<select class="sel block" id="fb-sel" aria-label="Choose date">' + opts(list.map(x => [fbId(x), [dShort(x.date), FB_KIND[x.kind] || 'Feedback'].filter(Boolean).join(' · ') + (x.label ? ' (' + x.label + ')' : '')]), S.ui.fbKey) + '</select>' +
       '<div><p class="fbmeta">' + esc(fbLabel(f)) + '</p><div class="report">' + reportHtml(f.text) + '</div>' + composerHtml(fbId(f)) + threadHtml(fbId(f), true) + '</div>';
+    markCoachRead([f].concat(msgsFor(fbId(f)).filter(m => m.from === 'claude')));
   }
   if(sampleFn) html += '<div class="srow" style="border-top:1px solid var(--line)"><div><b>Summarise now</b></div><select class="sel" id="ai-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-primary wide" data-a="ai-run-set">Summarise</button><div class="report" id="ai-out"></div>';
   else if(S.backend === 'gh'){
@@ -4702,7 +4755,7 @@ function sendMsg(re){
   S.ui.drafts[re] = []; S.ui.draftText[re] = '';
   document.querySelectorAll('.cmp[data-re="' + re + '"] textarea').forEach(box => { box.value = ''; box.style.height = ''; box.style.overflowY = ''; box.blur(); });
   queue('set', 'messages', id, {id, from: 'me', re, text, photos, date: todayISO(), createdAt: Date.now()});
-  toast('Sent · ' + coach().short + ' answers tonight');
+  toast('Sent · ' + coach().short + ' answers ' + whenCoach());
 }
 document.addEventListener('input', e => { const t = e.target; if(!t.dataset) return; if(t.dataset.sodraft != null && S.ui.soDraft){ S.ui.soDraft.text = t.value; growNote(t); } if(t.dataset.socmt != null){ S.ui.soCmtText = t.value; growNote(t); } });
 document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.sophoto != null && t.files && t.files.length && S.ui.soDraft){ const f = t.files[0]; t.value = ''; if(S.ui.soDraft.photos.length >= 4) return; try{ S.ui.soDraft.photos.push(await shrinkPhoto(f, 1280)); renderSide(); }catch(x){ toast('Could not read that photo'); } } });
@@ -4926,7 +4979,7 @@ function libNew(){
   const L = S.ui.lib; if(!L) return;
   const name = L.q.trim().slice(0, 60); if(!name) return;
   const list = (D.meta.customExercises || []).filter(c => c.name !== name).concat([{name, slot:'other', kind:'b'}]);
-  queue('set', 'meta', 'logg', Object.assign({}, D.meta, {customExercises:list, updatedAt:Date.now()}));
+  saveMeta({customExercises: list});
   libPick(name);
 }
 function libRemove(){
@@ -5203,7 +5256,7 @@ function soCard(p){
   if(p.prs && p.prs.length) h += '<div class="so-prs">' + p.prs.map(t => '<span>' + SO_IC.trophy + esc(t) + '</span>').join('') + '</div>';
   if(p.seed) h += soRoute(p.seed);
   else if(p.top && p.top.length) h += '<div class="so-lifts">' + p.top.map(([n, v]) => '<div><span>' + esc(n) + '</span><b>' + esc(v) + '</b></div>').join('') + '</div>';
-  if(p.photos && p.photos.length) h += '<div class="so-ph">' + photoTag(p.photos[0]) + '</div>';
+  if(p.photos && p.photos.length) h += '<div class="so-ph' + (p.photos.length > 1 ? ' many' : '') + '">' + p.photos.slice(0, 4).map(photoTag).join('') + '</div>';
   if(kc) h += '<p class="so-kl"><span class="so-stack">' + (k ? soAv('me', 'xs') : '') + (p.by || []).slice(0, k ? 2 : 3).map(w => soAv(w, 'xs')).join('') + '</span>' +
     (k ? (kc > 1 ? 'You and ' + plural(kc - 1, 'other') : 'You') : kc === 1 ? soName(p.by[0]) : soName(p.by[0]).split(' ')[0] + ' and ' + plural(kc - 1, 'other')) + ' gave kudos</p>';
   h += '<div class="so-act">' + (mine ? '' : '<button class="so-k' + (k ? ' on' : '') + '" data-a="so-kudos" data-id="' + esc(p.id) + '" aria-pressed="' + k + '">' + SO_IC.kudos + '<span>Kudos</span></button>') +
@@ -5291,7 +5344,7 @@ function soPost(){
   if(!text && !d.photos.length){ toast('Write something or add a photo'); return; }
   const id = newId(), now = Date.now();
   queue('set', 'posts', id, Object.assign({id, date: todayISO(), ts: now, text, photos: d.photos.map((ph, i) => storePhoto('post-' + id + '-' + i, ph))}, d.group ? {group: d.group} : {}));
-  S.ui.soDraft = null; renderSide(); toast('Posted');
+  S.ui.soDraft = null; renderSide(); if(!S.full) toast('Posted');
 }
 
 // Your membership grows with the workouts you log: Starter, Regular, Pro, Elite
@@ -5329,7 +5382,7 @@ function renderSettings(){
     srow('Start date', '', '<input class="field small" type="date" data-set="start" value="' + esc(st.start) + '">') +
     srow('Length', '', sel('weeks', [[0,'No end date'],[8,'8 weeks'],[12,'12 weeks'],[16,'16 weeks'],[26,'26 weeks'],[52,'52 weeks']], st.weeks)) +
     srow('Weekly goal', 'Strength sessions', sel('goal', [1,2,3,4,5,6,7].map(n => [n, String(n)]), st.goal));
-  const nx = Object.values(xpAll()), nl = nx.filter(v => v.p === 'love').length, na = nx.filter(v => v.p === 'avoid').length;
+  const nx = Object.values(xpAll()).filter(v => v && v.p), nl = nx.filter(v => v.p === 'love').length, na = nx.filter(v => v.p === 'avoid').length;
   p.coach = '<p class="hint" style="margin:12px 6px 4px">Your coach plans your workouts and talks to you in their own voice.</p>' + coachPick(trainerId(), true, 'inset') +
     srow('Tips', 'Explanations on cards, like what RIR means', seg('level', [['new','Show'],['pro','Hide']], st.level === 'pro' ? 'pro' : 'new')) +
     srow('Exercise likes', nl || na ? nl + ' loved · ' + na + ' avoided' : 'Love or avoid exercises', '<button class="btn-glass btn-small" data-a="set-panel" data-p="exercises">Edit</button>') +
@@ -5365,7 +5418,7 @@ function renderSettings(){
   const store = S.backend === 'gh' ? srow('GitHub', esc(GH.cfg.owner + '/' + GH.cfg.repo), '<button class="btn-glass btn-small" id="ghd-btn" data-a="gh-disconnect">Disconnect</button>')
     : S.backend === 'db' ? srow('Saved in Claude', '', '')
     : srow('Phone only', '', '<button class="btn-glass btn-small" data-a="gh-show">Connect</button>');
-  p.data = store + srow('Logged', plural(D.sessions.length, 'session') + ' · ' + plural(D.sets.length, 'set') + ' · ' + plural(D.checkins.size, 'check-in'), '') +
+  p.data = store + (S.backend === 'gh' && GH.stuck ? srow('Saving stopped', esc(GH.stuck), '<button class="btn-glass btn-small" data-a="gh-retry">Retry</button>') : '') + srow('Logged', plural(D.sessions.length, 'session') + ' · ' + plural(D.sets.length, 'set') + ' · ' + plural(D.checkins.size, 'check-in'), '') +
     srow('Export', 'CSV', '<button class="btn-glass btn-small" data-a="export">Download</button>') +
     srow('Copy for Claude', 'Last 30 days as text', '<button class="btn-glass btn-small" data-a="copy-summary">Copy</button>');
   setHTML($('#setPanels'), Object.keys(p).map(k => '<div class="set-panel' + (k === S.ui.setPanel ? ' on' : '') + '" data-p="' + k + '">' + p[k] + '</div>').join(''));
@@ -5461,6 +5514,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.32.0', date: '2026-10-22', items: [['patch432', 'A settings change is laid over a fresh copy of your settings file, so an old change on another phone no longer wipes newer ones'], ['stuck432', 'When GitHub keeps refusing a save, the app says so and offers Retry under Settings, Data, instead of waiting for network forever'], ['photos432', 'Photos taken before the phone was connected are uploaded as files, not inside the data'], ['phone432', 'Phone only mode says once you connect instead of promising an answer tonight'], ['retake432', 'A meal the coach could not read has a Retake photo button, keeping the meal and its time'], ['unread432', 'Only reviews and answers you have actually seen count as read, and Today points to unread ones in earlier reviews'], ['skip432', 'Try without saving is remembered, so the GitHub form does not come back at every start'], ['fist432', 'A fist width typed in the welcome steps is saved when you tap Next'], ['gunnar432', 'The creatures round a coach keep going after you tap them'], ['group432', 'Post on Groups writes to the group you are in, or goes to the Feed'], ['sophotos432', 'A post shows all its photos, not just the first'], ['robust432', 'Broken meals, photos, notes or exercise likes in the data no longer block Food, Social or Settings']]},
   {v: '4.31.0', date: '2026-10-22', items: [['connect431', 'Connecting GitHub asks what to keep when this phone has changes and the repo already has data'], ['full431', 'A full phone says Not saved until a save works, and Phone only keeps one version of each change'], ['photo431', 'Meal photos in Phone only are stored at 720 px, so storage lasts'], ['sothumb431', 'Photos in a new Social post show as small thumbnails with a remove button'], ['dbl431', 'A double tap on Log set logs one set, and Remove, Delete set and Discard never confirm by themselves'], ['stale431', 'A workout left open for 12 hours is saved and no longer blocks today'], ['fit431', 'Body fits a small phone, flashcards fit at text L, and a page that is still too tall scrolls inside its list instead of the page'], ['slide431', 'Slide mode shows 122.5 kg and 15:00 in full'], ['goals431', 'Goal rings count added weight on body weight lifts, Last counts cardio, and chips never read the same'], ['picker431', 'Closing the exercise picker goes back to the workout you are making, and a new workout starts in My Workouts'], ['plan431', 'Yesterday\'s plan stops setting the cards once you have trained after it'], ['max431', 'The estimated max counts a long set as 12 reps']]},
   {v: '4.30.0', date: '2026-10-22', items: [['workoutc430', 'Workout C is a strength workout again, not cardio'], ['dates430', 'A bad date or an empty entry in your data no longer blanks the app'], ['guard430', 'A page that cannot draw no longer freezes the tabs, start-up or saving'], ['month430', 'A month file the app could not read on GitHub is never written over; its changes wait on the phone'], ['chart430', 'Reading a chart no longer hides it'], ['deck430', 'The cards land on the right exercise when they are shrunk to fit']]},
   {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face, instead of Claude'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
@@ -5683,12 +5737,12 @@ function openNotes(k){
 // Settings, Notes: every note and rating you gave, grouped by exercise, the most recent first
 function notesHtml(){
   const by = new Map();
-  for(const x of D.sessions) for(const e of x.exercises || []){
+  for(const x of D.sessions){ if(typeof x.date !== 'string' || !x.date) continue; for(const e of x.exercises || []){
     const note = (e.note || '').trim(), tag = (FEEL.find(f => f[0] === e.feel) || EFFORT.find(f => f[0] === e.effort) || [])[1] || '';
     if(!note && !tag) continue;
     if(!by.has(e.name)) by.set(e.name, []);
     by.get(e.name).push({date: x.date, note, tag});
-  }
+  } }
   if(!by.size) return '<p class="hint" style="margin:12px 6px">Notes and ratings from the bubble on each card show up here.</p>';
   const groups = [...by].map(([n, xs]) => [n, xs.sort((a, b) => b.date.localeCompare(a.date))]).sort((a, b) => b[1][0].date.localeCompare(a[1][0].date));
   return groups.map(([n, xs]) => '<div class="ntg"><h3>' + esc(n) + '</h3>' + xs.slice(0, 15).map(x => '<div class="nti"><small>' + esc(dShort(x.date)) + (x.tag ? ' · <b>' + esc(x.tag) + '</b>' : '') + '</small>' + (x.note ? '<p>' + esc(x.note) + '</p>' : '') + '</div>').join('') + '</div>').join('');
@@ -5878,7 +5932,13 @@ document.addEventListener('click', e => {
       S.ui.soCmt = null; S.ui.soCmtText = ''; renderSide(); haptic();
       break;
     }
-    case 'so-compose': S.ui.soDraft = {text: '', photos: [], group: b.dataset.g || ''}; if(S.ui.soTab === 'you') S.ui.soTab = 'feed'; renderSide(); { const t = document.querySelector('[data-sodraft]'); if(t) t.focus(); } break;
+    case 'so-compose': {
+      const g = b.dataset.g || (S.ui.soTab === 'groups' && S.ui.soGroup) || '';
+      S.ui.soDraft = {text: '', photos: [], group: g}; if(S.ui.soTab === 'you') S.ui.soTab = 'feed'; renderSide();
+      // no box came up (the groups list, or a group you have not joined): the post goes to the Feed instead
+      if(!document.querySelector('[data-sodraft]')){ S.ui.soDraft.group = ''; S.ui.soTab = 'feed'; renderSide(); }
+      const t = document.querySelector('[data-sodraft]'); if(t) t.focus(); break;
+    }
     case 'so-compose-x': S.ui.soDraft = null; renderSide(); break;
     case 'so-post': soPost(); break;
     case 'so-ph-del': { const d = S.ui.soDraft; if(d){ d.photos.splice(+b.dataset.i, 1); renderSide(); } break; }
@@ -5921,7 +5981,7 @@ document.addEventListener('click', e => {
     case 'coach-goals': closeSettings(); S.ui.pg = 'records'; selectTab(3); renderProgress(); break;
     case 'ob-open': closeSettings(); setTimeout(openOnboard, 250); break;
     case 'ob-x': { const o = S.ui.ob, n = b.dataset.n; if(!o) break; const nx = {fine: 'love', love: 'avoid', avoid: 'fine'}[o.prefs[n]] || 'love'; o.prefs[n] = nx; b.dataset.p = nx; break; }
-    case 'ob-next': { const o = S.ui.ob; if(!o) break; if(o.step >= 4) finishOb(); else { o.step++; renderOb(); } break; }
+    case 'ob-next': { const o = S.ui.ob; if(!o) break; const w = o.step === 2 ? $('#hc-wid') : null; if(w && w.value.trim() && !saveHandTyped()) break; if(o.step >= 4) finishOb(); else { o.step++; renderOb(); } break; }
     case 'ob-back': { const o = S.ui.ob; if(o && o.step){ o.step--; renderOb(); } break; }
     case 'ob-skip': saveSettings({onboarded: true}); S.ui.ob = null; closeSheet(); break;
     case 'food-day': { const d = addDays(S.ui.foodDay || todayISO(), +b.dataset.d); S.ui.foodDay = d > todayISO() ? todayISO() : d; renderFood(); softIn($('#food-week'), $('#food-day'), $('#food-list')); haptic(); break; }
@@ -5929,6 +5989,7 @@ document.addEventListener('click', e => {
     case 'food-snap': if(!(D.food || []).length && !ls.get('tl.fguide')) openFoodHelp(); else openCam('meal'); break;
     case 'food-help': openFoodHelp(); break;
     case 'food-cam': openCam('meal'); closeSheet(); break;
+    case 'food-retake': { const id = b.dataset.id; closeSheet(); openCam('meal'); CAMS.retake = id; break; }
     case 'food-open': openFood(b.dataset.id); break;
     case 'fd-meal': {
       const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b));
@@ -6057,10 +6118,11 @@ document.addEventListener('click', e => {
     case 'set-switch': { const k = b.dataset.k, v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); saveSettings({[k]: v}); if(k === 'sound' && v){ ensureAudio(); beep(); } if((k === 'notify' || k === 'lockCard') && v) askNotify(b, k); if(k === 'lockCard' && !v) lockCardClear(); break; }
     case 'set-seg': { const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); saveSettings({[b.dataset.k]: b.dataset.v}); break; }
     case 'gh-connect': ghConnect(b); break;
-    case 'gh-skip': S.ui.skipConnect = true; renderToday(); maybeOnboard(); break;
+    case 'gh-skip': S.ui.skipConnect = true; ls.set('tl.skip', '1'); renderToday(); maybeOnboard(); break;
     case 'up-yes': S.ui.askUpload = false; S.pending.forEach(op => { op.pre = true; }); savePending(); closeSheet(); scheduleFlush(); break;
     case 'up-no': S.ui.askUpload = false; S.pending.splice(0, S.pending.length); savePending(); filesToSnap(); closeSheet(); refresh(); toast('Using the data on GitHub'); break;
-    case 'gh-show': closeSettings(); S.ui.skipConnect = false; S.needsConnect = true; $('#connect').dataset.built = ''; selectTab(0); renderToday(); break;
+    case 'gh-show': closeSettings(); S.ui.skipConnect = false; ls.del('tl.skip'); S.needsConnect = true; $('#connect').dataset.built = ''; selectTab(0); renderToday(); break;
+    case 'gh-retry': GH.stuck = null; GH.fails = 0; retryMs = 0; closeSettings(); flush(); break;
     case 'gh-disconnect': if(S.ui.armedAct === 'ghd'){ disarmAct(); ghDisconnect(); } else armButton('ghd-btn', 'ghd', 'Disconnect', 'Tap again'); break;
     case 'ask-overview': { const key = $('#req-period').value, r = periodRange(key), id = newId(); queue('set', 'requests', id, {id, type:'overview', period:key, label:r.label, date:todayISO(), createdAt:Date.now()}); toast(coach().short + ' writes it tonight'); renderReviews(); break; }
     case 'feedback-open': openReviews(); break;
@@ -6075,7 +6137,7 @@ document.addEventListener('click', e => {
 $('#setNav').addEventListener('click', e => { const b = e.target.closest('button[data-p]'); if(!b) return; S.ui.setPanel = b.dataset.p; renderSettings(); setTimeout(gnLive, 300); });
 function saveSettings(patch){
   const settings = Object.assign({}, ST(), patch);
-  queue('set', 'meta', 'logg', Object.assign({}, D.meta, {settings, updatedAt: Date.now()}));
+  saveMeta({settings});
 }
 document.addEventListener('change', e => {
   const t = e.target;
