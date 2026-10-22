@@ -2045,7 +2045,7 @@ function dbSubscribe(){
   base().onSnapshot(d => { const m = new Map(); if(d.exists) m.set('logg', d.data()); S.snap.meta = m; loadedCol('meta'); refresh(); }, onErr);
 }
 
-const GH = { cfg: loadJSON('tl.gh', null), head: null, branch: 'main', files: {}, index: {}, authError: false };
+const GH = { cfg: loadJSON('tl.gh', null), head: null, branch: 'main', files: {}, index: {}, bad: new Set(), authError: false };
 const GQL = 'https://api.github.com/graphql';
 async function gql(query, variables, token){
   let res;
@@ -2057,7 +2057,7 @@ async function gql(query, variables, token){
   if(j.errors && j.errors.length) throw {gql:true, message: j.errors.map(e => e.message).join('; ')};
   return j.data;
 }
-const Q_LOAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){defaultBranchRef{name target{oid}} object(expression:"HEAD:data"){... on Tree{entries{name type object{... on Blob{text} ... on Tree{entries{name type object{... on Blob{text}}}}}}}}}}';
+const Q_LOAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){defaultBranchRef{name target{oid}} object(expression:"HEAD:data"){... on Tree{entries{name type object{... on Blob{text isTruncated} ... on Tree{entries{name type object{... on Blob{text isTruncated}}}}}}}}}}';
 const Q_HEAD = 'query($o:String!,$n:String!){repository(owner:$o,name:$n){name defaultBranchRef{target{oid}}}}';
 const M_COMMIT = 'mutation($i:CreateCommitOnBranchInput!){createCommitOnBranch(input:$i){commit{oid}}}';
 const FLAT = {meta:'data/meta.json', routines:'data/routines.json', folders:'data/folders.json', plans:'data/plans.json', requests:'data/requests.json', social:'data/social.json'};
@@ -2075,7 +2075,7 @@ function filesToSnap(){
   }
   S.snap = snap;
 }
-function ghCache(){ try{ localStorage.setItem('tl.gh.cache', JSON.stringify({head: GH.head, branch: GH.branch, files: GH.files})); }catch(e){} }
+function ghCache(){ try{ localStorage.setItem('tl.gh.cache', JSON.stringify({head: GH.head, branch: GH.branch, files: GH.files, bad: [...GH.bad]})); }catch(e){} }
 function ghPath(op){
   if(FLAT[op.col]) return FLAT[op.col];
   let month = op.op === 'set' && op.data && op.data.date ? String(op.data.date).slice(0, 7) : null;
@@ -2087,14 +2087,18 @@ async function ghLoad(){
   const repo = d.repository; if(!repo) throw {auth:true};
   GH.branch = repo.defaultBranchRef ? repo.defaultBranchRef.name : 'main';
   GH.head = repo.defaultBranchRef ? repo.defaultBranchRef.target.oid : null;
-  const files = {};
+  const files = {}, bad = new Set();
   const walk = (entries, prefix) => (entries || []).forEach(e => {
     const p = prefix + '/' + e.name;
-    if(e.type === 'blob' && /\.json$/.test(e.name) && e.object && e.object.text != null){ try{ files[p] = JSON.parse(e.object.text); }catch(x){ console.warn('Could not read', p); } }
+    if(e.type === 'blob' && /\.json$/.test(e.name)){
+      // a file that comes back cut off or broken is marked, so the app never writes over what it could not read
+      const t = e.object && !e.object.isTruncated ? e.object.text : null;
+      try{ if(t == null) throw 0; files[p] = JSON.parse(t); }catch(x){ bad.add(p); console.warn('Could not read', p); }
+    }
     else if(e.type === 'tree' && e.object && e.object.entries) walk(e.object.entries, p);
   });
   if(repo.object) walk(repo.object.entries, 'data');
-  GH.files = files; filesToSnap(); ghCache();
+  GH.files = files; GH.bad = bad; filesToSnap(); ghCache();
   GH.authError = false; S.mode = 'live';
 }
 const b64 = s => { const bytes = new TextEncoder().encode(s); let bin = ''; for(let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); };
@@ -2112,9 +2116,16 @@ function commitMsg(ops){
   else if(p.op === 'delete') m = 'Deleted from ' + p.col;
   return m + (ops.length > 1 ? ' (+' + (ops.length - 1) + ')' : '');
 }
+/* A file GitHub sent cut off or broken is never written, since the new file would hold only the new docs and the rest
+   of that month would be gone. Changes that belong in it wait on the phone, behind the others, until it reads again. */
+const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
 async function ghFlush(){
   if(!GH.head){ GH.emptyRepo = true; renderStatus(); return; }
-  const ops = S.pending.slice(0, 40); S.inflight = ops.length;
+  const held = ghHeld();
+  if(held.length){ const h = new Set(held), go = S.pending.filter(op => !h.has(op)); S.pending.splice(0, S.pending.length, ...go, ...held); }
+  const ops = S.pending.slice(0, Math.min(40, S.pending.length - held.length));
+  if(!ops.length){ renderStatus(); return; }
+  S.inflight = ops.length;
   let again = false;
   try{
     const changed = {};
@@ -2133,7 +2144,7 @@ async function ghFlush(){
     GH.head = d.createCommitOnBranch.commit.oid;
     Object.assign(GH.files, changed);
     S.pending.splice(0, ops.length); savePending(); filesToSnap(); ghCache(); retryMs = 0; S.mode = 'live';
-    again = S.pending.length > 0;
+    again = S.pending.length > held.length;
   }catch(e){
     if(e && e.auth) GH.authError = true;
     else if(e && e.gql && /expect|head|oid|fast.?forward/i.test(e.message || '')){ try{ await ghLoad(); again = true; }catch(x){ retryLater(); } }
@@ -2155,7 +2166,7 @@ function markAllLoaded(){ ['sessions','sets','meta'].forEach(loadedCol); }
 async function ghStart(){
   S.backend = 'gh'; S.needsConnect = false;
   const c = loadJSON('tl.gh.cache', null);
-  if(c && c.files){ GH.files = c.files; GH.head = c.head; GH.branch = c.branch || 'main'; filesToSnap(); S.mode = 'offline'; refresh(); }
+  if(c && c.files){ GH.files = c.files; GH.head = c.head; GH.branch = c.branch || 'main'; GH.bad = new Set(c.bad || []); filesToSnap(); S.mode = 'offline'; refresh(); }
   try{ await ghLoad(); }
   catch(e){ if(e && e.auth) GH.authError = true; S.mode = 'offline'; }
   markAllLoaded(); refresh(); scheduleFlush();
@@ -2342,6 +2353,7 @@ function renderStatus(){
   if(S.readonly){ s = 'off'; t = 'Read only'; note = 'You only have view access, so what you log stays on this phone.'; }
   else if(gh && GH.authError){ s = 'off'; t = 'Token rejected'; note = 'GitHub no longer accepts your token. Everything you log is kept on this phone. Create a new token and reconnect under Settings, Data.'; }
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
+  else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
   else if(S.mode === 'offline'){ s = 'busy'; t = S.pending.length ? 'Saves when online' : 'Offline'; }
   else if(S.mode === 'local'){ s = 'off'; t = S.pending.length ? 'Saved on phone' : 'Phone only'; if(!S.needsConnect) note = 'Not connected right now. What you log is kept on this phone and uploads when the app reconnects.'; }
   else if(S.mode === 'live'){ if(S.pending.length){ s = 'busy'; t = retryMs ? 'Waiting for network' : 'Saving'; } else { s = 'ok'; t = ''; } }
