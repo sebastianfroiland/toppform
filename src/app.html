@@ -1255,7 +1255,7 @@ button.day:active { transform: scale(.94); }
 .curve svg { display: block; width: 100%; overflow: visible; }
 .curve .cdot { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--g1); box-shadow: 0 0 0 3px var(--bg); pointer-events: none; transition: left .12s, top .12s; }
 .curve .ctip { position: absolute; top: -6px; transform: translate(-50%, -100%); padding: 4px 9px; border-radius: 9px; background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; font-variant-numeric: tabular-nums; }
-.curve.scrub .ctip { opacity: 1; }
+.curve.reading .ctip { opacity: 1; }
 .curve .cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-top: 6px; font-variant-numeric: tabular-nums; }
 .curve.empty { padding: 18px 0 6px; text-align: center; color: var(--dim); font-size: 13.5px; display: flex; align-items: center; justify-content: center; }
 .curve.one { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 14px 0 6px; text-align: center; }
@@ -3358,10 +3358,10 @@ function scrubCurve(el, x){
   const dot = el.querySelector('.cdot'), tip = el.querySelector('.ctip');
   dot.style.left = tip.style.left = best[0] + '%'; dot.style.top = best[1] + 'px'; tip.style.top = (best[1] - 8) + 'px';
   if(tip.textContent !== best[2] + ' · ' + best[3]){ tip.textContent = best[2] + ' · ' + best[3]; haptic(); }
-  el.classList.add('scrub');
+  el.classList.add('reading');
 }
 function endScrub(el){
-  el.classList.remove('scrub');
+  el.classList.remove('reading');
   let pts; try{ pts = JSON.parse(el.dataset.pts); }catch(e){ return; }
   const l = pts[pts.length - 1], dot = el.querySelector('.cdot'); dot.style.left = l[0] + '%'; dot.style.top = l[1] + 'px';
 }
