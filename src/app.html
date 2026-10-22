@@ -111,15 +111,17 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .cps.picked, .cps.picked .cp.on { min-height: -webkit-min-content; min-height: min-content; }
 .cps.picked .cp.on { flex-grow: 2.7; border-color: var(--g1); background: color-mix(in srgb, var(--g1) 8%, var(--fill)); }
 .cp-art { position: relative; align-self: stretch; overflow: hidden; pointer-events: none; }
-.cp-fig { position: absolute; left: 50%; top: 12px; height: 330px; aspect-ratio: var(--ar, 329 / 840); translate: -50% 0; transform-origin: 50% 100%; transition: height .6s var(--spring), top .6s var(--spring); }
+/* --fk shrinks a wide coach (Bjørn) a little so his shoulders fit the picture column like the others */
+.cp-fig { position: absolute; left: 50%; top: 12px; height: calc(330px * var(--fk, 1)); aspect-ratio: var(--ar, 329 / 840); translate: -50% 0; transform-origin: 50% 100%; transition: height .6s var(--spring), top .6s var(--spring); }
 .cp-fig > * { position: absolute; left: 0; top: 0; width: 100%; height: 100%; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .cp-ghost { fill: color-mix(in srgb, var(--dim) 20%, transparent); }
-.cps.picked .cp:not(.on) .cp-fig { height: 250px; top: 7px; }
-.cps.picked .cp.on .cp-fig { height: min(calc(100% - 22px), 360px); top: 12px; animation: cpHop .75s var(--spring), cpBreathe 4.8s ease-in-out .75s infinite; }
+.cps.picked .cp:not(.on) .cp-fig { height: calc(250px * var(--fk, 1)); top: 7px; }
+.cps.picked .cp.on .cp-fig { height: calc(min(calc(100% - 22px), 360px) * var(--fk, 1)); top: 12px; animation: cpHop .75s var(--spring), cpBreathe 4.8s ease-in-out .75s infinite; }
 .cp-fig { will-change: transform, rotate, scale; }
 .cp-fig > .gn-o { left: 22.67%; top: 40.53%; width: 52.41%; height: 10.96%; }
 .gn-a2 > .gn-h { left: 47.28%; top: 36.52%; width: 41.03%; height: 10.43%; transform-origin: 1% 54.23%; will-change: transform; }
-/* butterflies, painted like the coaches, flutter round Gunnar in his open box */
+/* small painted creatures keep each coach company in the open box: butterflies round Gunnar, a dragonfly round Ingrid
+   and bumblebees round Bjørn */
 .bfs { position: absolute; inset: 0; z-index: 2; overflow: hidden; border-radius: inherit; pointer-events: none; }
 .bf { position: absolute; left: 0; top: 0; width: 34px; height: 28px; margin: -14px 0 0 -17px; will-change: transform; perspective: 90px; backface-visibility: hidden; }
 .bf svg { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -139,6 +141,19 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 @keyframes bfGR { from { transform: rotateY(-4deg); } to { transform: rotateY(-22deg); } }
 @keyframes bfPL { 0%, 100% { transform: rotateY(8deg); } 40%, 60% { transform: rotateY(74deg); } }
 @keyframes bfPR { 0%, 100% { transform: rotateY(-8deg); } 40%, 60% { transform: rotateY(-74deg); } }
+/* the bumblebee's wings buzz as a blur round its back and rest folded while it sits; the dragonfly's two pairs beat
+   out of step and lie flat while it sits */
+.bee, .df { position: absolute; left: 0; top: 0; will-change: transform; }
+.bee { width: 30px; height: 28px; margin: -14px 0 0 -15px; }
+.df { width: 42px; height: 42px; margin: -21px 0 0 -21px; }
+.bee > svg, .df > svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+.bee > .bw { transform-origin: 50% 41%; animation: beeW .055s linear infinite alternate; }
+.bee.p > .bw { animation: none; transform: scale(.72, .9); }
+.df > .dw { transform-origin: 50% 31%; animation: dfW .05s linear infinite alternate; }
+.df > .dw.h { transform-origin: 50% 39%; animation-delay: -.025s; }
+.df.p > .dw { animation: none; }
+@keyframes beeW { to { transform: scale(.5, .78); opacity: .55; } }
+@keyframes dfW { to { transform: scaleY(.3); opacity: .55; } }
 @keyframes cpHop { 0% { transform: none; } 30% { transform: translateY(-9px) scale(.97, 1.04); } 62% { transform: translateY(1px) scale(1.03, .97); } 100% { transform: none; } }
 @keyframes cpBreathe { 50% { transform: scale(1.012, 1.008); } }
 .cp-tx { display: flex; flex-direction: column; min-width: 0; padding: 14px 0 12px; }
@@ -1127,7 +1142,7 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .report h3:first-child { margin-top: 0; }
 .report p { margin: 0 0 8px; }
 .fbmeta { font-size: 12px; color: var(--dim); margin: 0 0 8px; }
-/* talking back to Claude: a thread under the message, a field and a camera button */
+/* talking back to your coach: a thread under the message, a field and a camera button */
 .thread { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .msg { max-width: 86%; align-self: flex-start; padding: 9px 12px; border-radius: 17px 17px 17px 5px; font-size: 14.5px; line-height: 1.45; background: var(--fill); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; }
 .msg.me { align-self: flex-end; border-radius: 17px 17px 5px 17px; background: color-mix(in srgb, var(--g1) 24%, var(--fill)); border-color: color-mix(in srgb, var(--g1) 40%, var(--line)); }
@@ -1153,9 +1168,11 @@ body.on-dock .toast { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--
 .cmp-p .pv { position: relative; }
 .cmp-p .pv button { position: absolute; top: -7px; right: -7px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--text); color: var(--bg); font-size: 13px; line-height: 1; display: grid; place-items: center; }
 
-/* Coach Claude on Today */
+/* your coach on Today */
 .av { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-grad); color: var(--on-grad); display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; }
 .flatbtn .av, .flatbtn .claude i { background: var(--g1); }
+/* the coach's own face, cut from the portrait */
+.av.av-face, .flatbtn .av.av-face { background-color: color-mix(in srgb, var(--g1) 14%, var(--fill)); background-repeat: no-repeat; box-shadow: inset 0 0 0 1px var(--line); }
 .coach-top { display: flex; align-items: center; gap: 10px; }
 .coach-top h2 { flex: 1; min-width: 0; }
 .coach-top .chip { min-height: 30px; padding: 0 11px; font-size: 13px; }
@@ -1533,7 +1550,7 @@ button.day:active { transform: scale(.94); }
 </nav>
 
 <div class="dockfade" id="dockfade" aria-hidden="true"></div>
-<div class="glass dock" id="dock" aria-label="Reply to Claude"></div>
+<div class="glass dock" id="dock" aria-label="Reply to your coach"></div>
 
 <div class="sheet-wrap" id="sheetWrap">
   <div class="scrim"></div>
@@ -2083,8 +2100,8 @@ function commitMsg(ops){
   else if(p.col === 'checkins') m = 'Check-in ' + p.id;
   else if(p.col === 'routines' || p.col === 'folders') m = 'Workouts';
   else if(p.col === 'meta') m = 'Settings';
-  else if(p.col === 'requests') m = 'Request for Claude';
-  else if(p.col === 'messages' || p.col === 'photos') m = ops.some(o => o.col === 'food') ? 'Food' : ops.some(o => o.col === 'posts') ? 'Social' : 'Message to Claude';
+  else if(p.col === 'requests') m = 'Request for the coach';
+  else if(p.col === 'messages' || p.col === 'photos') m = ops.some(o => o.col === 'food') ? 'Food' : ops.some(o => o.col === 'posts') ? 'Social' : 'Message to the coach';
   else if(p.col === 'food') m = p.op === 'delete' ? 'Food deleted' : 'Food: ' + (p.data.meal || 'meal');
   else if(p.col === 'posts' || p.col === 'social') m = 'Social';
   else if(p.op === 'delete') m = 'Deleted from ' + p.col;
@@ -2318,7 +2335,7 @@ function renderConnect(){
   el.hidden = !show; if(!show || el.dataset.built) return;
   el.dataset.built = '1';
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
-  el.innerHTML = '<h2>Connect your data</h2><p class="sub" style="margin-top:4px">Everything is saved in a private GitHub repo that only you and Claude can access.</p>' +
+  el.innerHTML = '<h2>Connect your data</h2><p class="sub" style="margin-top:4px">Everything is saved in a private GitHub repo that only you and your coach can access.</p>' +
     (!standalone() ? '<p class="note" style="margin-top:12px">Add the app to your home screen first' + (ios ? ' (Share, then Add to Home Screen)' : '') + ' and connect from there.</p>' : '') +
     '<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">' +
     '<div><label class="lab" for="gh-owner">GitHub username</label><input id="gh-owner" class="field" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username"></div>' +
@@ -3446,7 +3463,7 @@ function guidance(sc, r, p){
     const goal = ST().goal || 3, perWeek = Math.round(p.str.length / weeks * 10) / 10;
     if(weeks >= 1.5 && p.str.length) out.push('You trained ' + fmt(perWeek) + ' times a week. Your goal is ' + goal + '.' + (perWeek >= goal ? ' Nice work.' : ''));
     if(p.sleep && p.sleep < 7) out.push('You slept ' + fmt(Math.round(p.sleep * 10) / 10) + ' hours a night. Aim for 7 or more to recover.');
-    if(p.painDays) out.push(plural(p.painDays, 'day') + ' with pain. Pick exercises that feel good and tell Claude what hurts.');
+    if(p.painDays) out.push(plural(p.painDays, 'day') + ' with pain. Pick exercises that feel good and tell ' + coach().short + ' what hurts.');
     if(lvlNew()){ const k = Object.keys(sc).sort((a, b) => sc[b] - sc[a])[0]; out.push(nm(k) + ' got about ' + fmt(Math.round(sc[k] / weeks * 10) / 10) + ' sets a week. Around 10 hard sets a week per muscle builds muscle well.'); }
   }
   return out.slice(0, 5);
@@ -3655,116 +3672,168 @@ function saveGoal(id){
 }
 
 /* Trainers: three coaches by experience, each a character painted like Purple. The choice sets the tips level in the
-   app, and Claude plans and writes in that coach's voice in the evening review (data README, Trainers). A coach
-   without a portrait yet shows a soft silhouette. */
+   app, the name and face on Today, and the voice the evening review plans and writes in (data README, Trainers):
+   Gunnar is the gentlest and talks in pictures, Ingrid is clear and to the point, and Bjørn is the most direct.
+   `ar` is the portrait's width and height, `fk` shrinks a wide one in the picker, and `face` is where the face sits
+   (its centre as a share of the width and of the height, and the head's width as a share of the height) for the round
+   picture on Today. A coach without a portrait shows a soft silhouette. */
 const TRAINERS = [
-  {id: 'guide', name: 'Gentle Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', alive: true,
+  {id: 'guide', name: 'Gentle Gunnar', short: 'Gunnar', who: 'New to the gym', level: 'new', art: 'art/coach-gunnar.webp', ar: [329, 840], face: [.5, .155, .19], alive: true,
     about: 'Calm, patient and proud of every set. He keeps things simple and never rushes you.',
     how: 'Machines and simple lifts, one tip on every card and small steps up.',
     fits: 'New lifters, or anyone back after a break.',
-    talk: 'A note each morning and evening. Never more.'},
-  {id: 'builder', name: 'Bulky Bjørn', who: 'Training for a while', level: 'pro',
-    about: 'Steady and focused. Here to help you grow, one set at a time.',
-    how: 'Progressive overload with RIR targets and short, clear notes.',
-    fits: 'You know the main lifts and want more muscle and strength.'},
-  {id: 'elite', name: 'Iron Ingrid', who: 'Years under the bar', level: 'pro',
-    about: 'Sharp and direct. She expects your best set every time.',
-    how: 'Heavy top sets, hard sets and changes every week.',
-    fits: 'Years of training and you want a real push.'}
+    talk: 'Warm and unhurried, with a picture to remember. Never a lecture.'},
+  {id: 'builder', name: 'Iron Ingrid', short: 'Ingrid', who: 'Training for a while', level: 'pro', art: 'art/coach-ingrid.webp', ar: [272, 840], face: [.445, .167, .13], alive: true,
+    about: 'Focused and fair. She tells you what works and why, then trusts you to do it.',
+    how: 'Progressive overload with RIR targets and a clear plan every week.',
+    fits: 'You know the main lifts and want steady gains in strength and muscle.',
+    talk: 'Clear and to the point, with the reason behind each change.'},
+  {id: 'elite', name: 'Bulky Bjørn', short: 'Bjørn', who: 'Years under the bar', level: 'pro', art: 'art/coach-bjorn.webp', ar: [415, 840], fk: .86, face: [.475, .14, .15], alive: true,
+    about: 'Loud, blunt and all in. He expects your best set every time and says so.',
+    how: 'Heavy top sets, hard sets close to failure and changes every week.',
+    fits: 'Years of training and you want a real push.',
+    talk: 'Short and straight. Numbers first, no sugar coating.'}
 ];
 const trainerId = () => ST().trainer || (ST().level === 'pro' ? 'builder' : 'guide');
+const coach = () => TRAINERS.find(t => t.id === trainerId()) || TRAINERS[0];
+// the round picture of a coach's face, cut from the portrait
+function coachAv(t, px){
+  if(!t.art || !t.face) return '<i class="av">' + esc(t.short[0]) + '</i>';
+  const [cx, cy, hw] = t.face, h = px * 1.3 / hw, w = h * t.ar[0] / t.ar[1];
+  return '<i class="av av-face" aria-hidden="true" style="background-image:url(' + t.art + ');background-size:' + w.toFixed(1) + 'px ' + h.toFixed(1) + 'px;background-position:' + (px / 2 - cx * w).toFixed(1) + 'px ' + (px / 2 - cy * h).toFixed(1) + 'px"></i>';
+}
 const COACH_GHOST = '<svg class="cp-ghost" viewBox="0 0 40 100" aria-hidden="true"><circle cx="20" cy="13" r="9.5"/><path d="M5 40c0-9 6-14 15-14s15 5 15 14v24c0 3-2 5-4 5v27c0 2-1.5 3-3.5 3h-15c-2 0-3.5-1-3.5-3V69c-2 0-4-2-4-5z"/></svg>';
 const coachPick = (cur, picked, cls) => '<div class="cps' + (picked ? ' picked' : '') + (cls ? ' ' + cls : '') + '" role="radiogroup" aria-label="Coach">' + TRAINERS.map(t => {
   const on = picked && t.id === cur;
   const img = (src, c) => '<img' + (c ? ' class="' + c + '"' : '') + ' src="' + src + '" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
-  return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art"><span class="cp-fig"' + (t.art ? '' : ' style="--ar: 40 / 100"') + '>' +
+  return '<button class="cp' + (on ? ' on' : '') + '" data-a="trainer" data-v="' + t.id + '" role="radio" aria-checked="' + on + '"><span class="cp-art"><span class="cp-fig" style="--ar: ' + (t.ar ? t.ar[0] + ' / ' + t.ar[1] : '40 / 100') + (t.fk ? '; --fk: ' + t.fk : '') + '">' +
     (t.art ? img(t.art) : COACH_GHOST) + '</span></span>' + (t.alive ? '<span class="bfs" aria-hidden="true"></span>' : '') +
     '<span class="cp-tx"><b>' + t.name + '</b><em>' + t.who + '</em><small>' + t.about + '</small><span class="cp-more">' +
     [['Trains', t.how], ['Best for', t.fits], ['Messages', t.talk]].filter(r => r[1]).map(r => '<span><i>' + r[0] + '</i>' + r[1] + '</span>').join('') + '</span></span></button>';
 }).join('') + '</div>';
-/* Gunnar comes alive in the coach picker. While his box is open he breathes with his eyes closed, three painted
-   butterflies drift round him, and now and then one lands on his nose and he gives it a sniff. A tap makes him hop;
-   the butterflies take fright, fly off and come back one by one. The butterflies steer
-   with soft springs toward a slow orbit round his head and body, with a flutter on top; their wings beat in 3D (CSS),
-   glide now and then, and fold slowly while they sit. The sniff uses the separate scale property, so it never fights
-   the breathing and hop animations on transform. It all runs only while his open box is on screen, and not at all
-   with reduced motion. */
+/* The coaches come alive in the coach picker. While a coach's box is open the coach breathes, and small painted
+   creatures keep them company: three butterflies drift round Gunnar and now and then one lands on his nose for a
+   sniff; two dragonflies dart round Ingrid, stop dead in the air and dart on, and one lands on her bun so she gives a
+   small proud lean; two bumblebees bumble round Bjørn and one settles on his biceps so he puffs up. A tap makes the
+   coach hop; the creatures take fright, fly off and come back one by one. They steer with soft springs toward a slow
+   orbit (the dragonflies toward points that change every second or so), with a flutter on top; the butterflies' wings
+   beat in 3D (CSS), glide now and then and fold slowly while they sit. The reaction uses the separate scale and rotate
+   properties, so it never fights the breathing and hop animations on transform. It all runs only while an open box is
+   on screen, and not at all with reduced motion. */
 const BF_DEFS = "<radialGradient id=\"bfg-lime\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#E3EC9C\"/><stop offset=\".72\" stop-color=\"#E3EC9C\"/><stop offset=\"1\" stop-color=\"#A7BF4A\"/></radialGradient><g id=\"bfw-lime\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-lime)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-lime)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#A7BF4A\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#F09CC0\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#F09CC0\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g><radialGradient id=\"bfg-pink\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#FAC3DA\"/><stop offset=\".72\" stop-color=\"#FAC3DA\"/><stop offset=\"1\" stop-color=\"#DE76A6\"/></radialGradient><g id=\"bfw-pink\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-pink)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-pink)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#DE76A6\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#D9E38E\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#D9E38E\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g><radialGradient id=\"bfg-coral\" cx=\".85\" cy=\".55\" r=\"1\"><stop offset=\"0\" stop-color=\"#fff\" stop-opacity=\".55\"/><stop offset=\".3\" stop-color=\"#FBC7AE\"/><stop offset=\".72\" stop-color=\"#FBC7AE\"/><stop offset=\"1\" stop-color=\"#E4876A\"/></radialGradient><g id=\"bfw-coral\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\" fill=\"url(#bfg-coral)\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\" fill=\"url(#bfg-coral)\"/><path d=\"M-.9-.3-8.4-7.2M-.9 0-10.7-5M-.9 1.4-7 5.8M-.9 1.6-4.2 7.4\" stroke=\"#E4876A\" stroke-width=\".45\" stroke-linecap=\"round\" opacity=\".55\"/><circle cx=\"-7.6\" cy=\"-4.6\" r=\"1.75\" fill=\"#FBEAB0\" stroke=\"#37613C\" stroke-width=\".45\"/><circle cx=\"-5.2\" cy=\"4.9\" r=\"1.05\" fill=\"#FBEAB0\"/><circle cx=\"-10.3\" cy=\"-7.7\" r=\".55\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-11.4\" cy=\"-5.9\" r=\".5\" fill=\"#fff\" opacity=\".9\"/><circle cx=\"-7.6\" cy=\"7.2\" r=\".45\" fill=\"#fff\" opacity=\".85\"/><g fill=\"none\" stroke=\"#37613C\" stroke-width=\".95\" stroke-linejoin=\"round\"><path d=\"M-.6-.6C-1.8-5.8-6.4-9.6-10.4-9-12.2-8.7-12.4-6.4-11.2-4.6-9.8-2.4-6.6-.4-.6.3z\"/><path d=\"M-.6.7C-4.2.9-8.6 2.4-8.6 5.4-8.6 7.4-6.6 8.6-4.6 7.8-3.6 8.8-1.6 8.4-1.2 6.6-.8 5-.6 2.8-.5 1.4z\"/></g></g>", BF_BODY = "<ellipse fill=\"#37613C\" rx=\".95\" ry=\"4.2\" cy=\"1\"/><circle fill=\"#37613C\" cy=\"-3.6\" r=\"1.15\"/><path fill=\"none\" stroke=\"#37613C\" stroke-width=\".7\" stroke-linecap=\"round\" d=\"M-.4-4.3C-1-6.8-2.2-8.2-3.4-8.6M.4-4.3C1-6.8 2.2-8.2 3.4-8.6\"/><circle fill=\"#37613C\" cx=\"-3.5\" cy=\"-8.6\" r=\".6\"/><circle fill=\"#37613C\" cx=\"3.5\" cy=\"-8.6\" r=\".6\"/>", BF_COLS = ['lime', 'pink', 'coral'];
+const PAL_DEFS = '<radialGradient id="beg-gold" cx=".35" cy=".3" r="1"><stop offset="0" stop-color="#FFF6CF"/><stop offset=".45" stop-color="#F7D26A"/><stop offset="1" stop-color="#D99A2B"/></radialGradient>' +
+  '<radialGradient id="beg-amber" cx=".35" cy=".3" r="1"><stop offset="0" stop-color="#FFE9C2"/><stop offset=".45" stop-color="#F3B65A"/><stop offset="1" stop-color="#C9781F"/></radialGradient>' +
+  '<linearGradient id="dfw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4FBFC" stop-opacity=".9"/><stop offset="1" stop-color="#CBE7EE" stop-opacity=".65"/></linearGradient>';
 let bfDefs = false;
-function bfDefine(){ if(bfDefs) return; bfDefs = true; document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + BF_DEFS + '</defs></svg>'); }
+function bfDefine(){ if(bfDefs) return; bfDefs = true; document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + BF_DEFS + PAL_DEFS + '</defs></svg>'); }
 const bfHtml = col => '<b class="wl"><svg viewBox="-12 -10 12 20"><use href="#bfw-' + col + '"/></svg></b><b class="wr"><svg viewBox="0 -10 12 20"><g transform="scale(-1 1)"><use href="#bfw-' + col + '"/></g></svg></b><svg class="bb" viewBox="-12 -10 24 20">' + BF_BODY + '</svg>';
-const GN = {raf: 0, card: null, bfs: [], last: 0, backAt: 0, nextAt: 0, noseAt: 0, quietTil: 0, sniffs: [], geo: null, geoAt: 0, fig: null, sc: ''};
-const gnCard = () => [...document.querySelectorAll('.cps.picked .cp.on[data-v="guide"]')].find(c => c.offsetParent !== null && !c.closest('.modal:not(.open), .sheet-wrap:not(.open)')) || null;
+// a bumblebee seen from above: a striped body with a pale tail, and the wings as their own layer so they can buzz
+const beeHtml = col => '<svg viewBox="-15 -14 30 28"><ellipse cy="2.4" rx="5.6" ry="7" fill="url(#beg-' + col + ')"/><path d="M-5.2.6h10.4M-4.9 4.4h9.8" stroke="#3B3527" stroke-width="1.9" stroke-linecap="round"/><path d="M-2.2 8.3h4.4" stroke="#FFF7E6" stroke-width="1.6" stroke-linecap="round"/><ellipse cy="2.4" rx="5.6" ry="7" fill="none" stroke="#37613C" stroke-width=".9"/><circle cy="-5" r="3.4" fill="#3B3527" stroke="#37613C" stroke-width=".8"/><path d="M-1.2-7.8C-2-10-3.2-11.2-4.6-11.4M1.2-7.8C2-10 3.2-11.2 4.6-11.4" fill="none" stroke="#37613C" stroke-width=".75" stroke-linecap="round"/><circle cx="-4.7" cy="-11.4" r=".7" fill="#37613C"/><circle cx="4.7" cy="-11.4" r=".7" fill="#37613C"/></svg>' +
+  '<svg class="bw" viewBox="-15 -14 30 28"><g fill="#fff" fill-opacity=".62" stroke="#37613C" stroke-width=".7"><ellipse cx="-6" cy="-2.4" rx="6" ry="3.5" transform="rotate(-24 -6 -2.4)"/><ellipse cx="6" cy="-2.4" rx="6" ry="3.5" transform="rotate(24 6 -2.4)"/></g></svg>';
+// a dragonfly seen from above: two pairs of long wings that beat out of step, a slim body with a coral tip and big eyes
+const DF_COLS = {teal: ['#3E9BB0', '#66BACB', '#2D6F82'], blue: ['#557FCB', '#82A3DD', '#33528F']};
+const dfHtml = col => { const [ab, th, hd] = DF_COLS[col];
+  return '<svg class="dw" viewBox="-21 -21 42 42"><g fill="url(#dfw)" stroke="#37613C" stroke-width=".55"><path d="M-1.8-8.6C-6.4-11.2-14.6-12-19.2-10.4-20.4-9.8-20-8.2-18.4-7.8-13.2-6.6-6.4-6.8-1.8-7.2z"/><path d="M1.8-8.6C6.4-11.2 14.6-12 19.2-10.4 20.4-9.8 20-8.2 18.4-7.8 13.2-6.6 6.4-6.8 1.8-7.2z"/></g></svg>' +
+    '<svg class="dw h" viewBox="-21 -21 42 42"><g fill="url(#dfw)" stroke="#37613C" stroke-width=".55"><path d="M-1.8-5.6C-6.4-5.4-14.2-3.6-18.2-1-19.2-.2-18.6 1.2-17.2 1-12.2.4-6-2.4-1.8-4z"/><path d="M1.8-5.6C6.4-5.4 14.2-3.6 18.2-1 19.2-.2 18.6 1.2 17.2 1 12.2.4 6-2.4 1.8-4z"/></g></svg>' +
+    '<svg viewBox="-21 -21 42 42"><rect x="-1.35" y="-4.4" width="2.7" height="22.4" rx="1.35" fill="' + ab + '" stroke="#37613C" stroke-width=".7"/><path d="M-1.3 14.6h2.6v2.2a1.3 1.3 0 0 1-2.6 0z" fill="#E4876A"/><path d="M-1.3-.6h2.6M-1.3 3h2.6M-1.3 6.6h2.6M-1.3 10.2h2.6M-1.3 13.8h2.6" stroke="#37613C" stroke-width=".45"/><ellipse cy="-7" rx="2.9" ry="3.7" fill="' + th + '" stroke="#37613C" stroke-width=".7"/><ellipse cy="-11.8" rx="3.5" ry="2.5" fill="' + hd + '" stroke="#37613C" stroke-width=".7"/><circle cx="-1.6" cy="-12.2" r=".55" fill="#fff" opacity=".85"/><circle cx="1.9" cy="-12.2" r=".55" fill="#fff" opacity=".85"/></svg>';
+};
+/* Each coach's company: how many, where one sits (a share of the portrait's width and height), the orbit (centre and
+   radii as shares), how big it looks while it sits and for how long, the springs and flutter of its flight, and the
+   coach's reaction while it sits (the beats are when it starts, `dur` how long it lasts). */
+const PALS = {
+  guide: {n: 3, cls: 'bf', cols: BF_COLS, html: bfHtml, glide: true, spot: [.51, .148], orb: [.42, .27, .42, .3], perch: .62, stay: 3300,
+    k: 16, c: 4.2, wob: [70, 90, .011, .0137], sp: [.5, .35], beats: [700, 1050, 2100], dur: 240,
+    react: s => ['scale', (1 + .012 * s).toFixed(4) + ' ' + (1 - .018 * s).toFixed(4)]},
+  builder: {n: 2, cls: 'df', cols: ['teal', 'blue'], html: dfHtml, dart: true, spot: [.34, .035], orb: [.46, .25, .5, .3], perch: .72, stay: 2800,
+    k: 70, c: 15, wob: [14, 14, .031, .037], sp: [0, 0], beats: [420], dur: 620,
+    react: s => ['rotate', (-1.2 * s).toFixed(3) + 'deg']},
+  elite: {n: 2, cls: 'bee', cols: ['gold', 'amber'], html: beeHtml, spot: [.83, .225], orb: [.5, .22, .46, .26], perch: .82, stay: 3800,
+    k: 9, c: 3.2, wob: [260, 280, .0045, .0062], sp: [.26, .18], beats: [450], dur: 1300,
+    react: s => ['scale', (1 + .022 * s).toFixed(4) + ' ' + (1 + .012 * s).toFixed(4)]}
+};
+const GN = {raf: 0, card: null, kind: '', bfs: [], last: 0, backAt: 0, nextAt: 0, noseAt: 0, quietTil: 0, sniffs: [], geo: null, geoAt: 0, fig: null, sc: ''};
+const gnCard = () => [...document.querySelectorAll('.cps.picked .cp.on')].find(c => PALS[c.dataset.v] && c.querySelector('.bfs') && c.offsetParent !== null && !c.closest('.modal:not(.open), .sheet-wrap:not(.open)')) || null;
 function gnLive(){ if(!GN.raf && !reduceMotion() && gnCard()) GN.raf = requestAnimationFrame(gnTick); }
-// where he is in the card's own pixels (the sheet may be zoomed for large text)
-function gnGeo(card){
+// where the coach is in the card's own pixels (the sheet may be zoomed for large text)
+function gnGeo(card, P){
   const cr = card.getBoundingClientRect(), k = card.offsetWidth / (cr.width || 1), f = card.querySelector('.cp-fig').getBoundingClientRect();
   const fx = (f.left - cr.left) * k, fy = (f.top - cr.top) * k, fw = f.width * k, fh = f.height * k;
-  return {w: card.offsetWidth, h: card.offsetHeight, cx: fx + fw * .42, cy: fy + fh * .27, rx: Math.max(38, fw * .42), ry: Math.max(56, fh * .3), nose: {x: fx + fw * .51, y: fy + fh * .148}};
+  return {w: card.offsetWidth, h: card.offsetHeight, cx: fx + fw * P.orb[0], cy: fy + fh * P.orb[1], rx: Math.max(38, Math.min(66, fw * P.orb[2])), ry: Math.max(56, fh * P.orb[3]), spot: {x: fx + fw * P.spot[0], y: fy + fh * P.spot[1]}};
 }
-function bfAdd(g){
-  const used = GN.bfs.map(b => b.col), col = BF_COLS.find(c => !used.includes(c)) || BF_COLS[Math.floor(Math.random() * 3)], el = document.createElement('i'), left = Math.random() < .5;
-  el.className = 'bf'; el.innerHTML = bfHtml(col); el.style.setProperty('--fl', (.22 + Math.random() * .08).toFixed(3) + 's'); GN.card.querySelector('.bfs').append(el);
+function palAdd(g, P){
+  const used = GN.bfs.map(b => b.col), col = P.cols.find(c => !used.includes(c)) || P.cols[Math.floor(Math.random() * P.cols.length)], el = document.createElement('i'), left = Math.random() < .5;
+  el.className = P.cls; el.innerHTML = P.html(col); if(P.cls === 'bf') el.style.setProperty('--fl', (.22 + Math.random() * .08).toFixed(3) + 's'); GN.card.querySelector('.bfs').append(el);
   const b = {el, col, x: left ? -16 : g.w + 16, y: g.cy - 50 + Math.random() * 100, vx: left ? 80 : -80, vy: -25, a: left ? 90 : -90, ph: Math.random() * 6.3,
-    th: left ? Math.PI : 0, dir: Math.random() < .5 ? -1 : 1, sp: .5 + Math.random() * .35, mode: 'fly', until: 0, sc: .9 + Math.random() * .25, glideAt: performance.now() + 1500 + Math.random() * 3000, glideEnd: 0};
+    th: left ? Math.PI : 0, dir: Math.random() < .5 ? -1 : 1, sp: P.sp[0] + Math.random() * P.sp[1], mode: 'fly', until: 0, sc: .9 + Math.random() * .25, glideAt: performance.now() + 1500 + Math.random() * 3000, glideEnd: 0, wx: 0, wy: 0, wpAt: 0};
   GN.bfs.push(b); return b;
 }
 function gnPlay(card){
   if(reduceMotion()) return;
-  GN.card = card; const now = performance.now();
+  const now = performance.now();
   GN.quietTil = now + 2600;
   const fig = card.querySelector('.cp-fig'); fig.style.animation = 'none'; void fig.offsetWidth; fig.style.animation = '';
-  // the butterflies take fright and come back a few seconds later
-  // (when his box has just opened there are none yet, so they flutter in right away)
-  const had = GN.bfs.some(b => b.mode !== 'flee');
+  // the creatures take fright and come back a few seconds later
+  // (when the box has just opened there are none of this coach's yet, so they come in right away)
+  const had = GN.kind === card.dataset.v && GN.bfs.some(b => b.mode !== 'flee');
   GN.bfs.forEach(b => { b.mode = 'flee'; b.el.classList.remove('p', 'gl'); b.vx += (b.x < card.offsetWidth * .3 ? -1 : 1) * 160; b.vy -= 120; });
   GN.backAt = now + (had ? 3400 : 500); GN.nextAt = GN.backAt; GN.noseAt = now + 7000 + Math.random() * 5000; GN.sniffs = [];
   gnLive();
 }
 function gnTick(t){
   GN.raf = 0;
-  const card = gnCard();
+  const card = gnCard(), P = card && PALS[card.dataset.v];
   if(!card || reduceMotion()){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.card = null; GN.last = 0; GN.noseAt = 0; GN.geo = null; return; }
   bfDefine();
-  if(GN.card !== card){ GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.geo = null; GN.sc = ''; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el)); }
+  if(GN.card !== card){
+    // another coach's box gets its own creatures; the same box drawn again keeps them
+    if(GN.kind !== card.dataset.v){ GN.bfs.forEach(b => b.el.remove()); GN.bfs = []; GN.kind = card.dataset.v; GN.noseAt = 0; GN.sniffs = []; }
+    if(GN.fig) GN.fig.style.scale = GN.fig.style.rotate = '';
+    GN.card = card; GN.fig = card.querySelector('.cp-fig'); GN.geo = null; GN.sc = ''; const box = card.querySelector('.bfs'); GN.bfs.forEach(b => box.append(b.el));
+  }
   if(!GN.noseAt) GN.noseAt = t + 9000 + Math.random() * 6000;
   const dt = Math.min(.034, Math.max(.001, (t - (GN.last || t - 16)) / 1000)); GN.last = t;
-  // where he stands is read a few times a second, not every frame: reading layout each frame costs frames on a phone
-  if(!GN.geo || t - GN.geoAt > 200){ GN.geo = gnGeo(card); GN.geoAt = t; }
+  // where the coach stands is read a few times a second, not every frame: reading layout each frame costs frames on a phone
+  if(!GN.geo || t - GN.geoAt > 200){ GN.geo = gnGeo(card, P); GN.geoAt = t; }
   const g = GN.geo, fig = GN.fig;
-  // three butterflies keep him company, coming in one at a time
-  if(t > GN.backAt && t > GN.nextAt && GN.bfs.filter(b => b.mode !== 'flee').length < 3){ bfAdd(g); GN.nextAt = t + 650 + Math.random() * 500; }
-  // now and then a butterfly comes down on his nose
+  // they come in one at a time
+  if(t > GN.backAt && t > GN.nextAt && GN.bfs.filter(b => b.mode !== 'flee').length < P.n){ palAdd(g, P); GN.nextAt = t + 650 + Math.random() * 500; }
+  // now and then one comes down on its spot: Gunnar's nose, Ingrid's bun, Bjørn's biceps
   const busy = t < GN.quietTil || GN.bfs.some(b => b.mode === 'land' || b.mode === 'perch');
   if(t > GN.noseAt && !busy){
     const free = GN.bfs.filter(b => b.mode === 'fly');
-    if(free.length){ const b = free.sort((p, q) => Math.hypot(p.x - g.nose.x, p.y - g.nose.y) - Math.hypot(q.x - g.nose.x, q.y - g.nose.y))[0]; b.mode = 'land'; b.el.classList.remove('gl'); }
+    if(free.length){ const b = free.sort((p, q) => Math.hypot(p.x - g.spot.x, p.y - g.spot.y) - Math.hypot(q.x - g.spot.x, q.y - g.spot.y))[0]; b.mode = 'land'; b.el.classList.remove('gl'); }
     GN.noseAt = t + 14000 + Math.random() * 8000;
   }
-  // the sniff: two quick little breaths in while a butterfly sits on his nose
-  let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / 240; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
-  GN.sniffs = GN.sniffs.filter(s0 => t - s0 < 400);
-  const scl = sn ? (1 + .012 * sn).toFixed(4) + ' ' + (1 - .018 * sn).toFixed(4) : '';
-  if(scl !== GN.sc){ GN.sc = scl; fig.style.scale = scl; }
+  // the coach's reaction while it sits: Gunnar's quick little sniffs, Ingrid's lean, Bjørn puffing up
+  let sn = 0; for(const s0 of GN.sniffs){ const p = (t - s0) / P.dur; if(p > 0 && p < 1) sn = Math.max(sn, Math.sin(Math.PI * p)); }
+  GN.sniffs = GN.sniffs.filter(s0 => t - s0 < P.dur + 160);
+  const fx = sn ? P.react(sn) : null, key = fx ? fx.join(' ') : '';
+  if(key !== GN.sc){ GN.sc = key; fig.style.scale = fx && fx[0] === 'scale' ? fx[1] : ''; fig.style.rotate = fx && fx[0] === 'rotate' ? fx[1] : ''; }
   for(const b of GN.bfs){
-    let tx, ty, k = 16, c = 4.2;
+    let tx, ty, k = P.k, c = P.c;
     if(b.mode === 'perch'){
-      b.x = g.nose.x; b.y = g.nose.y; b.vx = b.vy = 0; b.a += (0 - b.a) * Math.min(1, dt * 6);
+      b.x = g.spot.x; b.y = g.spot.y; b.vx = b.vy = 0; b.a += (0 - b.a) * Math.min(1, dt * 6);
       if(t > b.until){ b.mode = 'fly'; b.vy = -150; b.vx = (Math.random() - .5) * 120; b.el.classList.remove('p'); }
     } else {
       if(b.mode === 'flee'){ tx = b.x < g.w * .3 ? -80 : g.w + 80; ty = b.y - 70; k = 9; c = 1.6; }
-      else if(b.mode === 'land'){ tx = g.nose.x; ty = g.nose.y; k = 34; c = 10;
-        if(Math.hypot(tx - b.x, ty - b.y) < 2.5 && Math.hypot(b.vx, b.vy) < 22){ b.mode = 'perch'; b.until = t + 3300; b.el.classList.add('p'); GN.sniffs.push(t + 700, t + 1050, t + 2100); } }
+      else if(b.mode === 'land'){ tx = g.spot.x; ty = g.spot.y; k = 34; c = 10;
+        if(Math.hypot(tx - b.x, ty - b.y) < 2.5 && Math.hypot(b.vx, b.vy) < 22){ b.mode = 'perch'; b.until = t + P.stay; b.el.classList.add('p'); GN.sniffs.push(...P.beats.map(d => t + d)); } }
+      else if(P.dart){
+        // a dragonfly darts to a point near the coach, hangs there a moment and darts on
+        if(t > b.wpAt){ const th = Math.random() * 6.283, r = .7 + Math.random() * .45; b.wx = Math.min(g.w - 16, Math.max(16, g.cx + Math.cos(th) * g.rx * r)); b.wy = Math.min(g.h - 16, Math.max(16, g.cy + Math.sin(th) * g.ry * r)); b.wpAt = t + 650 + Math.random() * 1200; }
+        tx = b.wx; ty = b.wy;
+      }
       else { b.th += b.dir * b.sp * dt; tx = g.cx + Math.cos(b.th) * g.rx + Math.sin(t * .0017 + b.ph) * 10; ty = g.cy + Math.sin(b.th) * g.ry * .85 + Math.sin(t * .0023 + b.ph * 2) * 12; }
       const fl = b.mode === 'land' ? .35 : 1;
-      const ax = k * (tx - b.x) - c * b.vx + Math.sin(t * .011 + b.ph) * 70 * fl, ay = k * (ty - b.y) - c * b.vy + Math.cos(t * .0137 + b.ph) * 90 * fl;
+      const ax = k * (tx - b.x) - c * b.vx + Math.sin(t * P.wob[2] + b.ph) * P.wob[0] * fl, ay = k * (ty - b.y) - c * b.vy + Math.cos(t * P.wob[3] + b.ph) * P.wob[1] * fl;
       b.vx += ax * dt; b.vy += ay * dt; b.x += b.vx * dt; b.y += b.vy * dt;
-      const want = Math.atan2(b.vy, b.vx) * 180 / Math.PI + 90, d = ((want - b.a + 540) % 360) - 180; b.a += d * Math.min(1, dt * 5);
-      // a short glide now and then, wings held almost open
-      if(b.mode === 'fly' && t > b.glideAt && !b.glideEnd){ b.glideEnd = t + 450 + Math.random() * 700; b.el.classList.add('gl'); }
+      // it turns to where it flies; a dragonfly hanging in the air keeps its heading
+      if(!P.dart || Math.hypot(b.vx, b.vy) > 45){ const want = Math.atan2(b.vy, b.vx) * 180 / Math.PI + 90, d = ((want - b.a + 540) % 360) - 180; b.a += d * Math.min(1, dt * (P.dart ? 9 : 5)); }
+      // a butterfly glides now and then, wings held almost open
+      if(P.glide && b.mode === 'fly' && t > b.glideAt && !b.glideEnd){ b.glideEnd = t + 450 + Math.random() * 700; b.el.classList.add('gl'); }
       if(b.glideEnd && t > b.glideEnd){ b.glideEnd = 0; b.glideAt = t + 2500 + Math.random() * 4000; b.el.classList.remove('gl'); }
     }
-    const perched = b.mode === 'perch', sc = perched || b.mode === 'land' ? b.sc * .62 : b.sc;
+    const perched = b.mode === 'perch', sc = perched || b.mode === 'land' ? b.sc * P.perch : b.sc;
     b.el.style.transform = 'translate3d(' + b.x.toFixed(2) + 'px,' + (b.y + (perched ? 0 : Math.sin(t * .021 + b.ph) * 1.6)).toFixed(2) + 'px,0) rotate(' + b.a.toFixed(2) + 'deg) scale(' + sc.toFixed(3) + ')';
   }
   GN.bfs = GN.bfs.filter(b => { const gone = b.mode === 'flee' && (b.x < -40 || b.x > g.w + 40 || b.y < -40); if(gone) b.el.remove(); return !gone; });
@@ -3788,13 +3857,13 @@ function openOnboard(){
 function renderOb(){
   const o = S.ui.ob, el = $('#ob'); if(!o || !el) return;
   const steps = [
-    ['Welcome to Plates', 'Five quick steps, then Claude plans your first week.',
-      '<div><label class="lab" for="ob-name">What should Claude call you?</label><input id="ob-name" class="field" data-ob="name" autocomplete="given-name" placeholder="First name" value="' + esc(o.name) + '" enterkeyhint="next"></div>'],
+    ['Welcome to Plates', 'Five quick steps, then your coach plans your first week.',
+      '<div><label class="lab" for="ob-name">What should your coach call you?</label><input id="ob-name" class="field" data-ob="name" autocomplete="given-name" placeholder="First name" value="' + esc(o.name) + '" enterkeyhint="next"></div>'],
     ['Pick your coach', 'Tap one to meet them. You can switch any time in Settings, Coach.', coachPick(o.trainer, o.picked)],
-    ['Measure your fist', 'Your fist is the ruler in food photos, so Claude can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
+    ['Measure your fist', 'Your fist is the ruler in food photos, so your coach can judge portions. Do it now or later in Settings, Coach.', '<div>' + handCalHtml() + '</div>'],
     ['What do you like?', 'Tap once to love an exercise, twice to avoid it.',
       '<div class="obx">' + OB_LIFTS.map(n => '<button data-a="ob-x" data-n="' + esc(n) + '" data-p="' + o.prefs[n] + '"><i class="l">' + XP_ICON.love + '</i><i class="x">' + XP_ICON.avoid + '</i>' + esc(n) + '</button>').join('') + '</div>'],
-    ['Your goals', 'One of each kind, all optional. Claude words them clearly tonight.',
+    ['Your goals', 'One of each kind, all optional. Your coach words them clearly tonight.',
       OB_GOALS.map(([k, l, ph]) => '<div class="obg"><label class="lab" for="ob-g-' + k + '">' + l + '</label><textarea id="ob-g-' + k + '" class="field" rows="1" data-obg="' + k + '" placeholder="' + ph + '">' + esc(o.goals[k]) + '</textarea></div>').join('')]
   ];
   const [h, sub, body] = steps[o.step], last = o.step === steps.length - 1;
@@ -3824,7 +3893,7 @@ function finishOb(){
   }
   const settings = Object.assign({}, ST(), {name: o.name.trim() || ST().name, trainer: t.id, level: t.level, onboarded: true});
   saveMeta({settings, exPrefs: xp, goals: gs});
-  S.ui.ob = null; closeSheet(); toast('All set · Claude plans around this tonight');
+  S.ui.ob = null; closeSheet(); toast('All set · ' + coach().short + ' plans around this tonight');
 }
 
 /* Food: photo only. You snap the plate with your free hand in a fist beside it, and the fist is the ruler: Claude knows its
@@ -3906,14 +3975,14 @@ function renderFood(){
   const rows = xs.map(x => {
     const s = foodState(x), names = (x.items || []).map(i => i.name).filter(Boolean);
     const title = s === 'done' ? (names.length ? names.slice(0, 3).join(', ') + (names.length > 3 ? ' +' + (names.length - 3) : '') : x.text || 'Meal') : s === 'unclear' ? 'Photo unclear' : 'Photo saved';
-    const sub = s === 'done' ? (x.p != null ? Math.round(+x.p || 0) + ' g protein' : '') : s === 'unclear' ? 'Tap to see why' : 'Claude reads it tonight';
+    const sub = s === 'done' ? (x.p != null ? Math.round(+x.p || 0) + ' g protein' : '') : s === 'unclear' ? 'Tap to see why' : coach().short + ' reads it tonight';
     const end = s === 'done' && x.kcal != null ? '<span class="fkc"><b>' + kNum(x.kcal) + '</b><small>kcal</small></span>' : s === 'unclear' ? '<span class="fst bad">Retake</span>' : '<span class="fst">Tonight</span>';
     return '<button class="fi" data-a="food-open" data-id="' + esc(x.id) + '"><span class="fph' + (x.photos && x.photos.length ? '' : ' none') + '">' + (x.photos && x.photos.length ? photoTag(x.photos[0]) : FOOD_IC) +
       (s === 'pending' ? '<i class="fdot"></i>' : '') + '</span><span class="ft"><small>' + esc((x.meal || 'Meal') + ' · ' + fClock.format(x.ts || Date.now())) + '</small><b>' + esc(title) + '</b>' + (sub ? '<em>' + esc(sub) + '</em>' : '') + '</span>' + end + '</button>';
   }).join('');
-  const hand = handOf() ? '' : '<button class="fhand" data-a="hand-cal"><span>Measure your fist once, so Claude can judge portions</span>' + arrowSvg(1) + '</button>';
+  const hand = handOf() ? '' : '<button class="fhand" data-a="hand-cal"><span>Measure your fist once, so ' + esc(coach().short) + ' can judge portions</span>' + arrowSvg(1) + '</button>';
   setHTML($('#food-list'), '<div class="hd"><h2>Meals</h2><small>' + (xs.length ? xs.length : '') + '</small></div>' + hand +
-    (rows || '<div class="fempty">' + CAM_IC + '<b>' + (d === t0 ? 'Nothing logged yet today' : 'Nothing logged this day') + '</b><span>Snap your plate with your fist beside it, and Claude works out the rest tonight.</span></div>'));
+    (rows || '<div class="fempty">' + CAM_IC + '<b>' + (d === t0 ? 'Nothing logged yet today' : 'Nothing logged this day') + '</b><span>Snap your plate with your fist beside it, and ' + esc(coach().short) + ' works out the rest tonight.</span></div>'));
   hydratePhotos();
 }
 function openFood(id){
@@ -3926,8 +3995,8 @@ function openFood(id){
       '<div class="fdi tot"><span>Total' + (x.kcalLo != null && x.kcalHi != null ? '<small>Likely ' + kNum(x.kcalLo) + ' to ' + kNum(x.kcalHi) + ' kcal</small>' : '') + '</span><b>≈ ' + kNum(x.kcal || 0) + ' kcal</b></div></div>' +
       '<p class="fmac">' + Math.round(+x.p || 0) + ' g protein · ' + Math.round(+x.c || 0) + ' g carbs · ' + Math.round(+x.f || 0) + ' g fat</p>' +
       (x.conf ? '<p class="fconf" data-c="' + esc(x.conf) + '"><i></i>' + (CONF[x.conf] || x.conf) + '</p>' : '') + (x.note ? '<p class="fnote">' + esc(x.note) + '</p>' : '');
-  } else if(s === 'unclear') body = '<div class="fwait bad"><b>Claude could not read this photo</b><span>' + esc(x.note || 'Try again with the whole plate and your hand in view.') + '</span></div>';
-  else body = '<div class="fwait"><b>Waiting for Claude</b><span>Analysed in tonight’s review, with your fist as the ruler. You get the foods, portions, calories and how sure Claude is.</span></div>';
+  } else if(s === 'unclear') body = '<div class="fwait bad"><b>' + esc(coach().short) + ' could not read this photo</b><span>' + esc(x.note || 'Try again with the whole plate and your hand in view.') + '</span></div>';
+  else body = '<div class="fwait"><b>Waiting for ' + esc(coach().short) + '</b><span>Analysed in tonight’s review, with your fist as the ruler. You get the foods, portions, calories and how sure ' + esc(coach().short) + ' is.</span></div>';
   openSheet('food', shTop(x.meal || 'Meal', (x.date === todayISO() ? 'Today' : dDay(x.date)) + ' · ' + fClock.format(x.ts || Date.now())),
     '<div class="food-sheet">' + (x.photos && x.photos.length ? '<div class="fd-big">' + photoTag(x.photos[0]) + '</div>' : '') + seg2('fd-meal', MEALS.map(m => [m, m]), x.meal) + body +
     '<button class="btn-quiet danger" data-a="food-del" id="food-del">Delete meal</button></div>', true);
@@ -3943,7 +4012,7 @@ function saveFoodShot(url){
   const id = newId(), date = S.ui.foodDay || todayISO(), now = Date.now();
   queue('set', 'food', id, {id, date, ts: date === todayISO() ? now : new Date(date + 'T12:00:00').getTime(), meal: mealNow(), photos: [storePhoto(id + '-0', url)],
     hand: ST().handSide === 'right' ? 'right' : 'left', ref: 'fist', status: 'pending', createdAt: now, updatedAt: now});
-  toast('Saved · Claude reads it tonight');
+  toast('Saved · ' + coach().short + ' reads it tonight');
 }
 
 /* Fist calibration: once, so Claude knows the size of the ruler in every food photo. Either a photo of the fist next to
@@ -3952,7 +4021,7 @@ const handOf = () => D.meta.hand || null;
 function handText(){
   const h = handOf(); if(!h) return 'Not set';
   if(h.widthCm) return 'Fist ' + fmt(h.widthCm) + ' cm wide' + (h.lengthCm ? ' · hand ' + fmt(h.lengthCm) + ' cm' : '');
-  return h.status === 'unclear' ? 'Photo unclear, try again' : 'Photo saved · Claude measures it tonight';
+  return h.status === 'unclear' ? 'Photo unclear, try again' : 'Photo saved · ' + coach().short + ' measures it tonight';
 }
 function handCalHtml(){
   const h = handOf();
@@ -3969,7 +4038,7 @@ function openHandCal(){ openSheet('hand', shTop('Your fist', 'The ruler in your 
 function paintHandCal(){ document.querySelectorAll('.hc').forEach(el => { const box = el.parentElement, open = !el.querySelector('.hc-type').hidden; box.innerHTML = handCalHtml(); if(open) box.querySelector('.hc-type').hidden = false; }); }
 function saveHandShot(url){
   saveMeta({hand: {photo: storePhoto('hand-' + newId(), url), side: ST().handSide === 'right' ? 'right' : 'left', ref: 'fist', status: 'pending', at: todayISO()}});
-  toast('Saved · Claude measures your fist tonight'); paintHandCal();
+  toast('Saved · ' + coach().short + ' measures your fist tonight'); paintHandCal();
 }
 function saveHandTyped(){
   const len = num($('#hc-len').value), wid = num($('#hc-wid').value);
@@ -4331,30 +4400,30 @@ const FB_KIND = {daily:'Evening review', weekly:'Weekly summary', monthly:'Month
 const fbLabel = f => (FB_KIND[f.kind] || 'Feedback') + ' · ' + dLong(f.date) + (f.label ? ' · ' + f.label : '');
 const fbId = f => f.id || (f.kind || 'daily') + '-' + f.date;
 
-/* ---------- talking back to Claude ----------
-   A reply thread under each message from Claude (or a general one before the first review). Messages and photos go to
+/* ---------- talking back to your coach ----------
+   A reply thread under each message from the coach (or a general one before the first review). Messages and photos go to
    the data repo with everything else; the evening review reads them and answers in the same thread. */
 const photoCache = {};
 const msgsFor = re => [...vmap('messages').values()].filter(m => m && m.re === re).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 const fClock = new Intl.DateTimeFormat('en-GB', {hour: '2-digit', minute: '2-digit'});
 function photoTag(ph){ const src = ph.startsWith('data:') ? ph : photoCache[ph]; return '<img alt="Photo" ' + (src ? 'src="' + esc(src) + '"' : 'data-ph="' + esc(ph) + '"') + '>'; }
 function threadHtml(re, noComposer, limit){
-  const ms = msgsFor(re), last = ms[ms.length - 1];
+  const ms = msgsFor(re), last = ms[ms.length - 1], who = re === 'app' ? 'Plates' : coach().short;
   // newest first, so the latest message and Claude's latest answer sit at the top
-  let h = (last && last.from !== 'claude' ? '<div class="waiting">Claude answers tonight</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
+  let h = (last && last.from !== 'claude' ? '<div class="waiting">' + esc(who) + ' answers tonight</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
     (m.photos && m.photos.length ? '<div class="ph">' + m.photos.map(photoTag).join('') + '</div>' : '') +
-    '<small>' + (m.from === 'claude' ? 'Claude · ' : '') + esc(dShort(m.date)) + ' ' + fClock.format(new Date(m.createdAt || Date.now())) + '</small></div>').join('');
+    '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(dShort(m.date)) + ' ' + fClock.format(new Date(m.createdAt || Date.now())) + '</small></div>').join('');
   return (h ? '<div class="thread">' + h + '</div>' : '') + (noComposer ? '' : composerHtml(re));
 }
 function composerHtml(re){
   const dr = S.ui.drafts[re] || [];
   return '<div class="cmp" data-re="' + esc(re) + '"><div class="cmp-p">' + dr.map((d, i) => '<div class="pv"><img src="' + d + '" alt="Photo"><button data-a="msg-unphoto" data-re="' + esc(re) + '" data-i="' + i + '" aria-label="Remove photo">✕</button></div>').join('') + '</div>' +
     '<div class="cmp-row"><label class="cmp-btn" aria-label="Add photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><input type="file" accept="image/*" multiple data-msgphoto="' + esc(re) + '"></label>' +
-    '<textarea class="field cmp-t" rows="1" data-msgtext="' + esc(re) + '" placeholder="' + (re === 'app' ? 'A bug or a wish' : msgsFor(re).length ? 'Reply to Claude' : 'Ask Claude') + '" aria-label="Message to Claude">' + esc(S.ui.draftText[re] || '') + '</textarea>' +
+    '<textarea class="field cmp-t" rows="1" data-msgtext="' + esc(re) + '" placeholder="' + (re === 'app' ? 'A bug or a wish' : msgsFor(re).length ? 'Reply to ' + esc(coach().short) : 'Ask ' + esc(coach().short)) + '" aria-label="' + (re === 'app' ? 'Message about the app' : 'Message to ' + esc(coach().short)) + '">' + esc(S.ui.draftText[re] || '') + '</textarea>' +
     '<button class="cmp-btn send" data-a="msg-send" data-re="' + esc(re) + '" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button></div></div>';
 }
-/* ---------- Coach Claude on Today ----------
-   Today is the chat with Claude and nothing else: the latest evening review in full, today's plan, the thread, and the
+/* ---------- Your coach on Today ----------
+   Today is the chat with the coach you picked (name and face from TRAINERS) and nothing else: the latest evening review in full, today's plan, the thread, and the
    reply box above the tab bar. New reviews and answers put a red count on the Today tab while you are elsewhere,
    and answers about the app put one on the gear. */
 const tsOf = x => x.createdAt || Date.parse((x.date || '1970-01-01') + 'T20:00:00');
@@ -4375,14 +4444,14 @@ function renderBadges(){
 }
 function renderCoach(){
   const fb = D.feedback[0], re = fb ? fbId(fb) : 'general', n = msgsFor(re).length;
-  setHTML($('#coach'), '<div class="coach-top"><i class="av">C</i><h2>Coach Claude</h2>' + (D.feedback.length ? '<button class="chip" data-a="reviews">Earlier</button>' : '') + '</div>' +
+  setHTML($('#coach'), '<div class="coach-top">' + coachAv(coach(), 26) + '<h2>' + esc(coach().name) + '</h2>' + (D.feedback.length ? '<button class="chip" data-a="reviews">Earlier</button>' : '') + '</div>' +
     (fb ? '<p class="fbmeta">' + esc(fbLabel(fb)) + '</p><div class="report">' + reportHtml(fb.text) + '</div>' : '<p class="sub" style="margin-top:8px">Your first evening review arrives tonight. Ask me anything in the box below.</p>'));
-  // today's plan from Claude is the first message in the chat, with a button that starts the planned workout
+  // today's plan from the coach is the first message in the chat, with a button that starts the planned workout
   const plan = todaysPlan(), act = activeSession(), sug = act ? null : routineById(suggested());
   let chat = '';
   if(plan && plan.message) chat += '<div class="msg plan"><b>Today\'s plan</b>' + esc(plan.message) +
     (act ? '<button class="chip" data-a="resume">Continue workout</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
-    '<small>Claude · ' + esc(dShort(plan.date)) + '</small></div>';
+    '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date)) + '</small></div>';
   chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
   setHTML($('#chat'), chat);
   setHTML($('#dock'), composerHtml(re));
@@ -4395,8 +4464,8 @@ function renderCoach(){
 let readT = null;
 function readSoon(){ clearTimeout(readT); readT = setTimeout(() => { if(S.tab === 0 && !document.hidden) markCoachRead(); }, 1500); }
 document.addEventListener('visibilitychange', () => { if(!document.hidden && S.tab === 0 && D) readSoon(); });
-/* Earlier reviews and their threads, in a sheet from the Coach Claude card */
-function openReviews(){ openSheet('reviews', shTop('Coach Claude', 'Earlier'), '<div id="rv-panel"></div>', true); renderReviews(); }
+/* Earlier reviews and their threads, in a sheet from the coach card */
+function openReviews(){ openSheet('reviews', shTop(esc(coach().name), 'Earlier'), '<div id="rv-panel"></div>', true); renderReviews(); }
 function renderReviews(){
   const el = $('#rv-panel'); if(!el || sheetMode !== 'reviews') return;
   const list = D.feedback;
@@ -4411,7 +4480,7 @@ function renderReviews(){
   if(sampleFn) html += '<div class="srow" style="border-top:1px solid var(--line)"><div><b>Summarise now</b></div><select class="sel" id="ai-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-primary wide" data-a="ai-run-set">Summarise</button><div class="report" id="ai-out"></div>';
   else if(S.backend === 'gh'){
     const reqs = [...vmap('requests').values()].filter(r => r && r.type === 'overview');
-    html += '<div class="srow" style="border-top:1px solid var(--line);padding-inline:0"><div><b>Ask for an overview</b><small>' + (reqs.length ? 'Waiting: ' + esc(reqs.map(r => r.label).join(', ')) : 'Arrives with tonight\'s review') + '</small></div><select class="sel" id="req-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-glass wide" data-a="ask-overview">Ask Claude</button>';
+    html += '<div class="srow" style="border-top:1px solid var(--line);padding-inline:0"><div><b>Ask for an overview</b><small>' + (reqs.length ? 'Waiting: ' + esc(reqs.map(r => r.label).join(', ')) : 'Arrives with tonight\'s review') + '</small></div><select class="sel" id="req-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-glass wide" data-a="ask-overview">Ask ' + esc(coach().short) + '</button>';
   }
   setHTML(el, html);
   hydratePhotos();
@@ -4457,7 +4526,7 @@ function sendMsg(re){
   S.ui.drafts[re] = []; S.ui.draftText[re] = '';
   document.querySelectorAll('.cmp[data-re="' + re + '"] textarea').forEach(box => { box.value = ''; box.style.height = ''; box.style.overflowY = ''; box.blur(); });
   queue('set', 'messages', id, {id, from: 'me', re, text, photos, date: todayISO(), createdAt: Date.now()});
-  toast('Sent · Claude answers tonight');
+  toast('Sent · ' + coach().short + ' answers tonight');
 }
 document.addEventListener('input', e => { const t = e.target; if(!t.dataset) return; if(t.dataset.sodraft != null && S.ui.soDraft){ S.ui.soDraft.text = t.value; growNote(t); } if(t.dataset.socmt != null){ S.ui.soCmtText = t.value; growNote(t); } });
 document.addEventListener('change', async e => { const t = e.target; if(t.dataset && t.dataset.sophoto != null && t.files && t.files.length && S.ui.soDraft){ const f = t.files[0]; t.value = ''; if(S.ui.soDraft.photos.length >= 4) return; try{ S.ui.soDraft.photos.push(await shrinkPhoto(f, 1280)); renderSide(); }catch(x){ toast('Could not read that photo'); } } });
@@ -5081,7 +5150,7 @@ function renderSettings(){
     srow('Length', '', sel('weeks', [[0,'No end date'],[8,'8 weeks'],[12,'12 weeks'],[16,'16 weeks'],[26,'26 weeks'],[52,'52 weeks']], st.weeks)) +
     srow('Weekly goal', 'Strength sessions', sel('goal', [1,2,3,4,5,6,7].map(n => [n, String(n)]), st.goal));
   const nx = Object.values(xpAll()), nl = nx.filter(v => v.p === 'love').length, na = nx.filter(v => v.p === 'avoid').length;
-  p.coach = '<p class="hint" style="margin:12px 6px 4px">Your coach sets how Claude plans your workouts and talks to you.</p>' + coachPick(trainerId(), true, 'inset') +
+  p.coach = '<p class="hint" style="margin:12px 6px 4px">Your coach plans your workouts and talks to you in their own voice.</p>' + coachPick(trainerId(), true, 'inset') +
     srow('Tips', 'Explanations on cards, like what RIR means', seg('level', [['new','Show'],['pro','Hide']], st.level === 'pro' ? 'pro' : 'new')) +
     srow('Exercise likes', nl || na ? nl + ' loved · ' + na + ' avoided' : 'Love or avoid exercises', '<button class="btn-glass btn-small" data-a="set-panel" data-p="exercises">Edit</button>') +
     srow('Goals', goals().length + ' of 3', '<button class="btn-glass btn-small" data-a="coach-goals">Edit</button>') +
@@ -5126,7 +5195,7 @@ function renderSettings(){
 /* Feedback about the app itself: bugs, ideas and wishes. Claude answers in the same thread in the evening review. */
 function renderFeedbackPanel(){
   const el = $('#fb-panel'); if(!el) return;
-  setHTML(el, '<div style="padding:12px 6px 4px"><p class="hint" style="margin:0 0 10px">Bugs, ideas and wishes for the app go here. Claude reads them in the evening review and answers in this thread.</p>' + composerHtml('app') + threadHtml('app', true) + '</div>');
+  setHTML(el, '<div style="padding:12px 6px 4px"><p class="hint" style="margin:0 0 10px">Bugs, ideas and wishes for the app go here. They are read in the evening review and answered in this thread.</p>' + composerHtml('app') + threadHtml('app', true) + '</div>');
   hydratePhotos();
 }
 /* Exercise preferences: Love, Fine or Avoid for each exercise in the library, with an optional short reason.
@@ -5164,7 +5233,7 @@ function renderXP(){
   const el = $('#xp-panel'); if(!el) return;
   setHTML(el, '<div class="xp-bar"><div id="xp-fw">' + xpFilterHtml() + '</div>' +
     '<input id="xp-q" class="field" type="search" placeholder="Search exercises" autocomplete="off" autocorrect="off" aria-label="Search exercises" value="' + esc(S.ui.xpQ || '') + '"></div>' +
-    '<p class="hint" style="margin:4px 6px 0">Claude plans your workouts around these.</p><div id="xp-list"></div>');
+    '<p class="hint" style="margin:4px 6px 0">Your coach plans around these.</p><div id="xp-list"></div>');
   renderXPList();
 }
 const xpWhyHtml = (name, v) => '<div class="xp-why"><input class="field" data-xpwhy="' + esc(name) + '" maxlength="60" placeholder="Why, optional" autocomplete="off" aria-label="Reason" value="' + esc(v.why) + '">' +
@@ -5212,6 +5281,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face, instead of Claude'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
   {v: '4.28.0', date: '2026-10-21', items: [['setedit428', 'Tap a logged set to change its weight, reps or RIR, or to delete it, also on earlier days in Log'], ['fast428', 'Logging a set is about twice as fast, so the card answers right away'], ['smooth428', 'New sets pop in, and Records, Body and Food ease in when you switch'], ['tick428', 'The slider ticks when you let go after a drag']]},
   {v: '4.27.0', date: '2026-10-21', items: [['prog427', 'Progress made new: a ring for each goal, your lifts as chips with the goals first, and a dashed goal line on the curve'], ['goal427', 'Tap a goal to see where you are, where you are going and your curve'], ['body427', 'Body has a period switch and three plain numbers: workouts, sets and sleep'], ['food427', 'Food is calmer: a week strip, one calorie ring split by protein, carbs and fat, and the calories beside each meal'], ['guide427', 'How to snap sits behind the question mark'], ['next427', 'A workout you already did today is not offered again'], ['fix427', 'Fixes: set numbers after a delete, cardio kept when you finish without Done, 1RM tests without RIR, no rest timer when you log a past day, and the minus in Overview works']]},
   {v: '4.26.0', date: '2026-10-21', items: [['restcard', 'The rest is on the card: it waits with the planned time and starts by itself when you log a set'], ['restroom2', 'No rest bar over the cards, so they get the room']]},
@@ -5255,7 +5325,7 @@ const stars = (key, cur) => '<div class="stars" role="group" aria-label="Rating"
 function renderUpdates(){
   const el = $('#upd-panel'); if(!el) return;
   const rt = D.meta.ratings || {};
-  setHTML(el, '<p class="hint" style="margin:12px 6px 0">Rate how well each change works for you. Claude sees the ratings.</p>' +
+  setHTML(el, '<p class="hint" style="margin:12px 6px 0">Rate how well each change works for you.</p>' +
     UPDATES.map(u => '<div class="upd"><h3>' + esc(u.v) + '<small>' + esc(dShort(u.date)) + '</small></h3>' + u.items.map(([id, t]) => { const k = u.v + ':' + id; return '<div class="uitem"><span>' + esc(t) + '</span>' + stars(k, rt[k] || 0) + '</div>'; }).join('') + '</div>').join(''));
 }
 function rate(key, v){
@@ -5807,7 +5877,7 @@ document.addEventListener('click', e => {
     case 'gh-skip': S.ui.skipConnect = true; renderToday(); maybeOnboard(); break;
     case 'gh-show': closeSettings(); S.ui.skipConnect = false; S.needsConnect = true; $('#connect').dataset.built = ''; selectTab(0); renderToday(); break;
     case 'gh-disconnect': if(S.ui.armedAct === 'ghd'){ disarmAct(); ghDisconnect(); } else armButton('ghd-btn', 'ghd', 'Disconnect', 'Tap again'); break;
-    case 'ask-overview': { const key = $('#req-period').value, r = periodRange(key), id = newId(); queue('set', 'requests', id, {id, type:'overview', period:key, label:r.label, date:todayISO(), createdAt:Date.now()}); toast('Claude will write it tonight'); renderReviews(); break; }
+    case 'ask-overview': { const key = $('#req-period').value, r = periodRange(key), id = newId(); queue('set', 'requests', id, {id, type:'overview', period:key, label:r.label, date:todayISO(), createdAt:Date.now()}); toast(coach().short + ' writes it tonight'); renderReviews(); break; }
     case 'feedback-open': openReviews(); break;
     case 'ai-run': openSheet('ai', shTop('Overview', periodRange(periodKey()).label), '<div class="report" id="ai-sheet-out"></div>', true); runAI(periodKey(), $('#ai-sheet-out'), null); break;
     case 'ai-run-set': runAI($('#ai-period').value, $('#ai-out'), b); break;
