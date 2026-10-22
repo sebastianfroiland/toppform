@@ -1769,9 +1769,9 @@ const fShort = new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',mo
 const fTime = new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit'});
 const fMonth = new Intl.DateTimeFormat('en-GB',{month:'long',year:'numeric'});
 const fDay = new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short'});
-const dLong = iso => fLong.format(new Date(iso+'T12:00:00'));
-const dShort = iso => fShort.format(new Date(iso+'T12:00:00'));
-const dDay = iso => fDay.format(new Date(iso+'T12:00:00'));
+// a date that is missing or not YYYY-MM-DD shows as nothing instead of stopping the page that shows it
+const dFmt = f => iso => { const d = new Date(iso+'T12:00:00'); return isNaN(d) ? '' : f.format(d); };
+const dLong = dFmt(fLong), dShort = dFmt(fShort), dDay = dFmt(fDay);
 const mmss = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return (h ? h + ':' + String(m).padStart(2,'0') : m) + ':' + String(s).padStart(2,'0'); };
 function parseDur(s){
   s = String(s||'').trim().replace(',','.'); if(!s) return null;
@@ -1828,15 +1828,18 @@ let D = null;
 function normDoc(col, d){
   if(!d || typeof d !== 'object') return d;
   const nm = n => NAME_EN[n] || n, c = {};
+  // a list with a hole in it (a half written doc) loses the hole instead of stopping the app
+  const bad = x => !x || typeof x !== 'object';
   if(col === 'sets'){ if(NAME_EN[d.exercise]) c.exercise = NAME_EN[d.exercise]; }
   else if(col === 'sessions'){
-    if(d.exercises && d.exercises.some(e => NAME_EN[e.name] || (e.from && NAME_EN[e.from]))) c.exercises = d.exercises.map(e => Object.assign({}, e, {name: nm(e.name)}, e.from ? {from: nm(e.from)} : {}));
+    if(d.exercises && !Array.isArray(d.exercises)) c.exercises = [];
+    else if(d.exercises && d.exercises.some(e => bad(e) || NAME_EN[e.name] || (e.from && NAME_EN[e.from]))) c.exercises = d.exercises.filter(e => !bad(e)).map(e => Object.assign({}, e, {name: nm(e.name)}, e.from ? {from: nm(e.from)} : {}));
     if(TITLE_EN[d.title]) c.title = TITLE_EN[d.title];
     if(ACT_EN[d.activity]) c.activity = ACT_EN[d.activity];
     if(KNEE_EN[d.knee]) c.knee = KNEE_EN[d.knee];
   }
   else if(col === 'checkins'){ if(KNEE_EN[d.knee]) c.knee = KNEE_EN[d.knee]; if(SORE_EN[d.sore]) c.sore = SORE_EN[d.sore]; }
-  else if(col === 'routines'){ if(TITLE_EN[d.name]) c.name = TITLE_EN[d.name]; if(d.items && d.items.some(i => NAME_EN[i.name])) c.items = d.items.map(i => Object.assign({}, i, {name: nm(i.name)})); }
+  else if(col === 'routines'){ if(TITLE_EN[d.name]) c.name = TITLE_EN[d.name]; if(d.items && !Array.isArray(d.items)) c.items = []; else if(d.items && d.items.some(i => bad(i) || NAME_EN[i.name])) c.items = d.items.filter(i => !bad(i)).map(i => Object.assign({}, i, {name: nm(i.name)})); }
   else if(col === 'plans'){ if(d.targets && Object.keys(d.targets).some(k => NAME_EN[k])){ const t = {}; for(const k in d.targets) t[nm(k)] = d.targets[k]; c.targets = t; } }
   return Object.keys(c).length ? Object.assign({}, d, c) : d;
 }
@@ -1863,7 +1866,9 @@ function derive(){
   const lastUsed = new Map(); for(const s of sets){ if(!lastUsed.has(s.exercise)) lastUsed.set(s.exercise, s.ts); }
   const routines = [...vmap('routines').values()].filter(r => r && r.name).sort((a,b) => (a.order||0) - (b.order||0) || String(a.name).localeCompare(b.name));
   const folders = [...vmap('folders').values()].filter(f => f && f.name).sort((a,b) => (a.order||0) - (b.order||0));
-  const feedback = [...vmap('feedback').values()].filter(f => f && f.text).sort((a,b) => (b.date||'') < (a.date||'') ? -1 : (b.date||'') > (a.date||'') ? 1 : (b.createdAt||0) - (a.createdAt||0));
+  // a review whose date is not a real day goes last, so it never stands in for the latest one
+  const fbDay = f => /^\d{4}-\d{2}-\d{2}$/.test(f.date || '') ? f.date : '';
+  const feedback = [...vmap('feedback').values()].filter(f => f && f.text).sort((a,b) => fbDay(b) < fbDay(a) ? -1 : fbDay(b) > fbDay(a) ? 1 : (+b.createdAt||0) - (+a.createdAt||0));
   const food = [...vmap('food').values()].filter(f => f && f.date).sort((a, b) => (a.ts || 0) - (b.ts || 0));
   const posts = [...vmap('posts').values()].filter(x => x && x.ts).sort((a, b) => b.ts - a.ts), social = [...vmap('social').values()].filter(Boolean);
   D = {sessions, sets, meta, checkins, weightSeries, setsBySession, lib, libBy, lastUsed, routines, folders, feedback, food, posts, social, plans: vmap('plans'), settings: Object.assign({}, DEF, meta.settings || {})};
@@ -4397,7 +4402,7 @@ function reportHtml(t){
   return String(t || '').split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => /^#{1,3}\s/.test(l) ? '<h3>' + esc(l.replace(/^#{1,3}\s*/, '')) + '</h3>' : '<p>' + esc(l.replace(/^[-*]\s+/, '').replace(/\*\*(.+?)\*\*/g, '$1')) + '</p>').join('');
 }
 const FB_KIND = {daily:'Evening review', weekly:'Weekly summary', monthly:'Monthly overview', period:'Overview'};
-const fbLabel = f => (FB_KIND[f.kind] || 'Feedback') + ' · ' + dLong(f.date) + (f.label ? ' · ' + f.label : '');
+const fbLabel = f => [FB_KIND[f.kind] || 'Feedback', dLong(f.date), f.label].filter(Boolean).join(' · ');
 const fbId = f => f.id || (f.kind || 'daily') + '-' + f.date;
 
 /* ---------- talking back to your coach ----------
@@ -4407,12 +4412,17 @@ const photoCache = {};
 const msgsFor = re => [...vmap('messages').values()].filter(m => m && m.re === re).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 const fClock = new Intl.DateTimeFormat('en-GB', {hour: '2-digit', minute: '2-digit'});
 function photoTag(ph){ const src = ph.startsWith('data:') ? ph : photoCache[ph]; return '<img alt="Photo" ' + (src ? 'src="' + esc(src) + '"' : 'data-ph="' + esc(ph) + '"') + '>'; }
+// the day and time under a message; a message without a date takes the day it was written
+function msgWhen(m){
+  const at = new Date(+m.createdAt || Date.parse(m.createdAt) || Date.now()), ok = !isNaN(at);
+  return [dShort(m.date) || (ok ? dShort(isoLocal(at)) : ''), ok ? fClock.format(at) : ''].filter(Boolean).join(' ');
+}
 function threadHtml(re, noComposer, limit){
   const ms = msgsFor(re), last = ms[ms.length - 1], who = re === 'app' ? 'Plates' : coach().short;
   // newest first, so the latest message and Claude's latest answer sit at the top
   let h = (last && last.from !== 'claude' ? '<div class="waiting">' + esc(who) + ' answers tonight</div>' : '') + ms.slice().reverse().slice(0, limit || 1e9).map(m => '<div class="msg' + (m.from === 'claude' ? '' : ' me') + '">' + esc(m.text || '') +
     (m.photos && m.photos.length ? '<div class="ph">' + m.photos.map(photoTag).join('') + '</div>' : '') +
-    '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(dShort(m.date)) + ' ' + fClock.format(new Date(m.createdAt || Date.now())) + '</small></div>').join('');
+    '<small>' + (m.from === 'claude' ? esc(who) + ' · ' : '') + esc(msgWhen(m)) + '</small></div>').join('');
   return (h ? '<div class="thread">' + h + '</div>' : '') + (noComposer ? '' : composerHtml(re));
 }
 function composerHtml(re){
@@ -4451,7 +4461,7 @@ function renderCoach(){
   let chat = '';
   if(plan && plan.message) chat += '<div class="msg plan"><b>Today\'s plan</b>' + esc(plan.message) +
     (act ? '<button class="chip" data-a="resume">Continue workout</button>' : plan.suggest === 'cardio' ? '<button class="chip" data-a="cardio">Start cardio</button>' : sug && plan.suggest === sug.id ? '<button class="chip" data-a="start" data-id="' + esc(sug.id) + '">Start ' + esc(sug.name) + '</button>' : '') +
-    '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date)) + '</small></div>';
+    '<small>' + esc(coach().short) + ' · ' + esc(dShort(plan.date) || 'Today') + '</small></div>';
   chat += threadHtml(re, true, 30) + (n > 30 ? '<button class="btn-quiet" data-a="reviews">All ' + n + ' messages</button>' : '');
   setHTML($('#chat'), chat);
   setHTML($('#dock'), composerHtml(re));
@@ -4474,7 +4484,7 @@ function renderReviews(){
   else {
     if(!S.ui.fbKey || !list.some(f => fbId(f) === S.ui.fbKey)) S.ui.fbKey = fbId(list[0]);
     const f = list.find(x => fbId(x) === S.ui.fbKey);
-    html = '<select class="sel block" id="fb-sel" aria-label="Choose date">' + opts(list.map(x => [fbId(x), dShort(x.date) + ' · ' + (FB_KIND[x.kind] || 'Feedback') + (x.label ? ' (' + x.label + ')' : '')]), S.ui.fbKey) + '</select>' +
+    html = '<select class="sel block" id="fb-sel" aria-label="Choose date">' + opts(list.map(x => [fbId(x), [dShort(x.date), FB_KIND[x.kind] || 'Feedback'].filter(Boolean).join(' · ') + (x.label ? ' (' + x.label + ')' : '')]), S.ui.fbKey) + '</select>' +
       '<div><p class="fbmeta">' + esc(fbLabel(f)) + '</p><div class="report">' + reportHtml(f.text) + '</div>' + composerHtml(fbId(f)) + threadHtml(fbId(f), true) + '</div>';
   }
   if(sampleFn) html += '<div class="srow" style="border-top:1px solid var(--line)"><div><b>Summarise now</b></div><select class="sel" id="ai-period">' + opts([['7','7 days'],['30','30 days'],['m0','This month'],['m1','Last month']], '30') + '</select></div><button class="btn-primary wide" data-a="ai-run-set">Summarise</button><div class="report" id="ai-out"></div>';
