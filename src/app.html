@@ -409,6 +409,11 @@ body { margin: 0; height: 100%; overflow: hidden; color: var(--text); font: 15px
 .so-cr > span { flex: 1; }
 .so-cam { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--fill-2); color: var(--g1); cursor: pointer; }
 .so-cam svg { width: 21px; height: 21px; }
+/* photos added to a post: small thumbnails with a round remove button, so they never push past the panel */
+.so-phs { display: flex; flex-wrap: wrap; gap: 8px; }
+.so-pht { position: relative; flex: 0 0 auto; width: 72px; height: 72px; border-radius: 12px; overflow: hidden; background: var(--fill-2); }
+.so-pht img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.so-pht button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 17px; line-height: 1; display: grid; place-items: center; }
 .so-end { text-align: center; color: var(--dim); font-size: 13px; margin: 6px 0 0; }
 .so-lab { margin: 6px 4px -4px; font-size: 13px; font-weight: 650; color: var(--dim); text-transform: uppercase; letter-spacing: .05em; }
 .so-g { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 10px; border: 1px solid var(--line); border-radius: 20px; background: var(--fill); }
@@ -2167,8 +2172,14 @@ function commitMsg(ops){
 /* A file GitHub sent cut off or broken is never written, since the new file would hold only the new docs and the rest
    of that month would be gone. Changes that belong in it wait on the phone, behind the others, until it reads again. */
 const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
+const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+// lays the phone's meta over the repo's: nested settings merge, lists keep what the repo had, everything else is the phone's
+const layOver = (base, top) => { const o = Object.assign({}, base); for(const k in top){ const a = o[k], b = top[k];
+  o[k] = isObj(a) && isObj(b) ? Object.assign({}, a, b) : Array.isArray(a) && Array.isArray(b) ? a.concat(b.filter(x => !a.some(y => JSON.stringify(y) === JSON.stringify(x)))) : b; } return o; };
 async function ghFlush(){
   if(!GH.head){ GH.emptyRepo = true; renderStatus(); return; }
+  // just connected with changes on the phone and data in the repo: ask which should win before anything is written
+  if(S.ui.askUpload){ if(Object.keys(GH.files).length){ if(!(sheetMode === 'upload' && document.body.classList.contains('sheet-open'))) askPhoneData(); renderStatus(); return; } S.ui.askUpload = false; }
   const held = ghHeld();
   if(held.length){ const h = new Set(held), go = S.pending.filter(op => !h.has(op)); S.pending.splice(0, S.pending.length, ...go, ...held); }
   const ops = S.pending.slice(0, Math.min(40, S.pending.length - held.length));
@@ -2182,7 +2193,8 @@ async function ghFlush(){
     for(const op of ops){
       if(op.col === 'photos'){ photoAdds.push({path: 'data/photos/' + op.id + '.jpg', contents: op.data.b64}); continue; }
       const path = ghPath(op);
-      if(op.col === 'meta'){ changed[path] = op.data; continue; }
+      // settings from before the phone was connected (op.pre) never replace a meta file the repo already has; they are laid over it
+      if(op.col === 'meta'){ changed[path] = op.pre && GH.files[path] ? layOver(GH.files[path], op.data) : op.data; continue; }
       const old = GH.index[op.col + '/' + op.id];
       if(old && old !== path) delete get(old)[op.id];
       if(op.op === 'set') get(path)[op.id] = op.data; else delete get(path)[op.id];
@@ -2228,9 +2240,18 @@ async function ghConnect(btn){
     if(!d.repository) throw {auth:true};
     GH.cfg = {owner, repo, token}; ls.set('tl.gh', JSON.stringify(GH.cfg));
     toast('Connected');
+    // changes made on this phone before connecting wait until the question in askPhoneData is answered
+    S.ui.askUpload = S.pending.length > 0;
     await ghStart();
   }catch(e){ toast(e && (e.auth || e.gql) ? 'Repo not found with that token' : 'Could not reach GitHub'); }
   finally{ btn.disabled = false; btn.textContent = 'Connect'; }
+}
+function askPhoneData(){
+  const n = S.pending.filter(op => op.col !== 'photos').length;
+  openSheet('upload', shTop('Changes on this phone', 'Connect'),
+    '<p class="sub">' + plural(n, 'change') + ' made on this phone before it was connected, and the repo already has data. Which should the app keep?</p>' +
+    '<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><button class="btn-primary wide" data-a="up-yes">Upload the phone changes</button><button class="btn-quiet" data-a="up-no">Use GitHub only</button></div>' +
+    '<p class="note" style="margin-top:12px">Upload lays the phone changes over what is in the repo. Use GitHub only drops what was logged on this phone.</p>', false);
 }
 function ghDisconnect(){ ls.del('tl.gh'); ls.del('tl.gh.cache'); location.reload(); }
 
@@ -2419,6 +2440,7 @@ function renderStatus(){
   else if(gh && GH.authError){ s = 'off'; t = 'Token rejected'; note = 'GitHub no longer accepts your token. Everything you log is kept on this phone. Create a new token and reconnect under Settings, Data.'; }
   else if(gh && GH.emptyRepo){ s = 'off'; t = 'Empty repo'; note = 'Your data repo has no files yet. Add a README on github.com and the app can save.'; }
   else if(gh && ghHeld().length){ s = 'off'; t = 'Not uploaded'; note = 'The app could not read ' + [...GH.bad].join(', ') + ' on GitHub, so changes that belong there stay on this phone until it is fixed.'; }
+  else if(gh && S.ui.askUpload && S.pending.length){ s = 'busy'; t = 'Not uploaded yet'; }
   else if(S.mode === 'offline'){ s = 'busy'; t = S.pending.length ? 'Saves when online' : 'Offline'; }
   else if(S.mode === 'local'){ s = 'off'; t = S.pending.length ? 'Saved on phone' : 'Phone only'; if(!S.needsConnect) note = 'Not connected right now. What you log is kept on this phone and uploads when the app reconnects.'; }
   else if(S.mode === 'live'){ if(S.pending.length){ s = 'busy'; t = retryMs ? 'Waiting for network' : 'Saving'; } else { s = 'ok'; t = ''; } }
@@ -5197,7 +5219,7 @@ function soComposer(group){
   const d = S.ui.soDraft;
   if(!d || d.group !== (group || '')) return '<button class="so-comp" data-a="so-compose" data-g="' + esc(group || '') + '">' + soAv('me') + '<span>' + (group ? 'Post to the group' : 'Share a thought or a photo') + '</span>' + CAM_IC + '</button>';
   return '<div class="so-comp open">' + soAv('me') + '<div class="so-cw"><textarea class="field" rows="3" data-sodraft placeholder="How did training go?" maxlength="600">' + esc(d.text) + '</textarea>' +
-    (d.photos.length ? '<div class="fd-phs">' + d.photos.map((ph, i) => '<span class="fd-p">' + photoTag(ph) + '<button data-a="so-ph-del" data-i="' + i + '" aria-label="Remove photo">×</button></span>').join('') + '</div>' : '') +
+    (d.photos.length ? '<div class="so-phs">' + d.photos.map((ph, i) => '<span class="so-pht">' + photoTag(ph) + '<button data-a="so-ph-del" data-i="' + i + '" aria-label="Remove photo">×</button></span>').join('') + '</div>' : '') +
     '<div class="so-cr"><label class="so-cam" aria-label="Add photo">' + CAM_IC + '<input type="file" accept="image/*" data-sophoto hidden></label><span></span>' +
     '<button class="btn-quiet btn-small" data-a="so-compose-x">Cancel</button><button class="btn-primary btn-small" data-a="so-post">Post</button></div></div></div>';
 }
@@ -5439,6 +5461,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.31.0', date: '2026-10-22', items: [['connect431', 'Connecting GitHub asks what to keep when this phone has changes and the repo already has data'], ['full431', 'A full phone says Not saved until a save works, and Phone only keeps one version of each change'], ['photo431', 'Meal photos in Phone only are stored at 720 px, so storage lasts'], ['sothumb431', 'Photos in a new Social post show as small thumbnails with a remove button'], ['dbl431', 'A double tap on Log set logs one set, and Remove, Delete set and Discard never confirm by themselves'], ['stale431', 'A workout left open for 12 hours is saved and no longer blocks today'], ['fit431', 'Body fits a small phone, flashcards fit at text L, and a page that is still too tall scrolls inside its list instead of the page'], ['slide431', 'Slide mode shows 122.5 kg and 15:00 in full'], ['goals431', 'Goal rings count added weight on body weight lifts, Last counts cardio, and chips never read the same'], ['picker431', 'Closing the exercise picker goes back to the workout you are making, and a new workout starts in My Workouts'], ['plan431', 'Yesterday\'s plan stops setting the cards once you have trained after it'], ['max431', 'The estimated max counts a long set as 12 reps']]},
   {v: '4.30.0', date: '2026-10-22', items: [['workoutc430', 'Workout C is a strength workout again, not cardio'], ['dates430', 'A bad date or an empty entry in your data no longer blanks the app'], ['guard430', 'A page that cannot draw no longer freezes the tabs, start-up or saving'], ['month430', 'A month file the app could not read on GitHub is never written over; its changes wait on the phone'], ['chart430', 'Reading a chart no longer hides it'], ['deck430', 'The cards land on the right exercise when they are shrunk to fit']]},
   {v: '4.29.0', date: '2026-10-22', items: [['coaches429', 'Meet Iron Ingrid and Bulky Bjørn, painted like Gunnar: Ingrid for lifters who have trained a while, Bjørn for the experts'], ['pals429', 'Tap a coach: a dragonfly darts round Ingrid and lands on her bun, and bumblebees bumble round Bjørn and settle on his biceps'], ['yourcoach429', 'Today, messages and food show the coach you picked, with their face, instead of Claude'], ['voices429', 'Each coach has a voice: Gunnar gentle and full of pictures, Ingrid clear and fair, Bjørn short and blunt']]},
   {v: '4.28.0', date: '2026-10-21', items: [['setedit428', 'Tap a logged set to change its weight, reps or RIR, or to delete it, also on earlier days in Log'], ['fast428', 'Logging a set is about twice as fast, so the card answers right away'], ['smooth428', 'New sets pop in, and Records, Body and Food ease in when you switch'], ['tick428', 'The slider ticks when you let go after a drag']]},
@@ -6035,6 +6058,8 @@ document.addEventListener('click', e => {
     case 'set-seg': { const g = b.parentElement, all = [...g.children]; all.forEach(x => x.classList.toggle('on', x === b)); g.style.setProperty('--i', all.indexOf(b)); saveSettings({[b.dataset.k]: b.dataset.v}); break; }
     case 'gh-connect': ghConnect(b); break;
     case 'gh-skip': S.ui.skipConnect = true; renderToday(); maybeOnboard(); break;
+    case 'up-yes': S.ui.askUpload = false; S.pending.forEach(op => { op.pre = true; }); savePending(); closeSheet(); scheduleFlush(); break;
+    case 'up-no': S.ui.askUpload = false; S.pending.splice(0, S.pending.length); savePending(); filesToSnap(); closeSheet(); refresh(); toast('Using the data on GitHub'); break;
     case 'gh-show': closeSettings(); S.ui.skipConnect = false; S.needsConnect = true; $('#connect').dataset.built = ''; selectTab(0); renderToday(); break;
     case 'gh-disconnect': if(S.ui.armedAct === 'ghd'){ disarmAct(); ghDisconnect(); } else armButton('ghd-btn', 'ghd', 'Disconnect', 'Tap again'); break;
     case 'ask-overview': { const key = $('#req-period').value, r = periodRange(key), id = newId(); queue('set', 'requests', id, {id, type:'overview', period:key, label:r.label, date:todayISO(), createdAt:Date.now()}); toast(coach().short + ' writes it tonight'); renderReviews(); break; }
