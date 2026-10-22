@@ -15,7 +15,7 @@ except ImportError:
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
-VERSION = "4.34.0"
+VERSION = "4.35.0"
 
 HEAD = """<!doctype html>
 <html lang="en">
