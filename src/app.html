@@ -3114,14 +3114,16 @@ document.addEventListener('pointercancel', endOvPress);
 function deckGo(i, smooth){
   const wrap = $('#cards'), el = wrap.querySelectorAll('.ex')[i]; if(!el) return;
   S.ui.deckI = i; fitCards();
-  wrap.scrollTo({left: el.offsetLeft - (wrap.clientWidth - el.offsetWidth) / 2, behavior: smooth && !reduceMotion() ? 'smooth' : 'auto'});
+  // a fitted card is zoomed, and its offsets are in its own zoomed space, so measure it on screen instead
+  const r = el.getBoundingClientRect(), wr = wrap.getBoundingClientRect(), z = wr.width / wrap.offsetWidth || 1;
+  wrap.scrollTo({left: wrap.scrollLeft + (r.left + r.width / 2 - wr.left - wr.width / 2) / z, behavior: smooth && !reduceMotion() ? 'smooth' : 'auto'});
   const s = activeSession(); if(s) renderDeck(s);
 }
 // Keep the bar in step with the card you have swiped to
 $('#cards').addEventListener('scroll', () => {
   const wrap = $('#cards'); if(!wrap.classList.contains('deck-on')) return;
   const first = wrap.querySelector('.ex'); if(!first) return;
-  const i = Math.round(wrap.scrollLeft / (first.offsetWidth + 12));
+  const i = Math.round(wrap.scrollLeft / (first.getBoundingClientRect().width / (wrap.getBoundingClientRect().width / wrap.offsetWidth || 1) + 12));
   if(i !== S.ui.deckI){ S.ui.deckI = i; const s = activeSession(); if(s) renderDeck(s); fitCards(); }
 }, {passive: true});
 let noteT = null;
