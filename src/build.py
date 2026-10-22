@@ -4,10 +4,14 @@ The source is app.html (the page body).
 This script wraps it in a full HTML document with a manifest and service worker, and draws the icons.
 
 Run from the repo root: python3 src/build.py   (writes index.html, sw.js, the manifest and icons to the root, which GitHub Pages serves)
+The icons need Pillow. Without it the build keeps the committed icons, which only change when icon() does.
 """
 import json, random, re, shutil
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
+try:
+    from PIL import Image, ImageDraw
+except ImportError:
+    Image = None
 
 ROOT = Path(__file__).parent
 DIST = ROOT.parent
@@ -121,10 +125,13 @@ def build():
     (DIST / "sw.js").write_text(SW.replace("__VERSION__", VERSION).replace("__ART__", ", ".join("'./art/" + f.name + "'" for f in art)), encoding="utf-8")
     (DIST / "manifest.webmanifest").write_text(json.dumps(MANIFEST, ensure_ascii=False, indent=2), encoding="utf-8")
     (DIST / ".nojekyll").write_text("", encoding="utf-8")
-    icon(192).save(DIST / "icons" / "icon-192.png")
-    icon(512).save(DIST / "icons" / "icon-512.png")
-    icon(512, inset=0.08).save(DIST / "icons" / "icon-maskable-512.png")
-    icon(180).save(DIST / "icons" / "apple-touch-icon.png")
+    if Image:
+        icon(192).save(DIST / "icons" / "icon-192.png")
+        icon(512).save(DIST / "icons" / "icon-512.png")
+        icon(512, inset=0.08).save(DIST / "icons" / "icon-maskable-512.png")
+        icon(180).save(DIST / "icons" / "apple-touch-icon.png")
+    else:
+        print("Pillow is missing, so the icons were left as they are (pip3 install pillow to draw them)")
     print("Built", VERSION, "to", DIST)
 
 
