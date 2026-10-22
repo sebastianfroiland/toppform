@@ -3329,17 +3329,19 @@ function cardioPRs(){
   const out = [];
   for(const act of Object.keys(by)){
     const xs = by[act], tiles = [], paced = xs.filter(s => s.distM && s.durationSec);
+    // a best time over a distance is the same one the chips and goals show
+    const over = d => cardioSeries(act, d).reduce((a, b) => !a || b.y < a.y ? b : a, null);
     if(act === 'Run'){
-      const best = min => paced.filter(s => s.distM >= min).map(s => ({s, pace: s.durationSec / (s.distM / 1000)})).sort((a,b) => a.pace - b.pace)[0];
-      const p1 = best(1000), p5 = best(5000), p10 = best(10000);
+      const p1 = paced.filter(s => s.distM >= 1000).map(s => ({s, pace: s.durationSec / (s.distM / 1000)})).sort((a,b) => a.pace - b.pace)[0];
+      const p5 = over(5000), p10 = over(10000);
       if(p1) tiles.push(['Best pace', mmss(p1.pace) + ' /km', p1.s.date]);
-      if(p5) tiles.push(['5K', mmss(p5.pace * 5), p5.s.date]);
-      if(p10) tiles.push(['10K', mmss(p10.pace * 10), p10.s.date]);
+      if(p5) tiles.push(['5K', mmss(p5.y), p5.x]);
+      if(p10) tiles.push(['10K', mmss(p10.y), p10.x]);
     }
     if(inMeters(act)){
-      const r2 = paced.filter(s => s.distM >= 1950).map(s => ({s, t: Math.abs(s.distM - 2000) <= 50 ? s.durationSec : s.durationSec / s.distM * 2000})).sort((a,b) => a.t - b.t)[0];
+      const r2 = over(2000);
       const sp = paced.filter(s => s.distM >= 500).map(s => ({s, sp: s.durationSec / (s.distM / 500)})).sort((a,b) => a.sp - b.sp)[0];
-      if(r2) tiles.push(['2000 m', mmss(r2.t), r2.s.date]);
+      if(r2) tiles.push(['2000 m', mmss(r2.y), r2.x]);
       if(sp) tiles.push(['Best split', mmss(sp.sp) + ' /500m', sp.s.date]);
     }
     const longD = xs.filter(s => s.distM).sort((a,b) => b.distM - a.distM)[0], longT = xs.filter(s => s.durationSec).sort((a,b) => b.durationSec - a.durationSec)[0];
@@ -3450,7 +3452,7 @@ const lvlNew = () => ST().level !== 'pro';
 const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
 function periodRange(key){
   const t = todayISO();
-  if(key === 'last'){ const s = D.sessions.find(x => x.kind === 'styrke' && setsOf(x.id).length); const d = s ? s.date : t; return {key, from: d, to: d, label: 'your last workout', id: 'last-' + d, sid: s ? s.id : null}; }
+  if(key === 'last'){ const done = x => x.kind === 'styrke' ? setsOf(x.id).length : x.kind === 'kondis', s = D.sessions.find(done), d = s ? s.date : t, st = s && D.sessions.find(x => x.date === d && x.kind === 'styrke' && done(x)); return {key, from: d, to: d, label: 'your last workout', id: 'last-' + d, sid: st ? st.id : s ? s.id : null}; }
   if(key === '7') return {key, from: addDays(t, -6), to: t, label: 'the last 7 days', id: 'p7-' + t};
   if(key === '30') return {key, from: addDays(t, -29), to: t, label: 'the last 30 days', id: 'p30-' + t};
   if(key === 'm0'){ const f = t.slice(0, 8) + '01'; return {key, from: f, to: t, label: fMonth.format(new Date(f + 'T12:00:00')), id: 'm-' + t.slice(0, 7)}; }
@@ -3578,11 +3580,12 @@ function renderBody(r, p){
   S.ui.muscles = sc;
   const heat = k => sc[k] ? 'color-mix(in srgb, var(--g1) ' + Math.round(22 + sc[k] / mx * 78) + '%, var(--fill-2))' : 'var(--fill-2)';
   const top = Object.keys(sc).filter(k => sc[k] > 0).sort((a, b) => sc[b] - sc[a]), hot = top.filter(k => sc[k] >= mx * .9).slice(0, 2);
+  const tips = guidance(sc, r, p).filter(l => !/^Most work/.test(l) && !/times a week/.test(l)).slice(0, 2);
   const list = top.slice(0, 5).map(k => '<button class="mrow" data-a="muscle-pick" data-m="' + k + '"><span><b>' + esc(REGIONS[k][0]) + '</b><small>' + plural(Math.max(1, Math.round(sc[k])), 'set') + '</small></span><i><em style="width:' + Math.round(sc[k] / mx * 100) + '%"></em></i></button>').join('');
   setHTML($('#body-card'), '<div class="hd"><h2>Muscles</h2><small>Darker is more sets</small></div>' +
     '<div class="bodymap"><div class="fig3d" aria-label="Drag to turn the figure"><div class="flip' + (S.ui.figBack ? ' back' : '') + '"><div class="face f">' + figureSvg('front', heat, hot) + '</div><div class="face b">' + figureSvg('back', heat, hot) + '</div></div></div>' +
     '<div class="mside"><div class="mlist">' + (list || '<p class="sub">No sets yet</p>') + '</div>' + seg2('fig-side', [['f', 'Front'], ['b', 'Back']], S.ui.figBack ? 'b' : 'f') + '</div></div>' +
-    '<div class="guide">' + guidance(sc, r, p).filter(l => !/^Most work/.test(l) && !/times a week/.test(l)).slice(0, 2).map(l => '<p>' + esc(l) + '</p>').join('') + '</div>');
+    (tips.length ? '<div class="guide">' + tips.map(l => '<p>' + esc(l) + '</p>').join('') + '</div>' : ''));
 }
 // Turn the figure: a sideways drag rotates it in 3D under your finger and lets go on the nearest side
 function turnFig(back){ S.ui.figBack = back; const f = document.querySelector('#body-card .flip'); if(f){ f.classList.toggle('back', back); } const g = document.querySelector('#body-card .sg'); if(g){ g.style.setProperty('--i', back ? 1 : 0); [...g.children].forEach((x, i) => x.classList.toggle('on', i === (back ? 1 : 0))); } }
@@ -4313,7 +4316,7 @@ function renderBodyPage(){
   segSync($('#pg-per'), 'period', PERIODS, key);
   const n = p.str.length + p.kon.length, wk = periodWeeks(r), goal = ST().goal || 3, last = key === 'last';
   const tile = (l, v, e) => '<div class="tile"><small>' + l + '</small><b' + (v === '–' ? ' class="nil"' : '') + '>' + v + '</b><em>' + esc(e) + '</em></div>';
-  setHTML($('#pg-stats'), tile('Workouts', n || '–', last ? (p.str[0] ? dDay(p.str[0].date) : 'none yet') : wk >= 1.5 ? fmt(Math.round(n / wk * 10) / 10) + ' a week' : 'goal ' + goal + ' a week') +
+  setHTML($('#pg-stats'), tile('Workouts', n || '–', last ? (n ? dDay(r.from) : 'none yet') : wk >= 1.5 ? fmt(Math.round(n / wk * 10) / 10) + ' a week' : 'goal ' + goal + ' a week') +
     tile('Sets', p.sets.length || '–', p.min >= 1 ? '+ ' + Math.round(p.min) + ' min cardio' : 'hard sets') +
     tile('Sleep', p.sleep ? fmt(Math.round(p.sleep * 10) / 10) + ' h' : '–', p.sleep ? 'a night' : 'no check-ins'));
   renderBody(r, p);
@@ -4358,7 +4361,7 @@ const SLOT_IC = {cpress: 'bench', cfly: 'bench', vert: 'pull', row: 'row', rear:
 const ICON_BY_NAME = [[/pull-?up|chin|pulldown/i, 'pull'], [/bench|chest press|push-?up|dip/i, 'bench'], [/squat|leg press|lunge/i, 'squat'], [/deadlift|rdl|hyper|good morning|curl/i, 'hinge'], [/row/i, 'row'], [/shoulder press|overhead/i, 'press'], [/raise/i, 'raise'], [/thrust|bridge|abduct|adduct/i, 'hip']];
 const liftIcon = (slot, name) => { const hit = !SLOT_IC[slot] && name ? ICON_BY_NAME.find(([re]) => re.test(name)) : null; return '<svg viewBox="0 0 24 24" aria-hidden="true">' + LIFT_IC[hit ? hit[1] : SLOT_IC[slot] || 'bell'] + '</svg>'; };
 const SHORT = {'Bench Press': 'Bench', 'Incline Bench Press': 'Incline', 'Incline Dumbbell Press (30°)': 'Incline DB', 'Flat Dumbbell Press': 'DB press', 'Machine Chest Press': 'Chest press', 'Smith Incline Press': 'Incline', 'Lat Pulldown': 'Pulldown', 'Pull-Up': 'Pull-ups', 'Chin-Up': 'Chin-ups', 'Assisted Pull-Up': 'Pull-ups', 'Hack Squat': 'Hack squat', 'Back Squat': 'Squat', 'Leg Press': 'Leg press', 'Pendulum Squat': 'Pendulum', 'Romanian Deadlift': 'RDL', 'Overhead Press': 'OHP', 'Seated Dumbbell Press': 'DB press', 'Seated Machine Shoulder Press': 'Shoulders', 'Barbell Row': 'Row', 'Seated Cable Row': 'Cable row', 'Chest-Supported T-Bar Row': 'T-bar row', 'Chest-Supported Machine Row': 'Row', 'Seated Leg Curl': 'Leg curl', 'Lying Leg Curl': 'Leg curl', 'Dumbbell Lateral Raise': 'Laterals', 'Machine Lateral Raise': 'Laterals', 'Triceps Pushdown': 'Pushdown', 'Hip Thrust Machine': 'Hip thrust', 'Barbell Hip Thrust': 'Hip thrust', 'Leg Extension': 'Leg ext'};
-const shortName = n => SHORT[n] || (n.split(' ')[0].length <= 10 ? n.split(' ')[0] : n.slice(0, 9));
+const shortName = n => SHORT[n] || (n.split(' ')[0].length <= 10 ? n.split(' ')[0] : n.slice(0, 9) + '…');
 /* What the bar shows. Sebastian picks up to five under Choose lifts: lifts, and cardio distances like a 3 km run,
    saved in settings.lcPins. With nothing picked it fills itself with your goal lifts and the lifts you log most. */
 const CARDIO_PINS = [['Run', 1000], ['Run', 3000], ['Run', 5000], ['Run', 10000], ['Row', 500], ['Row', 1000], ['Row', 2000], ['Row', 5000], ['SkiErg', 1000], ['SkiErg', 2000], ['Bike', 10000], ['Bike', 20000]];
@@ -4374,14 +4377,21 @@ function lcState(){
   for(const g of goals()){ const t = goalType(g); if(t === 'strength' && g.lift) ids.push(g.lift); else if(t === 'endurance' && g.act && g.distM) ids.push('c:' + g.act + ':' + g.distM); }
   const nGoal = new Set(ids).size, pins = lcPins();
   (pins.length ? pins : keyLifts(5).map(p => p.name)).forEach(id => ids.push(id));
+  if(!pins.length && !D.sets.length) CARDIO_PINS.map(([a, d]) => ['c:' + a + ':' + d, cardioSeries(a, d).length]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(x => ids.push(x[0]));
   const favs = [...new Set(ids)].slice(0, 8).map(pinItem), saved = S.ui.lcLift || ls.get('tl.lcLift');
   const i = Math.max(0, favs.findIndex(p => p.name === saved));
   return {favs, i, p: favs[i] || null, nGoal};
 }
 const pinIcon = p => p.cardio ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + (CARDIO_IC[p.act] || CARDIO_IC.Run) + '</svg>' : liftIcon(p.info.slot, p.name);
 const pinShort = p => p.cardio ? p.act + ' ' + kmLabel(p.dist) : shortName(p.name);
-const lcBarHtml = (favs, i, nGoal) => '<div class="lc-pick">' + favs.map((p, j) => '<button class="chip' + (j === i ? ' on' : '') + '" data-a="lc-pick" data-i="' + j + '" data-n="' + esc(p.name) + '">' + (j < nGoal ? '<i class="gd" aria-hidden="true"></i>' : '') + esc(pinShort(p)) + '</button>').join('') +
-  '<button class="chip lc-edit' + (favs.length ? '' : ' wide') + '" data-a="lc-edit" aria-label="Choose lifts">' + PEN + (favs.length ? '' : 'Choose lifts') + '</button></div>';
+// two chips that would read the same show enough of the name to tell them apart
+const chipNames = favs => { const a = favs.map(pinShort); return a.map((x, j) => {
+  if(a.indexOf(x) === a.lastIndexOf(x)) return x;
+  const w = favs[j].name.split(' '), twins = favs.filter((f, k) => k !== j && a[k] === x).map(f => f.name.split(' ')), at = (v, n) => v.slice(0, n).join(' ');
+  let n = Math.min(2, w.length); while(n < w.length && twins.some(t => at(t, n) === at(w, n))) n++;
+  const s = at(w, n); return s.length > 22 ? s.slice(0, 21) + '…' : s; }); };
+const lcBarHtml = (favs, i, nGoal) => { const nm = chipNames(favs); return '<div class="lc-pick">' + favs.map((p, j) => '<button class="chip' + (j === i ? ' on' : '') + '" data-a="lc-pick" data-i="' + j + '" data-n="' + esc(p.name) + '">' + (j < nGoal ? '<i class="gd" aria-hidden="true"></i>' : '') + esc(nm[j]) + '</button>').join('') +
+  '<button class="chip lc-edit' + (favs.length ? '' : ' wide') + '" data-a="lc-edit" aria-label="Choose lifts">' + PEN + (favs.length ? '' : 'Choose lifts') + '</button></div>'; };
 // your best time over a distance on one machine, per day: longer efforts count at their pace, up to three times the distance
 function cardioSeries(act, dist){
   const by = new Map();
@@ -4409,7 +4419,7 @@ function renderLiftHead(p){
     foot = lcFoot('');
   } else if(p.cardio){
     const pts = cardioSeries(p.act, p.dist), best = pts.length ? Math.min.apply(null, pts.map(x => x.y)) : 0;
-    const diff = pts.length > 1 ? pts[pts.length - 1].y - pts[0].y : 0;
+    const diff = pts.length > 1 ? best - pts[0].y : 0;
     head = '<div class="lc-head"><div class="lc-name"><b>' + esc(p.name) + '</b><small>' + esc(gtxt || (best ? 'Fastest time' : 'No ' + kmLabel(p.dist) + ' logged yet')) + '</small></div>' +
       '<div class="lc-num">' + (best ? '<span><strong>' + mmss(best) + '</strong></span>' : '') + (diff ? '<small class="' + (diff < 0 ? 'up' : 'dn') + '">' + (diff < 0 ? '−' : '+') + mmss(Math.abs(diff)) + ' since ' + esc(dDay(pts[0].x)) + '</small>' : best ? '<small>best</small>' : '') + '</div></div>';
     foot = lcFoot('<button class="btn-glass" data-a="cardio">Cardio</button>');
@@ -4418,8 +4428,8 @@ function renderLiftHead(p){
     foot = lcFoot(p.info.bw ? '' : '<button class="btn-glass" data-a="rm-open" data-n="' + esc(p.name) + '">Test 1RM</button>');
   } else {
     const sr = liftSeries(p.name), val = sr.reps ? p.maxReps.reps : Math.round(p.e1.sc * 2) / 2, unit = sr.reps ? 'reps' : 'kg';
-    const pts = sr.e1, diff = pts.length > 1 ? Math.round((pts[pts.length - 1].y - pts[0].y) * 2) / 2 : 0;
-    const test = D.sessions.filter(x => isTestS(x) && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
+    const pts = sr.e1, diff = pts.length > 1 ? Math.round((val - pts[0].y) * 2) / 2 : 0;
+    const test = D.sessions.filter(x => isTestS(x) && x.exercises && x.exercises[0] && x.exercises[0].name === p.name).sort((a, b) => b.startedAt - a.startedAt)[0];
     const tested = test ? setsOf(test.id).filter(y => y.reps === 1).sort((a, b) => b.weight - a.weight)[0] : null;
     const bs = sr.reps ? p.maxReps : p.e1.x, sub = gtxt || (tested ? 'Tested ' + fmt(tested.weight) + ' kg · ' + dDay(test.date) : 'Best set ' + (sr.reps ? bs.reps + ' reps' : wTxt(bs.weight || 0, p.info) + (p.info.bw ? '' : ' kg') + ' × ' + bs.reps) + ' · ' + dDay(bs.date));
     head = '<div class="lc-head"><button class="lc-name" data-a="exhist" data-n="' + esc(p.name) + '"><b>' + esc(p.name) + '</b><small>' + esc(sub) + '</small></button>' +
@@ -4434,7 +4444,7 @@ function drawLiftChart(){
   const {p} = lcState(), H = Math.max(64, Math.round(box.clientHeight || 160) - 30), gl = goalFor(p);
   const key = (p ? p.name : '') + '|' + H + '|' + D.sets.length + '|' + D.sessions.length + '|' + (gl && gl.y || '');
   if(box._key === key) return; box._key = key;
-  if(!p){ box.innerHTML = curveHtml([], {empty: 'After your first workout, your best lifts and their curves show up here'}); return; }
+  if(!p){ box.innerHTML = curveHtml([], {empty: D.sessions.length ? 'Choose a lift or a distance and its curve shows up here' : 'After your first workout, your best lifts and their curves show up here'}); return; }
   if(p.cardio){ box.innerHTML = curveHtml(cardioSeries(p.act, p.dist), {h: H, fy: mmss, inv: true, goal: gl, label: p.name + ' over time', empty: 'Do ' + kmLabel(p.dist) + ' or more on the ' + p.act.toLowerCase() + ' and your time shows up', one: 'Do it again and the line starts'}); return; }
   if(p.empty){ box.innerHTML = curveHtml([], {h: H, empty: 'Log it once and it shows up here'}); return; }
   const sr = liftSeries(p.name);
