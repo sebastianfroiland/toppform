@@ -1,7 +1,7 @@
 {
   "name": "Plates",
   "short_name": "Plates",
-  "description": "Training log with Claude as your coach",
+  "description": "Training log with a coach who reads it every evening",
   "lang": "en",
   "start_url": "./",
   "scope": "./",
