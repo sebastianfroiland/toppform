@@ -1,6 +1,6 @@
 # Plates app (repo `toppform`, public)
 
-Installable web app on GitHub Pages: https://sebastianfroiland.github.io/toppform/. The whole app is one file, `src/app.html` (HTML, CSS and JS, about 6,000 lines, no dependencies). The workspace around this repo (data repo, evening review, tests, art, planning) is described in `../CLAUDE.md`.
+Installable web app on GitHub Pages: https://sebastianfroiland.github.io/toppform/. The whole app is one file, `src/app.html` (HTML, CSS and JS, about 7,000 lines, no dependencies except the map: see Activity below). The workspace around this repo (data repo, evening review, tests, art, planning) is described in `../CLAUDE.md`.
 
 ## Build and ship
 
@@ -42,7 +42,8 @@ Line numbers are from 4.34.0 and drift. Jump with `grep -n '^/\* ---------- ' sr
 | 5424 | sliders | `paintRange`, `rangeNudge`, drag |
 | 5523 | exercise notes | `openNotes`, `notesHtml`, `openSetEdit` |
 | 5608 | 1RM test | `renderRmCard`, `startRm` |
-| 5664 | events | one click handler for the whole app: every button has `data-a="name"` and a `case 'name'` here. Then `saveSettings` and the keyboard (`typingField`, `body.kb`) |
+| 6036 | activity | `AC` (the activity in progress), GPS (`acFix`), steps (`acMotion`), detection (`acDetect`), the live screen (`acPaintNow`), maps (`acMakeMap`, `acMapInit`, `acCanvas`), the summary (`acSummary`), the report (`acReport`, `acInsights`), the Activity sheet (`acHub`), the card (`renderActCard`), `acClick` |
+| 6826 | events | one click handler for the whole app: every button has `data-a="name"` and a `case 'name'` here. Then `saveSettings` and the keyboard (`typingField`, `body.kb`) |
 
 ## Rules
 
@@ -93,6 +94,14 @@ Line numbers are from 4.34.0 and drift. Jump with `grep -n '^/\* ---------- ' sr
 - `streakInfo` counts it all from the log, nothing is stored: skips are 7 minus the goal, a day that ends without a workout uses one, two workouts in a day earn one, and a workout logged for a past day gives its skip back. A week counts when it reaches the goal of that week, which `goalLog` in settings keeps (`goalLogWith`), so raising the goal never breaks weeks already done.
 - Move to tomorrow sits next to All workouts while a planned workout is not done yet (`canMove`). It writes today's plan with `moved` {at, why}; the start card becomes a rest day with reason chips, what waits for tomorrow, and Undo (`moveUndo`, using `tl.moveUndo`). With no skips left it asks first. The next day the moved plan carries over until the evening review writes a new one. When the review has already planned tomorrow (`tomorrowPlan`), the button reads Rest today and the card shows that plan instead.
 - Social shows everyone's streak by their name, the streak on You with Share, a card in the feed for the week that last grew it, and the Show Up Club, whose board ranks streaks.
+
+### Activity
+
+- Outdoor activities with GPS, apart from workouts: they have their own collection (`activities`, plus the full track in `data/tracks/YYYY-MM/<id>.json`, one level deeper than `ghLoad` reads) and never touch sessions, the weekly goal or the streak. The entry is the Activity card under the start card on the Workout page (`#ac-card`), and Activity in Social's shortcuts. Every action starts with `ac-` and goes to `acClick`.
+- Start opens the live screen (`#acv`, over everything but sheets and toasts) and starts looking for GPS; the clock waits for Start. A fix vaguer than 40 m never counts, a move shorter than the fix's own wobble is standing still, and auto pause stops the clock after 12 s without moving (a device setting, `tl.ac.ap`). The activity in progress is kept in IndexedDB (`live`) and comes back paused after the app closes. The track waits in IndexedDB (`trk-<id>`) and goes up as a `tracks` op in the save queue; `ghFlush` reads it from there.
+- Detection (`acDetect`) votes every second from the last 45 s: steps a minute from the motion sensor settle run, walk and ride, speed alone is less sure, and a walk that keeps climbing is a hike. iPhone asks for motion only from a tap, so `acMotionAsk` runs inside Start and Resume.
+- Be honest about the platform: no GPS with the app in the background (the gap is marked, and counted only if the next fix is far away), no Bluetooth on iPhone (heart rate only with a strap where the browser has Web Bluetooth), no Apple Health. Estimates (energy, distance from steps) say est., missing sensors say so, and the report ends with where each number came from.
+- The map is the one dependency: MapLibre GL 4.7.1 from jsDelivr, OpenFreeMap's liberty style (3D buildings, made see-through) and AWS open terrain tiles, loaded only when a map is shown. Without it (offline, no WebGL) the route is drawn on a canvas, and the report shows the route as an SVG. Headless Chrome in `../testing/` has no WebGL, so it always tests the fallback; check the 3D map in a real browser.
 
 ### Food
 

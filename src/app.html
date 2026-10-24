@@ -1532,6 +1532,127 @@ button.day:active { transform: scale(.94); }
 @media (prefers-reduced-motion: reduce) { .blob, .cards.deck-on .ex, .ovt, .ovw.editing .ovt, .bodymap .mu.hot { animation: none; } .par, .sheet, .settings, .tabbar { transition: none; } }
 @media (prefers-reduced-transparency: reduce) { :root { --glass: color-mix(in srgb, var(--bg) 92%, transparent); } }
 @media (max-width: 360px) { .stp input { font-size: 27px; } .tabbar { width: calc(100% - 24px); } .tabbar a { font-size: 9px; } }
+/* ---------- activity ----------
+   The Activity card on the Workout page, the live screen (#acv, over everything but sheets and toasts), its pill
+   while hidden, and the Activity and report sheets. */
+#ac-card { padding: 10px 12px 10px 10px; display: flex; align-items: center; gap: 10px; }
+#ac-card .ac-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit; min-height: 44px; }
+.ac-ic { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 14%, var(--fill)); color: var(--accent); flex: none; }
+.ac-ic .cic { width: 25px; height: 25px; stroke-width: 1.8; }
+.ac-ic.sm { width: 30px; height: 30px; } .ac-ic.sm .cic { width: 19px; height: 19px; }
+.ac-tx { min-width: 0; }
+.ac-tx b { display: block; font-size: 16px; font-weight: 600; }
+.ac-tx small { display: block; color: var(--dim); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+#ac-card .btn-primary { flex: none; min-height: 40px; }
+/* the fit system's compact step: one line, a smaller face */
+.vin.tight #ac-card { padding: 5px 6px 5px 5px; }
+.vin.tight #ac-card .ac-open { min-height: 40px; gap: 9px; }
+.vin.tight #ac-card .ac-ic { width: 34px; height: 34px; } .vin.tight #ac-card .ac-ic .cic { width: 21px; height: 21px; }
+.vin.tight #ac-card .ac-tx { display: flex; align-items: baseline; gap: 8px; min-width: 0; } .vin.tight #ac-card .ac-tx b { flex: none; }
+.vin.tight #ac-card .btn-primary { min-height: 36px; padding: 7px 14px; }
+.ac-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.ac-go .cic { width: 20px; height: 20px; stroke-width: 2; }
+.acv { position: fixed; inset: 0; bottom: calc(-1 * var(--gap)); z-index: 35; display: flex; flex-direction: column; background: var(--bg); }
+.acv[hidden] { display: none; }
+body.ac-on .tabbar, body.ac-on #setBtn, body.ac-on #menuBtn { visibility: hidden; }
+.ac-map { position: relative; flex: 1 1 auto; min-height: 120px; background: var(--fill-2); overflow: hidden; }
+.ac-map > canvas, #ac-map-gl { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ac-map:not(.gl) #ac-map-gl { opacity: 0; pointer-events: none; }
+.ac-map.gl > canvas { display: none; }
+.ac-top { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 12px; right: 12px; display: flex; gap: 8px; align-items: center; }
+.ac-fab { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--edge); background: var(--float); color: var(--text); display: grid; place-items: center; font-weight: 700; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.14); flex: none; padding: 0; }
+.ac-fab .cic { width: 21px; height: 21px; stroke-width: 2; }
+.ac-fab.on { color: #2f6fe4; }
+.ac-pill { min-height: 38px; border-radius: 999px; border: 1px solid var(--edge); background: var(--float); color: var(--text); display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 13.5px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,.14); white-space: nowrap; min-width: 0; }
+.ac-pill span { overflow: hidden; text-overflow: ellipsis; }
+.ac-pill .dn { width: 14px; height: 14px; opacity: .6; }
+.ac-gps { margin-left: auto; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.ac-gps i { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
+.ac-gps[data-q="good"] i { background: var(--up); } .ac-gps[data-q="ok"] i { background: var(--warn); } .ac-gps[data-q="bad"] i { background: var(--down); }
+.ac-side { position: absolute; z-index: 2; right: 12px; bottom: 40px; display: flex; flex-direction: column; gap: 8px; }
+.ac-map .maplibregl-ctrl-bottom-left { bottom: 26px; }
+.ac-panel { flex: none; margin-top: -24px; z-index: 3; border-radius: 28px 28px 0 0; border-bottom: 0; padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + var(--gap) + 12px); }
+.ac-pick { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+.ac-pick[hidden] { display: none; }
+.ac-time { text-align: center; }
+.ac-time small { display: block; color: var(--dim); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
+.ac-time b { display: block; font-size: 52px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.ac-main, .ac-more, .ac-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; text-align: center; }
+.ac-main { margin-top: 8px; }
+.ac-main .tile b { font-size: 25px; }
+.ac-more { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.ac-more .tile { padding: 7px 4px; border-radius: 14px; }
+.ac-more .tile b { font-size: 16px; } .ac-more .tile b.nil { font-size: 15px; line-height: 1.25; }
+.ac-more .tile small, .ac-more .tile em { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-tag { font-style: normal; font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); }
+.ac-ctl { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 12px; }
+.ac-ctl > .btn-glass, .ac-ctl > .btn-primary { flex: 1; min-height: 54px; }
+.ac-ctl > .ac-big { flex: none; width: 72px; height: 72px; min-height: 72px; border-radius: 50%; padding: 0; display: grid; place-items: center; }
+.ac-big .cic { width: 30px; height: 30px; stroke-width: 2.4; }
+@media (max-height: 690px) {
+  .ac-time b { font-size: 42px; } .ac-main .tile { padding: 8px 6px; } .ac-main .tile b { font-size: 21px; }
+  .ac-ctl { margin-top: 8px; } .ac-ctl > .btn-glass, .ac-ctl > .btn-primary { min-height: 48px; } .ac-ctl > .ac-big { width: 62px; height: 62px; min-height: 62px; }
+}
+.acpill { padding: 4px 5px 4px 4px; border: 1px solid var(--edge); text-align: left; color: var(--text); font: inherit; }
+.acpill .rl b { display: block; font-size: 15px; color: var(--text); text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.acpill .x { margin-left: auto; display: grid; place-items: center; }
+body.resting .acpill { bottom: calc(max(env(safe-area-inset-bottom, 0px) - var(--gap), 0px) + 122px); }
+body.ac-on .toast { top: calc(env(safe-area-inset-top, 0px) + 64px); bottom: auto; }
+body.kb .acpill { transform: translateY(160%); opacity: 0; pointer-events: none; }
+/* the sheets */
+.ac-hero { display: flex; flex-direction: column; gap: 2px; }
+.ac-hero .row { margin-top: 10px; gap: 6px; }
+.chip .cic { width: 15px; height: 15px; }
+.ac-src { display: flex; flex-direction: column; border-radius: 17px; background: var(--fill); border: 1px solid var(--line); }
+.ac-src > div { display: flex; align-items: center; gap: 11px; padding: 10px 13px; min-height: 44px; }
+.ac-src > div + div { border-top: 1px solid var(--line); }
+.ac-src .cic { color: var(--dim); }
+.ac-src span { flex: 1; min-width: 0; }
+.ac-src b { display: block; font-size: 14.5px; font-weight: 600; }
+.ac-src small { display: block; color: var(--dim); font-size: 12.5px; line-height: 1.35; }
+.ac-src em { font-style: normal; color: var(--dim); font-size: 13px; text-align: right; flex: none; max-width: 42%; }
+.ac-wk { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.ac-wk span { display: inline-flex; align-items: center; gap: 5px; }
+.ac-bars { margin-top: 10px; }
+.ac-rec { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ac-rec button { text-align: left; padding: 11px 13px; border-radius: 17px; background: var(--fill); border: 1px solid var(--line); color: var(--text); font: inherit; min-width: 0; }
+.ac-rec small { display: block; color: var(--dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-rec b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.ac-list { display: flex; flex-direction: column; gap: 8px; }
+.ac-li { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; border-radius: 17px; background: var(--fill); border: 1px solid var(--line); text-align: left; color: var(--text); font: inherit; min-width: 0; }
+.ac-li > span { min-width: 0; flex: 1; }
+.ac-li b { display: flex; align-items: center; gap: 6px; font-size: 14.5px; font-weight: 600; }
+.ac-li small { display: block; color: var(--dim); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.ac-thumb { width: 48px; height: 48px; flex: none; border-radius: 12px; background: var(--glass); border: 1px solid var(--line); padding: 4px; box-sizing: border-box; }
+.ac-rmap { position: relative; height: 240px; flex: none; border-radius: 20px; overflow: hidden; background: var(--fill); border: 1px solid var(--line); }
+.ac-rsvg { position: absolute; inset: 12%; width: 76%; height: 76%; }
+.ac-gl { position: absolute; inset: 0; opacity: 0; transition: opacity .4s; }
+.ac-rmap.gl .ac-gl { opacity: 1; }
+.ac-rmap.gl .ac-rsvg { visibility: hidden; }
+.ac-tiles .tile { padding: 10px 8px; }
+.ac-tiles .tile b { font-size: 18px; }
+.ac-tiles .tile em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-tiles + .ac-tiles { margin-top: -6px; }
+.ac-ins { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ac-ins li { padding: 10px 13px; border-radius: 15px; background: var(--fill); border: 1px solid var(--line); }
+.ac-ins b { display: block; font-size: 14px; } .ac-ins span { display: block; color: var(--dim); font-size: 13.5px; line-height: 1.4; }
+.ac-spl { display: flex; flex-direction: column; font-variant-numeric: tabular-nums; font-size: 14px; }
+.ac-sr { display: grid; grid-template-columns: 34px 52px 1fr 44px; gap: 10px; align-items: center; min-height: 28px; }
+.ac-sr.h, .ac-sr.hd2:has(span:nth-child(5)) { grid-template-columns: 34px 52px 1fr 44px 34px; }
+.ac-sr.hd2 { color: var(--dim); font-size: 12px; font-weight: 600; }
+.ac-sr > span:nth-child(n+4) { text-align: right; color: var(--dim); }
+.ac-sr .bar { height: 10px; border-radius: 5px; background: var(--fill); overflow: hidden; }
+.ac-sr .bar i { display: block; height: 100%; border-radius: 5px; background: color-mix(in srgb, var(--accent) 55%, var(--fill-2)); }
+.ac-sr .bar i.top { background: var(--accent); }
+.ac-chs { display: flex; flex-direction: column; gap: 14px; }
+.ac-ch { margin: 0; }
+.ac-ch figcaption { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--dim); margin-bottom: 6px; }
+.ac-ch figcaption small { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.ac-chw { position: relative; height: 92px; border-radius: 14px; background: var(--fill); overflow: hidden; }
+.ac-chw svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ac-chw i { position: absolute; left: 6px; padding: 0 4px; border-radius: 6px; background: color-mix(in srgb, var(--glass) 85%, transparent); font-style: normal; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.ac-chw .hi { top: 5px; } .ac-chw .lo { bottom: 5px; }
+.ac-ax { display: flex; justify-content: space-between; margin: 3px 2px 0; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
 </style>
 
 <div class="bg" aria-hidden="true">
@@ -1558,7 +1679,7 @@ button.day:active { transform: scale(.94); }
   <section class="view" id="v-workout" aria-label="Workout"><div class="vin">
     <header class="top"><h1 id="wo-title">Workout</h1><small><span id="wo-sub"></span><span class="status" data-s="busy"></span></small></header>
     <div class="woacts" id="wo-acts" hidden><button class="chip fin" data-a="goto-finish">Finish</button><button class="chip danger" data-a="cancel-session" id="cancel-top">Discard</button><button class="chip" data-a="add-ex" id="add-top" hidden>+ Exercise</button></div>
-    <div id="wo-idle" class="grow"><article class="glass card grow" id="start-card"></article><article class="glass card" id="week"></article></div>
+    <div id="wo-idle" class="grow"><article class="glass card grow" id="start-card"></article><article class="glass card" id="ac-card"></article><article class="glass card" id="week"></article></div>
     <div id="wo-live" hidden>
       <div class="deck" id="deck" hidden></div>
       <div class="ovw" id="overview" hidden></div>
@@ -1624,6 +1745,15 @@ button.day:active { transform: scale(.94); }
 
 <div class="dockfade" id="dockfade" aria-hidden="true"></div>
 <div class="glass dock" id="dock" aria-label="Reply to your coach"></div>
+
+<div class="acv" id="acv" hidden aria-label="Activity">
+  <div class="ac-map" id="ac-map"><canvas id="ac-cv"></canvas><div id="ac-map-gl"></div>
+    <div class="ac-top"><button class="ac-fab" data-a="ac-hide" aria-label="Hide"><svg class="cic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9.5 6 6 6-6"/></svg></button><button class="ac-pill" id="ac-type" data-a="ac-type"></button><span class="ac-pill ac-gps" id="ac-gps"></span></div>
+    <div class="ac-side"><button class="ac-fab" data-a="ac-3d" id="ac-3d">2D</button><button class="ac-fab on" data-a="ac-center" id="ac-center" aria-label="Follow me"><svg class="cic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="7"/></svg></button></div>
+  </div>
+  <div class="ac-panel glass" id="ac-panel"><div class="ac-pick" id="ac-pick" hidden></div><div class="ac-time"><small id="ac-state">Ready</small><b id="ac-t">0:00</b></div><div class="ac-main" id="ac-main"></div><div class="ac-more" id="ac-more"></div><div class="ac-ctl" id="ac-ctl"></div></div>
+</div>
+<button class="glass restpill acpill" id="ac-pill" data-a="ac-show" hidden></button>
 
 <div class="sheet-wrap" id="sheetWrap">
   <div class="scrim"></div>
@@ -1890,8 +2020,8 @@ function setHTML(el, html){
 document.addEventListener('focusout', () => setTimeout(() => { for(const el of [...staleEls]){ if(el.contains(document.activeElement)) continue; staleEls.delete(el); const h = el._stale; el._stale = null; if(h != null && h !== el._html){ el._html = h; el.innerHTML = h; } } }, 0));
 
 /* ---------- state ---------- */
-const COLS = ['sessions','sets','body','checkins','routines','folders','plans','feedback','requests','messages','food','posts','social'];
-const emptySnap = () => ({sessions:new Map(), sets:new Map(), body:new Map(), checkins:new Map(), routines:new Map(), folders:new Map(), plans:new Map(), feedback:new Map(), requests:new Map(), messages:new Map(), food:new Map(), posts:new Map(), social:new Map(), meta:new Map()});
+const COLS = ['sessions','sets','body','checkins','routines','folders','plans','feedback','requests','messages','food','posts','social','activities'];
+const emptySnap = () => ({sessions:new Map(), sets:new Map(), body:new Map(), checkins:new Map(), routines:new Map(), folders:new Map(), plans:new Map(), feedback:new Map(), requests:new Map(), messages:new Map(), food:new Map(), posts:new Map(), social:new Map(), activities:new Map(), meta:new Map()});
 const S = {
   mode:'connecting', backend:'local', inflight:0, needsConnect:false, loaded:new Set(), autoOpened:false,
   snap: emptySnap(),
@@ -1953,7 +2083,8 @@ function derive(){
   const feedback = [...vmap('feedback').values()].filter(f => f && f.text).sort((a,b) => fbDay(b) < fbDay(a) ? -1 : fbDay(b) > fbDay(a) ? 1 : (+b.createdAt||0) - (+a.createdAt||0));
   const food = [...vmap('food').values()].filter(f => f && f.date).sort((a, b) => (a.ts || 0) - (b.ts || 0));
   const posts = [...vmap('posts').values()].filter(x => x && x.ts).sort((a, b) => b.ts - a.ts), social = [...vmap('social').values()].filter(Boolean);
-  D = {sessions, sets, meta, checkins, weightSeries, setsBySession, lib, libBy, lastUsed, routines, folders, feedback, food, posts, social, plans: vmap('plans'), settings: Object.assign({}, DEF, meta.settings || {})};
+  const activities = [...vmap('activities').values()].filter(acIsA).map(acClean).sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+  D = {sessions, sets, meta, checkins, weightSeries, setsBySession, lib, libBy, lastUsed, routines, folders, feedback, food, posts, social, activities, plans: vmap('plans'), settings: Object.assign({}, DEF, meta.settings || {})};
 }
 const ST = () => D.settings;
 const infoOf = name => D.libBy.get(name) || {name, slot:'other', kind:'b', bw:''};
@@ -2194,12 +2325,14 @@ function commitMsg(ops){
   else if(p.col === 'messages' || p.col === 'photos') m = ops.some(o => o.col === 'food') ? 'Food' : ops.some(o => o.col === 'posts') ? 'Social' : 'Message to the coach';
   else if(p.col === 'food') m = p.op === 'delete' ? 'Food deleted' : 'Food: ' + (p.data.meal || 'meal');
   else if(p.col === 'posts' || p.col === 'social') m = 'Social';
+  else if(p.col === 'activities' && p.op === 'set') m = 'Activity: ' + (AC_T[p.data.type] || 'Activity') + ' ' + kmTxt(p.data.dist) + ' km';
+  else if(p.col === 'tracks') m = 'Activity track';
   else if(p.op === 'delete') m = 'Deleted from ' + p.col;
   return m + (ops.length > 1 ? ' (+' + (ops.length - 1) + ')' : '');
 }
 /* A file GitHub sent cut off or broken is never written, since the new file would hold only the new docs and the rest
    of that month would be gone. Changes that belong in it wait on the phone, behind the others, until it reads again. */
-const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
+const ghHeld = () => GH.bad.size ? S.pending.filter(op => op.col !== 'photos' && op.col !== 'tracks' && (GH.bad.has(ghPath(op)) || GH.bad.has(GH.index[op.col + '/' + op.id]))) : [];
 /* Photos taken while the phone was alone sit as data URLs inside their docs. Before anything is uploaded they move to
    data/photos, each put placed right before the doc that points at it, so the JSON files never carry images. */
 function photosOut(){
@@ -2233,9 +2366,15 @@ async function ghFlush(){
   try{
     const changed = {};
     const get = p => changed[p] || (changed[p] = JSON.parse(JSON.stringify(GH.files[p] || {})));
-    const photoAdds = [];
+    const photoAdds = [], deletions = [];
     for(const op of ops){
       if(op.col === 'photos'){ photoAdds.push({path: 'data/photos/' + op.id + '.jpg', contents: op.data.b64}); continue; }
+      // an activity's track waits in IndexedDB, and goes up as its own file next to the summary
+      if(op.col === 'tracks'){
+        if(op.op === 'put'){ const P = await idbGet('trk-' + op.id); if(P) photoAdds.push({path: op.path, contents: b64(JSON.stringify(P) + '\n')}); }
+        else { const e = await gql('query($o:String!,$n:String!,$e:String!){repository(owner:$o,name:$n){object(expression:$e){id}}}', {o: GH.cfg.owner, n: GH.cfg.repo, e: 'HEAD:' + op.path}).catch(() => null); if(e && e.repository && e.repository.object) deletions.push({path: op.path}); }
+        continue;
+      }
       const path = ghPath(op);
       // settings from before the phone was connected (op.pre) never replace a meta file the repo already has; they are laid over it
       if(op.col === 'meta'){ const fresh = changed[path] || GH.files[path]; changed[path] = !fresh ? op.data : op.pre ? layOver(fresh, op.patch || op.data) : op.patch ? Object.assign({}, fresh, op.patch, {updatedAt: op.data.updatedAt || Date.now()}) : op.data; continue; }
@@ -2244,7 +2383,8 @@ async function ghFlush(){
       if(op.op === 'set') get(path)[op.id] = op.data; else delete get(path)[op.id];
     }
     const additions = photoAdds.concat(Object.keys(changed).map(p => ({path: p, contents: b64(JSON.stringify(changed[p], null, 1) + '\n')})));
-    const d = await gql(M_COMMIT, {i: {branch: {repositoryNameWithOwner: GH.cfg.owner + '/' + GH.cfg.repo, branchName: GH.branch}, message: {headline: commitMsg(ops)}, expectedHeadOid: GH.head, fileChanges: {additions}}});
+    const fileChanges = deletions.length ? {additions, deletions} : {additions};
+    const d = await gql(M_COMMIT, {i: {branch: {repositoryNameWithOwner: GH.cfg.owner + '/' + GH.cfg.repo, branchName: GH.branch}, message: {headline: commitMsg(ops)}, expectedHeadOid: GH.head, fileChanges}});
     GH.head = d.createCommitOnBranch.commit.oid;
     Object.assign(GH.files, changed);
     S.pending.splice(0, ops.length); savePending(); filesToSnap(); ghCache(); retryMs = 0; GH.fails = 0; GH.stuck = null; S.mode = 'live';
@@ -2292,7 +2432,7 @@ async function ghConnect(btn){
   finally{ btn.disabled = false; btn.textContent = 'Connect'; }
 }
 function askPhoneData(){
-  const n = S.pending.filter(op => op.col !== 'photos').length;
+  const n = S.pending.filter(op => op.col !== 'photos' && op.col !== 'tracks').length;
   openSheet('upload', shTop('Changes on this phone', 'Connect'),
     '<p class="sub">' + plural(n, 'change') + ' made on this phone before it was connected, and the repo already has data. Which should the app keep?</p>' +
     '<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><button class="btn-primary wide" data-a="up-yes">Upload the phone changes</button><button class="btn-quiet" data-a="up-no">Use GitHub only</button></div>' +
@@ -2364,10 +2504,10 @@ async function init(){
   sheetApi = LG.sheet($('#sheetWrap'), {onClose: () => {
     // the exercise picker of a workout you are making closes back to that workout, so a tap beside it never loses it
     const back = sheetMode === 'lib' && S.ui.lib && S.ui.lib.mode === 'routine' && S.ui.rd;
-    sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open');
+    sheetMode = null; S.ui.lib = null; S.ui.c = null; disarmAct(); document.body.classList.remove('sheet-open'); acMapRemove('rep');
     if(back) setTimeout(renderRoutineSheet, 0);
   }});
-  refresh();
+  refresh(); acRestore();
   if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if(GH.cfg && GH.cfg.token){ await ghStart(); return; }
   S.needsConnect = true; S.ui.skipConnect = ls.get('tl.skip') === '1'; goLocal();
@@ -2730,7 +2870,7 @@ function renderWorkout(){
   $('#wo-idle').hidden = !!s; $('#wo-live').hidden = !s; $('#wo-acts').hidden = !s;
   if(!s){
     $('#wo-sub').textContent = ''; $('#wo-title').textContent = 'Workout';
-    renderNext(); renderWeek(); renderStart();
+    renderNext(); renderActCard(); renderWeek(); renderStart();
     placeFinish(false);
     const w = $('#cards'); if(w.children.length) w.innerHTML = '';
     syncWake(false);
@@ -5372,7 +5512,7 @@ function soYouHtml(){
     '<div class="so-bars">' + weeks.map((w, i) => '<i style="--v:' + (w.n / mx) + '" class="' + (i === 7 ? 'now' : '') + '"><b>' + (w.n || '') + '</b></i>').join('') + '</div><p class="so-bl"><span>8 weeks ago</span><span>This week</span></p></div>' +
     '<p class="so-lab">Shortcuts</p><div class="so-sc">' +
     (act ? sl('resume', IC.play, 'Continue ' + sessionTitle(act), '<small>' + plural(setsOf(act.id).length, 'set') + '</small>') : sug ? sl('start', IC.play, 'Start ' + sug.name, '<small>Next</small>', ' data-id="' + esc(sug.id) + '"') : sl('quick', IC.play, 'Quick workout')) +
-    sl('checkin', IC.check, 'Morning check-in', D.checkins.has(t) ? '<small>Done ✓</small>' : '<span class="sdot"></span>') + sl('cardio', IC.run, 'Cardio') +
+    sl('checkin', IC.check, 'Morning check-in', D.checkins.has(t) ? '<small>Done ✓</small>' : '<span class="sdot"></span>') + sl('cardio', IC.run, 'Cardio') + sl('ac-open', '<svg viewBox="0 0 24 24">' + CARDIO_IC.Run + '</svg>', 'Activity', AC ? '<small>Live</small>' : '') +
     sl('log-past', IC.past, 'Log a past day', '', ' data-d="' + addDays(t, -1) + '"') + (D.sets.length ? sl('best-lifts', IC.chart, 'Best lifts') : '') +
     (D.feedback.length ? sl('reviews', IC.stack, 'Earlier reviews', '<small>' + D.feedback.length + '</small>') : '') + (D.routines.length ? sl('workouts', IC.bar, 'Your workouts') : '') +
     sl('settings', IC.spark, 'Settings') + '</div>' +
@@ -5563,6 +5703,7 @@ document.addEventListener('input', e => {
 /* What changed in each version. Rate each change from one to five; the ratings are saved with your data so Claude
    can see which fixes worked. */
 const UPDATES = [
+  {v: '4.37.0', date: '2026-10-24', items: [['act437', 'Activity on the Workout page: track a run, walk, hike or ride with GPS. Plates works out which one it is, shows a live 3D map, and gives you splits, charts and insights after']]},
   {v: '4.36.1', date: '2026-10-22', items: [['rest4361', 'When your coach has already planned tomorrow, the button says Rest today and the card shows that plan']]},
   {v: '4.36.0', date: '2026-10-22', items: [['cardio436', 'Set how many cardio sessions you want a week under Settings, General, next to strength'], ['streak436', 'A streak: every week you reach your goal keeps it going. The days left over are skips, and a day off uses one by itself'], ['move436', 'Move to tomorrow on the Workout page turns today into a rest day and keeps the workout for tomorrow'], ['social436', 'Your streak shows on Social, and the Show Up Club ranks streaks']]},
   {v: '4.35.0', date: '2026-10-22', items: [['tip435', 'Your coach\'s tip for each exercise waits behind the note bubble, folded until you tap it: how to do it, not the numbers']]},
@@ -5892,11 +6033,802 @@ document.addEventListener('input', e => {
   }
 });
 
+/* ---------- activity tracking ----------
+   Activities outdoors, apart from workouts: GPS, the phone's motion sensor and, where the browser can pair one, a
+   Bluetooth heart rate strap. The first half minute of moving decides what you are doing (run, walk, hike, ride)
+   unless you pick it. The summary goes to activities (data/activities/YYYY-MM.json) and the full track to
+   data/tracks/YYYY-MM/<id>.json, one level deeper than ghLoad reads, so tracks never slow the start. On the phone
+   the track waits in IndexedDB until it is uploaded.
+   What a web app on an iPhone cannot do is shown, never faked: Safari has no Bluetooth (no strap), no Apple Health
+   or Apple Watch, and no GPS while the app is in the background, so a stretch with the app closed is marked as a gap.
+   The map is MapLibre with OpenFreeMap tiles (3D buildings) and open terrain tiles, loaded only when a map is shown;
+   without a connection the route is drawn on a plain canvas. */
+const AC_IC = {run: CARDIO_IC.Run, walk: CARDIO_IC.Walk, ride: CARDIO_IC.Bike,
+  hike: '<path d="M11.5 7.5l-1 6 2.5 2.5V21M10.5 13.5 8.5 21M11.5 7.5l2.5 3.5 2.5.5M11.5 7.5 8.5 10l-1 3M17.5 9.5 19 21"/><circle cx="12.1" cy="4.6" r="1.6"/>',
+  other: '<circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+  gps: '<path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  motion: '<path d="M4 12h3l2-5 3 10 2.5-6 1.5 1H20"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  health: '<rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/>',
+  down: '<path d="m6 9.5 6 6 6-6"/>', loc: '<circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="7"/>',
+  pause: '<path d="M9 6v12M15 6v12"/>', play: '<path d="M8.5 5.5v13l10-6.5z"/>'};
+const AC_T = {run: 'Run', walk: 'Walk', hike: 'Hike', ride: 'Ride', other: 'Activity'};
+const AC_TYPES = ['run', 'walk', 'hike', 'ride', 'other'], AC_CHIP = {run: 'Run', walk: 'Walk', hike: 'Hike', ride: 'Ride', other: 'Other'};
+const acSvg = (k, cls) => '<svg class="' + (cls || 'cic') + '" viewBox="0 0 24 24" aria-hidden="true">' + (AC_IC[k] || AC_IC.other) + '</svg>';
+const acFoot = t => t !== 'ride' && t !== 'other';
+const ML_JS = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js', ML_CSS = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css';
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty', MAP_DEM = 'https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png';
+const AC_ROUTE = '#c96442';
+
+// numbers and formats
+const r1 = x => Math.round(x * 10) / 10, r2 = x => Math.round(x * 100) / 100, r6 = x => Math.round(x * 1e6) / 1e6;
+const RAD = Math.PI / 180;
+// metres between two points stored as [t, lat, lon, ...]
+function hav(a, b){ const la = (b[1] - a[1]) * RAD, lo = (b[2] - a[2]) * RAD, s = Math.sin(la / 2) ** 2 + Math.cos(a[1] * RAD) * Math.cos(b[1] * RAD) * Math.sin(lo / 2) ** 2; return 12742000 * Math.asin(Math.min(1, Math.sqrt(s))); }
+const kmTxt = m => m == null ? '—' : m < 9950 ? (m / 1000).toFixed(2) : (m / 1000).toFixed(1);
+// pace in seconds per km as m:ss, and nothing when standing still
+const paceTxt = sk => sk == null || !isFinite(sk) || sk <= 0 || sk > 3600 ? '—' : mmss(sk);
+const spdTxt = v => v == null || !isFinite(v) ? '—' : (v * 3.6).toFixed(1);
+const acPaceOf = (m, s) => m > 20 && s > 0 ? s / (m / 1000) : null;
+const acName = a => { const h = new Date(a.startedAt || Date.parse(a.date + 'T12:00')).getHours(), t = AC_T[a.type] || 'Activity';
+  return (h < 5 ? 'Night ' : h < 11 ? 'Morning ' : h < 14 ? 'Lunch ' : h < 18 ? 'Afternoon ' : h < 22 ? 'Evening ' : 'Night ') + (a.type === 'other' ? 'activity' : t.toLowerCase()); };
+const acIsA = a => !!a && typeof a === 'object' && typeof a.id === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(a.date || '') && isFinite(+a.dist);
+// a doc written by hand or by an older app: every field the pages read gets the shape they expect
+const acClean = a => { const n = v => isFinite(+v) && v !== null && v !== '' ? +v : 0, arr = v => Array.isArray(v) ? v : [], obj = v => v && typeof v === 'object' && !Array.isArray(v) ? v : null;
+  const st = isFinite(+a.startedAt) && a.startedAt ? +a.startedAt : Date.parse(a.date + 'T12:00:00');
+  return Object.assign({}, a, {type: AC_TYPES.includes(a.type) ? a.type : 'other', dist: n(a.dist), moving: n(a.moving), elapsed: n(a.elapsed), gain: n(a.gain), loss: n(a.loss), startedAt: st,
+    series: arr(a.series).filter(Array.isArray), splits: arr(a.splits).filter(x => obj(x)), gaps: arr(a.gaps).filter(x => obj(x)), laps: arr(a.laps), best: obj(a.best) || {}, src: obj(a.src) || {},
+    kcal: obj(a.kcal), hr: obj(a.hr) && isFinite(+a.hr.avg) ? a.hr : null, cad: obj(a.cad) && isFinite(+a.cad.avg) ? a.cad : null, auto: obj(a.auto),
+    alt: Array.isArray(a.alt) && a.alt.length === 2 ? a.alt : null, line: typeof a.line === 'string' ? a.line : '', bbox: Array.isArray(a.bbox) && a.bbox.length === 4 && a.bbox.every(x => isFinite(+x)) ? a.bbox : null,
+    track: typeof a.track === 'string' && /^data\/tracks\/[\w-]+\/[\w-]+\.json$/.test(a.track) ? a.track : null}); };
+const acList = () => (D.activities || []);
+
+/* A small key value store in IndexedDB, for tracks (too big for localStorage) and the activity in progress */
+let idbP = null;
+function idb(){ return idbP || (idbP = new Promise((res, rej) => { const r = indexedDB.open('plates', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }).catch(e => { idbP = null; throw e; })); }
+const idbDo = (mode, fn) => idb().then(db => new Promise((res, rej) => { const tx = db.transaction('kv', mode), q = fn(tx.objectStore('kv')); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); }));
+const idbGet = k => idbDo('readonly', s => s.get(k)).catch(() => null);
+const idbPut = (k, v) => idbDo('readwrite', s => s.put(v, k)).catch(() => null);
+const idbDel = k => idbDo('readwrite', s => s.delete(k)).catch(() => null);
+
+/* Google's encoded polyline, so a route preview costs a kilobyte or two in the summary */
+function encLine(pts){
+  let o = '', pa = 0, pb = 0;
+  const e = v => { v = v < 0 ? ~(v << 1) : v << 1; while(v >= 0x20){ o += String.fromCharCode((0x20 | (v & 0x1f)) + 63); v >>= 5; } o += String.fromCharCode(v + 63); };
+  for(const [la, lo] of pts){ const a = Math.round(la * 1e5), b = Math.round(lo * 1e5); e(a - pa); e(b - pb); pa = a; pb = b; }
+  return o;
+}
+function decLine(s){
+  const out = []; let i = 0, la = 0, lo = 0; s = typeof s === 'string' ? s : '';
+  const d = () => { let r = 0, sh = 0, b; do { b = s.charCodeAt(i++) - 63; r |= (b & 0x1f) << sh; sh += 5; } while(b >= 0x20 && i < s.length); return r & 1 ? ~(r >> 1) : r >> 1; };
+  while(i < s.length){ la += d(); lo += d(); out.push([la / 1e5, lo / 1e5]); }
+  return out;
+}
+// Douglas Peucker on [lat, lon], loosened until the line has at most max points
+function simplify(P, max){
+  if(P.length <= max) return P;
+  const k = Math.cos((P[0][0] || 0) * RAD) * 111320, xy = P.map(p => [p[1] * k, p[0] * 111320]);
+  for(let tol = 2; ; tol *= 1.6){
+    const keep = new Uint8Array(P.length); keep[0] = keep[P.length - 1] = 1;
+    const st = [[0, P.length - 1]];
+    while(st.length){
+      const [a, b] = st.pop(); let mx = 0, at = -1;
+      const [x1, y1] = xy[a], [x2, y2] = xy[b], dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+      for(let i = a + 1; i < b; i++){ const dd = Math.abs(dy * xy[i][0] - dx * xy[i][1] + x2 * y1 - y2 * x1) / L; if(dd > mx){ mx = dd; at = i; } }
+      if(mx > tol && at > 0){ keep[at] = 1; st.push([a, at], [at, b]); }
+    }
+    const out = P.filter((p, i) => keep[i]);
+    if(out.length <= max) return out;
+  }
+}
+
+/* ---- the activity in progress ----
+   AC is everything that is saved; ACS is the sensors and the screen, which never are.
+   A point is [t, lat, lon, alt, acc, speed, hr, cadence, segment]: t in seconds from the start, a new segment after
+   each pause so no distance is counted across it. */
+let AC = null, acTimer = null, acSaved = 0, acRaf = 0;
+const ACS = {watch: null, fix: null, wake: null, motionOn: false, motionAt: 0, perm: null, hr: null, hrAt: 0, hrName: null, ui: {pick: false}};
+const M = {lp: null, buf: [], k: 0, mean: 9.8, std: 0, up: false, last: 0, steps: []};
+const acPrefPick = () => { const p = ls.get('tl.ac.pick'); return AC_TYPES.includes(p) ? p : null; };
+const acAutoPause = () => ls.get('tl.ac.ap') !== '0';
+const acType = () => AC ? AC.pick || AC.det || null : null;
+const acNow = () => AC && AC.t0 ? (Date.now() - AC.t0) / 1000 : 0;
+const acHr = () => ACS.hr != null && Date.now() - ACS.hrAt < 5000 ? ACS.hr : null;
+const acMotionLive = () => Date.now() - ACS.motionAt < 3000;
+function acCad(){ const now = Date.now(), n = M.steps.filter(t => now - t < 15000).length; return n >= 6 ? n * 4 : 0; }
+
+function acNew(){
+  return {id: newId(), state: 'ready', pick: acPrefPick(), det: null, votes: {}, t0: 0, pts: [], dist: 0, mov: 0, kcal: 0, steps: 0, gain: 0, loss: 0,
+    as: null, ab: null, anchor: null, seg: 0, lastMoveAt: 0, auto: false, tickAt: 0, laps: [], gaps: [], hrs: [], cads: [], km: 0, toldType: false, savedAt: 0};
+}
+// a tap on Start activity: the overlay opens and the GPS starts looking; the timer waits for Start
+function acReady(){
+  if(AC){ acShow(); return; }
+  closeSheet();
+  AC = acNew();
+  acMotionAsk();
+  acGeo(true);
+  acShow(); acMapInit();
+  clearInterval(acTimer); acTimer = setInterval(acTick, 1000);
+}
+function acStart(){
+  if(!AC) return;
+  AC.state = 'live'; AC.t0 = Date.now(); AC.tickAt = Date.now(); AC.lastMoveAt = Date.now();
+  acMotionAsk(); acWake(true); haptic(); acSaveLive(true); acPaintSync();
+}
+function acPause(){ if(!AC || AC.state !== 'live') return; AC.state = 'paused'; AC.pausedAt = Date.now(); haptic(); acSaveLive(true); acPaintSync(); }
+function acResume(){
+  if(!AC || AC.state !== 'paused') return;
+  AC.state = 'live'; AC.seg++; AC.anchor = null; AC.auto = false; AC.tickAt = Date.now(); AC.lastMoveAt = Date.now();
+  acMotionAsk(); acGeo(true); acWake(true); haptic(); acSaveLive(true); acPaintSync();
+}
+function acStop(){
+  clearInterval(acTimer); acTimer = null;
+  acGeo(false); acWake(false);
+  if(ACS.motionOn){ window.removeEventListener('devicemotion', acMotion); ACS.motionOn = false; }
+  acMapRemove('live');
+  idbDel('live');
+  AC = null; ACS.ui.pick = false;
+  $('#acv').hidden = true; $('#ac-pill').hidden = true; document.body.classList.remove('ac-on');
+  refresh();
+}
+function acDiscard(){ acStop(); toast('Activity discarded'); }
+
+function acGeo(on){
+  if(!on){ if(ACS.watch != null) navigator.geolocation.clearWatch(ACS.watch); ACS.watch = null; return; }
+  if(ACS.watch != null || !('geolocation' in navigator)){ if(!('geolocation' in navigator)) ACS.perm = 'none'; return; }
+  ACS.watch = navigator.geolocation.watchPosition(acFix, e => {
+    if(e && e.code === 1){ ACS.perm = 'denied'; acGeo(false); }
+    acPaint();
+  }, {enableHighAccuracy: true, maximumAge: 0, timeout: 30000});
+}
+async function acWake(on){
+  try{
+    if(on && !ACS.wake && ST().awake !== false && 'wakeLock' in navigator && document.visibilityState === 'visible'){ ACS.wake = await navigator.wakeLock.request('screen'); ACS.wake.addEventListener('release', () => { ACS.wake = null; }); }
+    else if(!on && ACS.wake){ const w = ACS.wake; ACS.wake = null; await w.release(); }
+  }catch(e){ ACS.wake = null; }
+}
+
+/* Motion: iPhone asks once, and only from a tap, so this runs inside the tap on Start or Resume */
+function acMotionAsk(){
+  if(ACS.motionOn || !('DeviceMotionEvent' in window)) return;
+  const R = DeviceMotionEvent.requestPermission;
+  const on = () => { if(ACS.motionOn) return; ACS.motionOn = true; window.addEventListener('devicemotion', acMotion); };
+  if(typeof R === 'function'){ try{ R.call(DeviceMotionEvent).then(s => { ACS.motionPerm = s; if(s === 'granted') on(); acPaint(); acHubPaint(); }).catch(() => {}); }catch(e){} }
+  else on();
+}
+// steps from the accelerometer: a smoothed magnitude, a threshold that follows how hard you move, and at least
+// 270 ms between steps (no one takes more than about 220 a minute)
+function acMotion(e){
+  const g = e.accelerationIncludingGravity; if(!g || g.x == null) return;
+  const m = Math.hypot(g.x, g.y, g.z), now = Date.now();
+  ACS.motionAt = now;
+  M.lp = M.lp == null ? m : M.lp + .35 * (m - M.lp);
+  M.buf.push(M.lp); if(M.buf.length > 180) M.buf.shift();
+  if(++M.k % 15 === 0){ const n = M.buf.length, mean = M.buf.reduce((a, b) => a + b, 0) / n; M.mean = mean; M.std = Math.sqrt(M.buf.reduce((a, b) => a + (b - mean) ** 2, 0) / n); }
+  const th = M.mean + Math.max(.9, M.std * .6);
+  if(!M.up && M.lp > th && now - M.last > 270){
+    M.up = true; M.last = now; M.steps.push(now); if(M.steps.length > 400) M.steps.splice(0, 100);
+    if(AC && AC.state === 'live' && !AC.auto) AC.steps++;
+  }
+  else if(M.up && M.lp < M.mean) M.up = false;
+}
+
+/* Heart rate: a Bluetooth strap where the browser has Web Bluetooth (Chrome on Android or a computer). Safari on
+   iPhone has none, so there the row says so instead of offering a button that cannot work. */
+async function acPairHr(){
+  if(!navigator.bluetooth){ toast('This browser cannot reach Bluetooth'); return; }
+  try{
+    const dev = await navigator.bluetooth.requestDevice({filters: [{services: ['heart_rate']}]});
+    const ch = await (await (await dev.gatt.connect()).getPrimaryService('heart_rate')).getCharacteristic('heart_rate_measurement');
+    ch.addEventListener('characteristicvaluechanged', ev => { const v = ev.target.value, f = v.getUint8(0), hr = f & 1 ? v.getUint16(1, true) : v.getUint8(1); if(hr > 25 && hr < 250){ ACS.hr = hr; ACS.hrAt = Date.now(); } });
+    await ch.startNotifications();
+    ACS.hrName = dev.name || 'Heart rate strap';
+    dev.addEventListener('gattserverdisconnected', () => { ACS.hrName = null; ACS.hr = null; toast('Heart rate strap lost'); acPaint(); acHubPaint(); });
+    toast('Paired ' + ACS.hrName);
+  }catch(e){ if(!e || e.name !== 'NotFoundError') toast('Could not pair the strap'); }
+  acPaint(); acHubPaint();
+}
+
+/* A new GPS fix. A fix vaguer than 40 m never counts; a move shorter than the fix's own wobble is standing still;
+   a jump faster than the activity allows is noise. */
+function acFix(p){
+  if(!AC) return;
+  const c = p.coords, now = Date.now();
+  ACS.perm = 'granted';
+  ACS.fix = {lat: c.latitude, lon: c.longitude, acc: c.accuracy, alt: c.altitude, spd: c.speed != null && c.speed >= 0 ? c.speed : null, hd: c.heading, at: now};
+  acMapMe();
+  if(AC.state !== 'live' || c.accuracy > 40){ acPaint(); return; }
+  const t = (now - AC.t0) / 1000, cad = acMotionLive() ? acCad() : null;
+  const pt = [r1(t), r6(c.latitude), r6(c.longitude), c.altitude != null ? r1(c.altitude) : null, Math.round(c.accuracy), ACS.fix.spd != null ? r2(ACS.fix.spd) : null, acHr(), cad || null, AC.seg];
+  const prev = AC.anchor;
+  if(!prev){ AC.pts.push(pt); AC.anchor = pt; acAlt(pt); acMapRoute(); acPaint(); return; }
+  const d = hav(prev, pt), dt = t - prev[0], gap = AC.gapOpen;
+  if(gap){
+    // back from the background: a fix far from where it stopped means you kept moving, so that time counts
+    AC.gapOpen = null;
+    const moved = d >= 40;
+    AC.gaps.push({at: Math.round(gap.from), sec: Math.round(gap.to - gap.from), d: moved ? Math.round(d) : 0});
+    if(moved){ AC.mov += Math.max(0, gap.to - gap.from); AC.pts.push(pt); AC.anchor = pt; AC.dist += d; AC.lastMoveAt = now; AC.auto = false; acAlt(pt); acMapRoute(); }
+    acPaint(); return;
+  }
+  const ty = acType(), vmax = ty === 'ride' ? 30 : ty && acFoot(ty) ? 12.5 : 45;
+  if(dt > 0 && dt < 30 && d / dt > vmax){ acPaint(); return; }
+  if(d < Math.max(3, Math.min(c.accuracy, 20) * .6)){ acPaint(); return; }
+  AC.pts.push(pt); AC.anchor = pt; AC.dist += d; AC.lastMoveAt = now;
+  if(AC.auto){ AC.auto = false; haptic(); }
+  acAlt(pt); acSplit(); acMapRoute(); acPaint();
+}
+// climb from GPS altitude: smoothed, and counted only past 3 m either way, so the wobble of the fix adds nothing
+function acAlt(pt){
+  if(pt[3] == null) return;
+  AC.as = AC.as == null ? pt[3] : AC.as + .25 * (pt[3] - AC.as);
+  if(AC.ab == null) AC.ab = AC.as;
+  const dz = AC.as - AC.ab;
+  if(dz >= 3){ AC.gain += dz; AC.ab = AC.as; } else if(dz <= -3){ AC.loss -= dz; AC.ab = AC.as; }
+}
+// every whole kilometre says its time
+function acSplit(){
+  const k = Math.floor(AC.dist / 1000); if(k <= AC.km) return;
+  const prev = AC.kmAt || 0, sec = AC.mov - prev; AC.km = k; AC.kmAt = AC.mov;
+  const ty = acType();
+  toast('Km ' + k + ' · ' + (ty === 'ride' ? spdTxt(1000 / Math.max(1, sec)) + ' km/h' : mmss(sec) + ' /km'), true); haptic();
+}
+// speed now: the distance of the last 25 seconds over the time since, so stopping brings it down at once
+function acSpeed(win){
+  if(!AC || AC.auto) return AC && AC.auto ? 0 : null;
+  const P = AC.pts, now = acNow(); win = win || 25;
+  let i = P.length - 1; if(i < 1) return ACS.fix && ACS.fix.spd != null && Date.now() - ACS.fix.at < 4000 ? ACS.fix.spd : null;
+  const end = P[i]; let d = 0;
+  while(i > 0 && P[i - 1][8] === end[8] && now - P[i - 1][0] <= win){ d += hav(P[i - 1], P[i]); i--; }
+  const dt = now - P[i][0];
+  if(i === P.length - 1 || dt < 5) return ACS.fix && ACS.fix.spd != null && Date.now() - ACS.fix.at < 4000 ? ACS.fix.spd : null;
+  return d / dt;
+}
+// energy in kcal a second: ACSM walking and running equations, and MET by speed for a ride. Always an estimate.
+function acKcalRate(v){
+  const kg = bodyKg(), t = acType() || (v > 2.2 ? 'run' : 'walk');
+  if(t === 'ride'){ const k = v * 3.6, met = k < 16 ? 4 : k < 19 ? 6 : k < 22 ? 8 : k < 25 ? 10 : 12; return met * kg / 3600; }
+  if(t === 'other') return 5 * kg / 3600;
+  const vm = Math.min(v, t === 'run' ? 7 : 2.5) * 60, vo2 = t === 'run' ? 3.5 + .2 * vm : 3.5 + .1 * vm + (t === 'hike' ? 1.8 * vm * .06 : 0);
+  return vo2 * kg / 1000 * 5 / 60;
+}
+/* What you are doing, from the last 45 seconds. With the motion sensor, steps a minute settle it: over 140 is a run,
+   80 to 140 a walk, almost none at speed a ride. With GPS alone only speed is left, which is less sure. A walk that
+   keeps climbing is a hike. Each second votes with its confidence; the most votes wins. */
+function acDetect(){
+  if(AC.mov < 20 || AC.auto) return;
+  const v = AC.pts.length > 2 ? acSpeed(45) : null, mot = acMotionLive(), cad = mot ? acCad() : null;
+  let t = null, c = 0;
+  if(mot && cad >= 140 && (v == null || v > 1.6)){ t = 'run'; c = .92; }
+  else if(mot && cad >= 80 && (v == null || v < 2.6)){ t = 'walk'; c = .88; }
+  else if(mot && cad < 50 && v != null && v > 2.8){ t = 'ride'; c = M.std < 1.5 ? .9 : .75; }
+  else if(v != null && v > .5){ if(v < 2) { t = 'walk'; c = .65; } else if(v < 4.2){ t = 'run'; c = .6; } else if(v < 5.5){ t = 'ride'; c = .5; } else if(v < 20){ t = 'ride'; c = .75; } else { t = 'other'; c = .6; } }
+  if(!t) return;
+  if(t === 'walk' && AC.gain >= 25 && AC.dist > 300 && AC.gain / AC.dist > .05){ t = 'hike'; c = Math.max(c, .8); }
+  AC.votes[t] = (AC.votes[t] || 0) + c;
+  const tot = Object.values(AC.votes).reduce((a, b) => a + b, 0), best = Object.keys(AC.votes).sort((a, b) => AC.votes[b] - AC.votes[a])[0];
+  AC.det = best; AC.conf = tot ? AC.votes[best] / tot : 0;
+  if(!AC.toldType && !AC.pick && tot > 12){ AC.toldType = true; toast('Tracking as ' + AC_T[best].toLowerCase()); haptic(); }
+}
+function acTick(){
+  if(!AC) return;
+  const now = Date.now();
+  if(AC.state === 'live'){
+    // a long silence (the app in the background) is not counted here; the next fix decides, see acFix
+    const dt = Math.min(3, Math.max(0, (now - AC.tickAt) / 1000));
+    if(acAutoPause() && !AC.auto && now - AC.lastMoveAt > 12000 && AC.pts.length && !(ACS.fix && ACS.fix.spd > .8 && now - ACS.fix.at < 3000)) { AC.auto = true; haptic(); }
+    if(!AC.auto){
+      AC.mov += dt;
+      const v = acSpeed() || 0; AC.kcal += acKcalRate(v) * dt;
+      const t = Math.round(acNow()), hr = acHr(), cad = acMotionLive() ? acCad() : 0;
+      if(hr && (!AC.hrs.length || t - AC.hrs[AC.hrs.length - 1][0] >= 5)) AC.hrs.push([t, hr, Math.round(AC.dist)]);
+      if(cad && (!AC.cads.length || t - AC.cads[AC.cads.length - 1][0] >= 5)) AC.cads.push([t, cad]);
+    }
+    acDetect();
+  }
+  AC.tickAt = now;
+  acPaint();
+  if(now - acSaved > 10000) acSaveLive();
+}
+// the activity in progress survives the app closing: it is kept in IndexedDB and picked up, paused, on the next start
+function acSaveLive(force){
+  if(!AC || AC.state === 'ready') return;
+  acSaved = Date.now(); AC.savedAt = acSaved;
+  idbPut('live', JSON.parse(JSON.stringify(AC)));
+}
+async function acRestore(){
+  if(AC) return;
+  const a = await idbGet('live');
+  if(!a || !a.t0 || !Array.isArray(a.pts) || Date.now() - (a.savedAt || 0) > 12 * 3600e3){ if(a) idbDel('live'); return; }
+  AC = Object.assign(acNew(), a, {state: 'paused', anchor: null, gapOpen: null});
+  AC.pausedAt = AC.savedAt;
+  clearInterval(acTimer); acTimer = setInterval(acTick, 1000);
+  acShow(); acMapInit(); toast('Your activity is paused where it stopped', true);
+}
+document.addEventListener('visibilitychange', () => {
+  if(!AC) return;
+  if(document.hidden){ AC.hidAt = Date.now(); acSaveLive(true); return; }
+  if(AC.state === 'live' && AC.hidAt && Date.now() - AC.hidAt > 8000){ AC.gapOpen = {from: (AC.hidAt - AC.t0) / 1000, to: acNow()}; toast('No GPS while Plates was closed', true); }
+  AC.hidAt = null; AC.tickAt = Date.now(); acWake(AC.state === 'live');
+});
+
+/* ---- the live screen ---- */
+function acShow(){ $('#acv').hidden = false; $('#ac-pill').hidden = true; document.body.classList.add('ac-on'); acPaint(); if(ACM.live) setTimeout(() => ACM.live && ACM.live.resize(), 0); }
+function acHide(){ $('#acv').hidden = true; document.body.classList.remove('ac-on'); acPaint(); refresh(); }
+const acTile = (lab, val, unit, tag) => '<div class="tile"><small>' + lab + '</small><b' + (val === '—' ? ' class="nil"' : '') + '>' + val + '</b><em>' + (tag ? '<i class="ac-tag">' + tag + '</i> ' : '') + (unit || '&nbsp;') + '</em></div>';
+const acPaintSync = () => guard(acPaintNow, 'activity');
+function acPaint(){ if(!acRaf) acRaf = requestAnimationFrame(() => { acRaf = 0; guard(acPaintNow, 'activity'); }); }
+function acPaintNow(){
+  const pill = $('#ac-pill');
+  if(!AC){ pill.hidden = true; return; }
+  const ty = acType(), foot = !ty || acFoot(ty), st = AC.state, fix = ACS.fix, now = Date.now();
+  const time = mmss(AC.mov), dist = AC.dist >= 50 || st !== 'ready' ? kmTxt(AC.dist) : '0.00';
+  // the pill on the other pages while the live screen is hidden
+  pill.hidden = !$('#acv').hidden;
+  if(!pill.hidden) setHTML(pill, '<span class="ac-ic sm">' + acSvg(ty || 'run') + '</span><span class="rl">' + (st === 'paused' ? 'Paused' : AC.auto ? 'Auto paused' : st === 'ready' ? 'Ready' : AC_T[ty] || 'Activity') + '<b>' + time + ' · ' + dist + ' km</b></span><span class="x">Open</span>');
+  if($('#acv').hidden){ renderActCard(); return; }
+  // GPS quality
+  const fresh = fix && now - fix.at < 10000, q = !fresh ? 'none' : fix.acc <= 12 ? 'good' : fix.acc <= 40 ? 'ok' : 'bad';
+  const g = $('#ac-gps'); g.dataset.q = q;
+  setHTML(g, '<i></i>' + (ACS.perm === 'denied' ? 'GPS off' : ACS.perm === 'none' ? 'No GPS' : !fresh ? 'Finding GPS' : 'GPS ±' + Math.round(fix.acc) + ' m'));
+  setHTML($('#ac-type'), acSvg(ty || 'run') + '<span>' + (AC.pick ? AC_T[AC.pick] : AC.det ? AC_T[AC.det] + ' · auto' : st === 'ready' ? 'Auto detect' : 'Detecting') + '</span>' + acSvg('down', 'cic dn'));
+  $('#ac-pick').hidden = !ACS.ui.pick;
+  if(ACS.ui.pick) setHTML($('#ac-pick'), '<button class="chip" data-a="ac-pick" data-t="" aria-pressed="' + !AC.pick + '">Auto</button>' + AC_TYPES.map(t => '<button class="chip" data-a="ac-pick" data-t="' + t + '" aria-pressed="' + (AC.pick === t) + '">' + acSvg(t) + AC_CHIP[t] + '</button>').join(''));
+  const sub = st === 'ready' ? (ACS.perm === 'denied' ? 'Location is off for Plates' : q === 'good' ? 'GPS ready' : 'Finding GPS') : st === 'paused' ? 'Paused' : AC.auto ? 'Auto paused' : 'Moving time';
+  setHTML($('#ac-state'), esc(sub)); $('#ac-t').textContent = time;
+  // the three big numbers, then four small ones; each says when it is estimated or has no sensor
+  const v = st === 'live' ? acSpeed() : null, hr = acHr(), avg = AC.mov > 0 && AC.dist > 20 ? AC.dist / AC.mov : null;
+  const stepsDist = AC.dist < 50 && AC.steps > 60;
+  const main = [acTile('Distance', stepsDist ? kmTxt(AC.steps * (ty === 'run' ? 1.05 : .75)) : dist, 'km', stepsDist ? 'est.' : '')];
+  main.push(foot ? acTile('Pace', v && v > .4 ? paceTxt(1000 / v) : '—', '/km') : acTile('Speed', v != null ? spdTxt(v) : '—', 'km/h'));
+  main.push(hr ? acTile('Heart', String(hr), 'bpm') : foot ? acTile('Avg pace', avg ? paceTxt(1000 / avg) : '—', '/km') : acTile('Avg', avg ? spdTxt(avg) : '—', 'km/h'));
+  setHTML($('#ac-main'), main.join(''));
+  const cad = acMotionLive() ? acCad() : null;
+  const more = [acTile('Climb', AC.as != null || AC.gain ? String(Math.round(AC.gain)) : '—', 'm'), acTile('Energy', AC.mov > 0 ? String(Math.round(AC.kcal)) : '—', 'kcal', 'est.')];
+  more.push(hr ? (foot ? acTile('Avg pace', avg ? paceTxt(1000 / avg) : '—', '/km') : acTile('Avg', avg ? spdTxt(avg) : '—', 'km/h')) : acTile('Heart', '—', 'no sensor'));
+  more.push(foot ? acTile('Cadence', cad ? String(cad) : '—', cad != null ? 'spm' : 'no sensor') : acTile('Elapsed', AC.t0 ? mmss((now - AC.t0) / 1000) : '—', ''));
+  setHTML($('#ac-more'), more.join(''));
+  const armF = S.ui.armedAct === 'ac-finish', armD = S.ui.armedAct === 'ac-discard';
+  setHTML($('#ac-ctl'), st === 'ready'
+    ? '<button class="btn-quiet" data-a="ac-cancel" style="width:auto;padding:0 14px">Cancel</button><button class="btn-primary ac-go" data-a="ac-start">' + acSvg('play', 'cic') + 'Start</button>'
+    : st === 'live'
+    ? '<button class="btn-glass" data-a="ac-lap">Lap</button><button class="btn-primary ac-big" data-a="ac-pause" aria-label="Pause">' + acSvg('pause', 'cic') + '</button><button class="btn-glass" data-a="ac-hide">Hide</button>'
+    : '<button class="btn-glass' + (armD ? ' armed' : '') + '" data-a="ac-discard">' + (armD ? 'Discard?' : 'Discard') + '</button><button class="btn-primary ac-big" data-a="ac-resume" aria-label="Resume">' + acSvg('play', 'cic') + '</button><button class="btn-glass' + (armF ? ' armed' : '') + '" data-a="ac-finish">' + (armF ? 'Save?' : 'Finish') + '</button>');
+  if(!ACM.live) acCanvas();
+}
+
+/* ---- maps ---- */
+const ACM = {live: null, rep: null, follow: true, flat: false, failed: false};
+let mlP = null;
+function loadMapLib(){
+  if(window.maplibregl) return Promise.resolve(window.maplibregl);
+  if(ACM.failed && navigator.onLine === false) return Promise.reject(new Error('offline'));
+  return mlP || (mlP = new Promise((res, rej) => {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = ML_CSS; document.head.append(l);
+    const s = document.createElement('script'); s.src = ML_JS; s.async = true; s.crossOrigin = 'anonymous';
+    s.onload = () => window.maplibregl ? res(window.maplibregl) : rej(new Error('no maplibre')); s.onerror = () => rej(new Error('map library did not load'));
+    document.head.append(s); setTimeout(() => rej(new Error('timeout')), 20000);
+  }).catch(e => { mlP = null; ACM.failed = true; throw e; }));
+}
+// terrain you can tilt over, a light hillshade, and the style's own 3D buildings
+function mapTerrain(m){
+  try{
+    m.addSource('dem', {type: 'raster-dem', tiles: [MAP_DEM], encoding: 'terrarium', tileSize: 256, maxzoom: 14, attribution: '<a href="https://registry.opendata.aws/terrain-tiles/">Terrain Tiles</a>'});
+    m.addSource('dem-h', {type: 'raster-dem', tiles: [MAP_DEM], encoding: 'terrarium', tileSize: 256, maxzoom: 14});
+    const firstSym = (m.getStyle().layers || []).find(l => l.type === 'symbol');
+    m.addLayer({id: 'hills', type: 'hillshade', source: 'dem-h', paint: {'hillshade-exaggeration': .3, 'hillshade-shadow-color': 'rgba(60,50,40,.5)'}}, firstSym && firstSym.id);
+    m.setTerrain({source: 'dem', exaggeration: 1.25});
+  }catch(e){}
+}
+const mixHex = (a, b, f) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - f) + parseInt(b.substr(i, 2), 16) * f).toString(16).padStart(2, '0')).join('');
+const lineGeo = coords => ({type: 'Feature', properties: {}, geometry: {type: 'LineString', coordinates: coords}});
+async function acMakeMap(el, o){
+  const ml = await loadMapLib();
+  const m = new ml.Map(Object.assign({container: el, style: MAP_STYLE, attributionControl: false, maxPitch: 78, fadeDuration: 0}, o));
+  m.addControl(new ml.AttributionControl({compact: true}), 'bottom-left');
+  // tile errors (a dead zone on a run) are expected and say nothing new, so they stay out of the console
+  m.on('error', ev => { if(ev && ev.error && /webgl/i.test(String(ev.error.message))) console.warn('Map:', ev.error.message); });
+  // the free style names a few POI icons its sprite lacks: a blank stands in, instead of a warning for each
+  m.on('styleimagemissing', ev => { try{ if(!m.hasImage(ev.id)) m.addImage(ev.id, {width: 1, height: 1, data: new Uint8Array(4)}); }catch(e){} });
+  // the credits start folded to their (i) on a phone; MapLibre opens them again after every resize
+  const fold = () => setTimeout(() => { const at = el.querySelector('.maplibregl-ctrl-attrib'); if(at) at.classList.remove('maplibregl-compact-show'); }, 0);
+  m.once('idle', fold); m.on('resize', fold);
+  return new Promise(res => m.once('style.load', () => {
+    mapTerrain(m);
+    // see-through buildings, so the route behind one still shows
+    try{ if(m.getLayer('building-3d')) m.setPaintProperty('building-3d', 'fill-extrusion-opacity', .55); }catch(e){}
+    res(m);
+  }));
+}
+async function acMapInit(){
+  if(ACM.live || !AC) return;
+  const f = ACS.fix, last = AC.pts[AC.pts.length - 1];
+  const c = f ? [f.lon, f.lat] : last ? [last[2], last[1]] : null;
+  try{
+    const m = await acMakeMap($('#ac-map-gl'), {center: c || [10.75, 59.91], zoom: c ? 16 : 4, pitch: ACM.flat ? 0 : 58, bearing: 0});
+    if(!AC){ m.remove(); return; }
+    ACM.live = m; $('#ac-map').classList.add('gl');
+    m.addSource('route', {type: 'geojson', data: lineGeo([])});
+    m.addLayer({id: 'route-casing', type: 'line', source: 'route', layout: {'line-cap': 'round', 'line-join': 'round'}, paint: {'line-color': '#fff', 'line-width': 8, 'line-opacity': .85}});
+    m.addLayer({id: 'route', type: 'line', source: 'route', layout: {'line-cap': 'round', 'line-join': 'round'}, paint: {'line-color': AC_ROUTE, 'line-width': 5}});
+    m.addSource('me', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+    m.addLayer({id: 'me-acc', type: 'circle', source: 'me', paint: {'circle-radius': ['get', 'r'], 'circle-color': '#3b82f6', 'circle-opacity': .14, 'circle-pitch-alignment': 'map'}});
+    m.addLayer({id: 'me', type: 'circle', source: 'me', paint: {'circle-radius': 8, 'circle-color': '#2f6fe4', 'circle-stroke-color': '#fff', 'circle-stroke-width': 3, 'circle-pitch-alignment': 'viewport'}});
+    m.on('dragstart', () => { ACM.follow = false; acFollowBtn(); });
+    acMapRoute(); acMapMe(); acFollowBtn();
+  }catch(e){ ACM.failed = true; $('#ac-map').classList.remove('gl'); acCanvas(); }
+}
+function acMapRemove(which){ const m = ACM[which]; if(m){ try{ m.remove(); }catch(e){} ACM[which] = null; } if(which === 'live') $('#ac-map').classList.remove('gl'); }
+function acMapRoute(){
+  const m = ACM.live; if(!m || !AC || !m.getSource('route')) { acCanvas(); return; }
+  m.getSource('route').setData({type: 'FeatureCollection', features: acSegs(AC.pts).map(s => lineGeo(s.map(p => [p[2], p[1]])))});
+}
+const acSegs = P => { const out = []; let cur = null, seg = null; for(const p of P){ if(p[8] !== seg){ cur = []; out.push(cur); seg = p[8]; } cur.push(p); } return out.filter(s => s.length > 1); };
+function acMapMe(){
+  const m = ACM.live, f = ACS.fix; if(!m || !f || !m.getSource('me')) return;
+  // the accuracy ring in pixels at this zoom
+  const mpp = 156543.03 * Math.cos(f.lat * RAD) / Math.pow(2, m.getZoom());
+  m.getSource('me').setData({type: 'FeatureCollection', features: [{type: 'Feature', properties: {r: Math.min(120, f.acc / mpp)}, geometry: {type: 'Point', coordinates: [f.lon, f.lat]}}]});
+  if(ACM.follow){
+    const o = {center: [f.lon, f.lat]};
+    if(m.getZoom() < 12){ m.jumpTo(Object.assign(o, {zoom: 16})); return; }
+    if(!ACM.flat && f.hd != null && isFinite(f.hd) && f.spd > 1.5) o.bearing = f.hd;
+    if(reduceMotion()) m.jumpTo(o); else m.easeTo(Object.assign(o, {duration: 900}));
+  }
+}
+function acFollowBtn(){ const b = $('#ac-center'); if(b) b.classList.toggle('on', ACM.follow); const t = $('#ac-3d'); if(t) t.textContent = ACM.flat ? '3D' : '2D'; }
+function acToggle3d(){
+  ACM.flat = !ACM.flat; acFollowBtn();
+  const m = ACM.live; if(m) m.easeTo({pitch: ACM.flat ? 0 : 58, bearing: ACM.flat ? 0 : m.getBearing(), duration: reduceMotion() ? 0 : 700});
+}
+function acRecenter(){ ACM.follow = true; acFollowBtn(); acMapMe(); }
+// without the map: the route on a plain canvas, north up, fitted to the screen
+function acCanvas(){
+  const cv = $('#ac-cv'); if(!cv || ACM.live || $('#acv').hidden) return;
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  if(!r.width) return;
+  if(cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)){ cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+  const x = cv.getContext('2d'), cs = getComputedStyle(document.documentElement), W = cv.width, H = cv.height;
+  x.clearRect(0, 0, W, H);
+  x.strokeStyle = cs.getPropertyValue('--line').trim() || 'rgba(0,0,0,.08)'; x.lineWidth = 1;
+  for(let i = 1; i < 8; i++){ x.beginPath(); x.moveTo(W * i / 8, 0); x.lineTo(W * i / 8, H); x.stroke(); x.beginPath(); x.moveTo(0, H * i / 8); x.lineTo(W, H * i / 8); x.stroke(); }
+  const P = AC ? AC.pts.map(p => [p[1], p[2], p[8]]) : [], f = ACS.fix;
+  const all = P.concat(f ? [[f.lat, f.lon, -1]] : []);
+  x.fillStyle = cs.getPropertyValue('--dim').trim() || '#888'; x.font = (12 * dpr) + 'px -apple-system, system-ui'; x.textAlign = 'center';
+  x.fillText(ACM.failed ? (navigator.onLine === false ? 'No connection, so no map' : 'Map not available') + ' · route only' : 'Loading map', W / 2, (r.height - 60) * dpr);
+  if(!all.length) return;
+  let s = Infinity, n = -Infinity, w = Infinity, e = -Infinity; for(const [la, lo] of all){ s = Math.min(s, la); n = Math.max(n, la); w = Math.min(w, lo); e = Math.max(e, lo); }
+  const k = Math.cos(((s + n) / 2) * RAD), span = Math.max((n - s), (e - w) * k, .0015), pad = 40 * dpr, top = 70 * dpr, bot = 70 * dpr;
+  const sc = Math.min((W - 2 * pad) / span, (H - top - bot) / span), cx = (w + e) / 2, cy = (s + n) / 2;
+  const X = lo => W / 2 + (lo - cx) * k * sc, Y = la => top + (H - top - bot) / 2 - (la - cy) * sc;
+  x.lineCap = x.lineJoin = 'round'; x.strokeStyle = AC_ROUTE; x.lineWidth = 4 * dpr;
+  let seg = null; x.beginPath();
+  for(const [la, lo, sg] of P){ if(sg !== seg){ x.moveTo(X(lo), Y(la)); seg = sg; } else x.lineTo(X(lo), Y(la)); }
+  x.stroke();
+  if(f){ x.fillStyle = '#2f6fe4'; x.strokeStyle = '#fff'; x.lineWidth = 3 * dpr; x.beginPath(); x.arc(X(f.lon), Y(f.lat), 7 * dpr, 0, 7); x.fill(); x.stroke(); }
+}
+window.addEventListener('resize', () => { if(AC) acCanvas(); });
+
+/* ---- after the activity ---- */
+// cumulative distance and moving time at every point; a pause of over 12 s at a standstill is not moving
+function acCum(P){
+  const out = []; let d = 0, mt = 0;
+  for(let i = 0; i < P.length; i++){
+    if(i && P[i][8] === P[i - 1][8]){ const dd = hav(P[i - 1], P[i]), dt = Math.max(0, P[i][0] - P[i - 1][0]); d += dd; mt += dt > 12 && dd / dt < .5 ? 0 : dt; }
+    out.push([d, mt]);
+  }
+  return out;
+}
+// the moving time at a distance, between the points either side
+function acAt(C, D0){ let lo = 0, hi = C.length - 1; if(!C.length || D0 > C[hi][0]) return null; while(hi - lo > 1){ const m = (lo + hi) >> 1; if(C[m][0] < D0) lo = m; else hi = m; } const a = C[lo], b = C[hi], f = b[0] > a[0] ? (D0 - a[0]) / (b[0] - a[0]) : 0; return a[1] + f * (b[1] - a[1]); }
+function acBest(C, L){
+  if(!C.length || C[C.length - 1][0] < L) return null;
+  let best = Infinity, j = 0;
+  for(let i = 0; i < C.length; i++){ while(j < C.length && C[j][0] - C[i][0] < L) j++; if(j >= C.length) break; const t = acAt(C, C[i][0] + L) - C[i][1]; if(t > 0 && t < best) best = t; }
+  return isFinite(best) ? Math.round(best) : null;
+}
+function acSummary(){
+  const P = AC.pts, type = acType() || 'other', C = acCum(P), end = Date.now(), dist = Math.round(AC.dist);
+  const scale = C.length && C[C.length - 1][1] > 0 ? AC.mov / C[C.length - 1][1] : 1;
+  // smoothed altitude per point, for the profile and the climb per kilometre
+  const alt = []; let a = null; for(const p of P){ if(p[3] != null) a = a == null ? p[3] : a + .25 * (p[3] - a); alt.push(a); }
+  const hrAt = i => P[i][6];
+  // splits by kilometre (5 km on a ride)
+  const step = type === 'ride' ? 5000 : 1000, splits = [];
+  for(let k = step, i0 = 0, t0 = 0; ; k += step){
+    const last = k > dist; const D1 = last ? dist : k;
+    if(D1 - (k - step) < (last ? 100 : 1)) break;
+    const t1 = last ? (C.length ? C[C.length - 1][1] : 0) : acAt(C, k); if(t1 == null) break;
+    let i1 = i0; while(i1 < C.length - 1 && C[i1][0] < D1) i1++;
+    const hrs = []; let up = 0, dn = 0;
+    for(let i = i0 + 1; i <= i1; i++){ if(hrAt(i)) hrs.push(hrAt(i)); if(alt[i] != null && alt[i - 1] != null){ const dz = alt[i] - alt[i - 1]; if(dz > 0) up += dz; else dn -= dz; } }
+    splits.push({d: Math.round(D1 - (k - step)), s: Math.round((t1 - t0) * scale), up: Math.round(up), dn: Math.round(dn), hr: hrs.length ? Math.round(hrs.reduce((x, y) => x + y, 0) / hrs.length) : null});
+    i0 = i1; t0 = t1; if(last) break;
+  }
+  // a series of about 160 samples for the charts, so the report never needs the full track
+  const series = [], n = P.length, want = Math.min(160, n);
+  for(let q = 0; q < want; q++){
+    const i = Math.round(q * (n - 1) / Math.max(1, want - 1));
+    let j0 = i, j1 = i; while(j0 > 0 && C[i][1] - C[j0 - 1][1] < 15 && P[j0 - 1][8] === P[i][8]) j0--; while(j1 < n - 1 && C[j1 + 1][1] - C[i][1] < 15 && P[j1 + 1][8] === P[i][8]) j1++;
+    const dt = C[j1][1] - C[j0][1], v = dt > 3 ? (C[j1][0] - C[j0][0]) / dt : null;
+    series.push([Math.round(C[i][1] * scale), Math.round(C[i][0]), alt[i] != null ? r1(alt[i]) : null, v != null ? r2(v) : null, P[i][6] || null, P[i][7] || null]);
+  }
+  const vs = series.map(s => s[3]).filter(v => v != null), alts = alt.filter(x => x != null);
+  const hrs = AC.hrs.map(h => h[1]), cads = AC.cads.map(c => c[1]);
+  const accs = P.map(p => p[4]).sort((x, y) => x - y);
+  const bounds = P.length ? P.reduce((b, p) => [Math.min(b[0], p[2]), Math.min(b[1], p[1]), Math.max(b[2], p[2]), Math.max(b[3], p[1])], [180, 90, -180, -90]) : null;
+  const stepsDist = dist < 50 && AC.steps > 60;
+  const best = {}; (type === 'ride' ? [[10000, '10k'], [20000, '20k'], [40000, '40k']] : [[1000, '1k'], [5000, '5k'], [10000, '10k'], [21097, 'half']]).forEach(([L, k]) => { const b = acBest(C, L); if(b) best[k] = Math.round(b * scale); });
+  const month = isoLocal(new Date(AC.t0)).slice(0, 7);
+  return {
+    id: AC.id, date: isoLocal(new Date(AC.t0)), type, picked: !!AC.pick, auto: AC.det ? {type: AC.det, conf: r2(AC.conf || 0)} : null,
+    startedAt: AC.t0, endedAt: end, elapsed: Math.round((end - AC.t0) / 1000), moving: Math.round(AC.mov),
+    dist: stepsDist ? Math.round(AC.steps * (type === 'run' ? 1.05 : .75)) : dist, gain: Math.round(AC.gain), loss: Math.round(AC.loss),
+    alt: alts.length ? [Math.round(Math.min(...alts)), Math.round(Math.max(...alts))] : null,
+    vmax: vs.length ? r2(Math.max(...vs)) : null, splits, best, laps: AC.laps,
+    hr: hrs.length ? {avg: Math.round(hrs.reduce((x, y) => x + y, 0) / hrs.length), max: Math.max(...hrs), src: ACS.hrName || 'strap'} : null,
+    cad: cads.length ? {avg: Math.round(cads.reduce((x, y) => x + y, 0) / cads.length)} : null, steps: AC.steps || null,
+    kcal: {v: Math.round(AC.kcal), kg: bodyKg(), est: true},
+    gaps: AC.gaps, src: {gps: P.length ? {pts: P.length, acc: accs[accs.length >> 1]} : null, dist: stepsDist ? 'steps' : P.length ? 'gps' : null, alt: alts.length ? 'gps' : null, motion: !!AC.steps, hr: hrs.length ? 'strap' : null},
+    series, line: P.length > 1 ? encLine(simplify(P.map(p => [p[1], p[2]]), 400)) : '', bbox: bounds,
+    track: P.length > 1 ? 'data/tracks/' + month + '/' + AC.id + '.json' : null, v: 1
+  };
+}
+function acFinish(){
+  if(!AC) return;
+  if(AC.mov < 10 && AC.dist < 20){ acDiscard(); return; }
+  const doc = acSummary(), pts = AC.pts;
+  queue('set', 'activities', doc.id, doc);
+  if(doc.track){
+    idbPut('trk-' + doc.id, pts).then(() => { S.pending.push({op: 'put', col: 'tracks', id: doc.id, path: doc.track}); savePending(); scheduleFlush(); });
+  }
+  acStop(); haptic();
+  toast('Saved'); setTimeout(() => acReport(doc.id), 250);
+}
+function acDelete(id){
+  const a = acList().find(x => x.id === id); if(!a) return;
+  queue('delete', 'activities', id);
+  const i = S.pending.findIndex(p => p.col === 'tracks' && p.op === 'put' && p.id === id);
+  if(i >= S.inflight && i >= 0) S.pending.splice(i, 1);
+  else if(a.track){ S.pending.push({op: 'rm', col: 'tracks', id, path: a.track}); }
+  savePending(); idbDel('trk-' + id); scheduleFlush();
+  closeSheet(); toast('Activity deleted'); setTimeout(acHub, 300);
+}
+function acRetype(id, t){
+  const a = acList().find(x => x.id === id); if(!a || !AC_TYPES.includes(t) || a.type === t) return;
+  queue('set', 'activities', id, Object.assign({}, a, {type: t, picked: true})); haptic(); acReport(id);
+}
+// the full track, from this phone or from GitHub, for the export
+async function acTrack(a){
+  const local = await idbGet('trk-' + a.id); if(local) return local;
+  if(S.backend !== 'gh' || !a.track) return null;
+  const d = await gql('query($o:String!,$n:String!,$e:String!){repository(owner:$o,name:$n){object(expression:$e){... on Blob{text}}}}', {o: GH.cfg.owner, n: GH.cfg.repo, e: 'HEAD:' + a.track});
+  const t = d.repository && d.repository.object && d.repository.object.text;
+  if(!t) return null;
+  const P = JSON.parse(t); idbPut('trk-' + a.id, P); return P;
+}
+async function acGpx(id){
+  const a = acList().find(x => x.id === id); if(!a) return;
+  let P = null; try{ P = await acTrack(a); }catch(e){}
+  if(!P || !P.length){ toast('The full track is not on this phone'); return; }
+  const iso = t => new Date(a.startedAt + t * 1000).toISOString(), segs = acSegs(P);
+  const kind = {run: 'running', walk: 'walking', hike: 'hiking', ride: 'cycling'}[a.type] || 'other';
+  const gpx = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Plates" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">\n<metadata><time>' + iso(0) + '</time></metadata>\n<trk><name>' + esc(acName(a)) + '</name><type>' + kind + '</type>\n' +
+    segs.map(s => '<trkseg>\n' + s.map(p => '<trkpt lat="' + p[1] + '" lon="' + p[2] + '">' + (p[3] != null ? '<ele>' + p[3] + '</ele>' : '') + '<time>' + iso(p[0]) + '</time>' +
+      (p[6] || p[7] ? '<extensions><gpxtpx:TrackPointExtension>' + (p[6] ? '<gpxtpx:hr>' + p[6] + '</gpxtpx:hr>' : '') + (p[7] ? '<gpxtpx:cad>' + Math.round(p[7] / 2) + '</gpxtpx:cad>' : '') + '</gpxtpx:TrackPointExtension></extensions>' : '') + '</trkpt>').join('\n') + '\n</trkseg>').join('\n') + '\n</trk>\n</gpx>\n';
+  const name = 'plates-' + a.date + '-' + a.type + '.gpx', file = new File([gpx], name, {type: 'application/gpx+xml'});
+  try{ if(navigator.canShare && navigator.canShare({files: [file]})){ await navigator.share({files: [file], title: acName(a)}); return; } }catch(e){ if(e && e.name === 'AbortError') return; }
+  const u = URL.createObjectURL(file), l = document.createElement('a'); l.href = u; l.download = name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+
+/* ---- the report ---- */
+// a small chart: an area or line over distance, with the low and high values at the side
+function acChart(xs, ys, o){
+  const pts = xs.map((x, i) => [x, ys[i]]).filter(p => p[1] != null && isFinite(p[1]));
+  if(pts.length < 3) return '';
+  const W = 320, H = o.h || 92, x0 = pts[0][0], x1 = pts[pts.length - 1][0] || 1;
+  let lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1])); if(hi - lo < (o.min || 1)){ const m = (hi + lo) / 2; lo = m - (o.min || 1) / 2; hi = m + (o.min || 1) / 2; }
+  const X = x => (x - x0) / Math.max(1e-9, x1 - x0) * W, Y = y => { const f = (y - lo) / (hi - lo); return 6 + (o.inv ? f : 1 - f) * (H - 12); };
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join('');
+  const top = o.inv ? lo : hi, bot = o.inv ? hi : lo;
+  return '<figure class="ac-ch"><figcaption><span>' + o.title + '</span><small>' + (o.avg != null ? 'avg ' + o.fmt(o.avg) + ' ' + (o.unit || '') : '') + '</small></figcaption>' +
+    '<div class="ac-chw"><svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+    (o.area ? '<path d="' + d + 'L' + X(x1).toFixed(1) + ' ' + H + 'L' + X(x0).toFixed(1) + ' ' + H + 'Z" fill="' + o.color + '" opacity=".16"/>' : '') +
+    '<path d="' + d + '" fill="none" stroke="' + o.color + '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>' +
+    '<i class="hi">' + o.fmt(top) + '</i><i class="lo">' + o.fmt(bot) + '</i></div>' +
+    '<p class="ac-ax"><span>0</span><span>' + (o.xl || '') + '</span></p></figure>';
+}
+// the route as an SVG, for the list and for a report without the map
+function acRouteSvg(line, cls){
+  const P = decLine(line); if(P.length < 2) return '<svg class="' + cls + '" viewBox="0 0 100 100" aria-hidden="true"></svg>';
+  let s = Infinity, n = -Infinity, w = Infinity, e = -Infinity; for(const [la, lo] of P){ s = Math.min(s, la); n = Math.max(n, la); w = Math.min(w, lo); e = Math.max(e, lo); }
+  const k = Math.cos((s + n) / 2 * RAD), span = Math.max(n - s, (e - w) * k, 1e-4), sc = 84 / span;
+  const d = P.map((p, i) => (i ? 'L' : 'M') + (50 + (p[1] - (w + e) / 2) * k * sc).toFixed(1) + ' ' + (50 - (p[0] - (s + n) / 2) * sc).toFixed(1)).join('');
+  return '<svg class="' + cls + '" viewBox="0 0 100 100" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + AC_ROUTE + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
+}
+const acPaceS = a => acFoot(a.type) ? paceTxt(acPaceOf(a.dist, a.moving)) + ' /km' : spdTxt(a.moving ? a.dist / a.moving : null) + ' km/h';
+// what is worth saying about this activity, against the ones before it
+function acInsights(a){
+  const out = [], foot = acFoot(a.type), same = acList().filter(x => x.id !== a.id && x.type === a.type && x.startedAt < a.startedAt);
+  const sp = (a.splits || []).filter(s => s.d >= (a.type === 'ride' ? 4500 : 900));
+  if(sp.length >= 2 && foot){
+    const fast = sp.reduce((b, s) => s.s / s.d < b.s / b.d ? s : b), i = sp.indexOf(fast) + 1;
+    out.push(['Fastest km', 'Km ' + i + ' at ' + mmss(fast.s * 1000 / fast.d) + ' /km.']);
+    const h = Math.floor(sp.length / 2), A = sp.slice(0, h), B = sp.slice(sp.length - h);
+    const pa = A.reduce((x, s) => x + s.s, 0) / A.reduce((x, s) => x + s.d, 0) * 1000, pb = B.reduce((x, s) => x + s.s, 0) / B.reduce((x, s) => x + s.d, 0) * 1000;
+    if(h && Math.abs(pa - pb) >= 5) out.push([pb < pa ? 'Negative split' : 'Faded at the end', 'The second half was ' + mmss(Math.abs(pa - pb)) + ' /km ' + (pb < pa ? 'faster' : 'slower') + ' than the first.']);
+    const ps = sp.map(s => s.s * 1000 / s.d), mean = ps.reduce((x, y) => x + y, 0) / ps.length;
+    if(sp.length >= 3 && ps.every(p => Math.abs(p - mean) <= 10)) out.push(['Even pacing', 'Every km was within 10 seconds of your average.']);
+  }
+  const best = a.best || {}, names = {'1k': '1 km', '5k': '5 km', '10k': '10 km', half: 'half marathon', '20k': '20 km', '40k': '40 km'};
+  for(const k of Object.keys(best)){ const prev = same.map(x => x.best && x.best[k]).filter(Boolean); if(prev.length && best[k] < Math.min(...prev)) out.push(['New best ' + names[k], mmss(best[k]) + ', ' + mmss(Math.min(...prev) - best[k]) + ' faster than before.']); }
+  if(same.length && a.dist > Math.max(...same.map(x => x.dist || 0)) && a.dist > 1000) out.push(['Longest ' + AC_T[a.type].toLowerCase() + ' yet', kmTxt(a.dist) + ' km, past your earlier best of ' + kmTxt(Math.max(...same.map(x => x.dist || 0))) + ' km.']);
+  const month = same.filter(x => a.startedAt - x.startedAt < 30 * 864e5 && x.dist > 500 && x.moving > 0);
+  if(month.length >= 2 && a.dist > 500 && a.moving > 0){
+    const avgP = month.reduce((x, y) => x + y.moving, 0) / month.reduce((x, y) => x + y.dist, 0) * 1000, mine = a.moving / a.dist * 1000;
+    if(foot && Math.abs(avgP - mine) >= 3) out.push([mine < avgP ? 'Quicker than usual' : 'Easier than usual', mmss(Math.abs(avgP - mine)) + ' /km ' + (mine < avgP ? 'faster' : 'slower') + ' than your ' + plural(month.length, a.type === 'other' ? 'activity' : AC_T[a.type].toLowerCase(), a.type === 'other' ? 'activities' : null) + ' this past month.']);
+    if(!foot){ const vA = 1000 / avgP * 3.6, vM = 1000 / mine * 3.6; if(Math.abs(vA - vM) >= .5) out.push([vM > vA ? 'Quicker than usual' : 'Easier than usual', Math.abs(vM - vA).toFixed(1) + ' km/h ' + (vM > vA ? 'faster' : 'slower') + ' than your rides this past month.']); }
+  }
+  if(a.gain >= 40) out.push(['Climbing', a.gain + ' m up, about ' + Math.round(a.gain / 3) + ' floors.']);
+  if(a.hr && a.series){ const h = a.series.filter(s => s[4]), m = h.length >> 1; if(m >= 5){ const x = h.slice(0, m).reduce((p, s) => p + s[4], 0) / m, y = h.slice(m).reduce((p, s) => p + s[4], 0) / (h.length - m); if(y - x >= 5) out.push(['Heart rate drift', 'Up ' + Math.round(y - x) + ' bpm in the second half.']); } }
+  const wk = mondayOf(a.date), thisW = acList().filter(x => x.date >= wk && x.date <= addDays(wk, 6) && x.startedAt <= a.startedAt), lastW = acList().filter(x => x.date >= addDays(wk, -7) && x.date < wk);
+  if(thisW.length > 1 || lastW.length){ const d1 = thisW.reduce((x, y) => x + (y.dist || 0), 0), d0 = lastW.reduce((x, y) => x + (y.dist || 0), 0); out.push(['This week', kmTxt(d1) + ' km so far' + (d0 ? ', ' + (d1 >= d0 ? kmTxt(d1 - d0) + ' km more than' : kmTxt(d0 - d1) + ' km less than') + ' last week.' : '.')]); }
+  const lost = (a.gaps || []).reduce((x, g) => x + (g.sec || 0), 0);
+  if(lost >= 30) out.push(['Not tracked', mmss(lost) + ' while Plates was closed. ' + ((a.gaps || []).some(g => g.d) ? 'That stretch is a straight line on the map.' : 'You did not move far, so it is left out.')]);
+  return out;
+}
+function acReport(id){
+  const a = acList().find(x => x.id === id); if(!a){ acHub(); return; }
+  const foot = acFoot(a.type), s = a.series || [], xs = s.map(r => r[1] / 1000), dist = a.dist || 0;
+  const tiles = [acTile('Distance', kmTxt(dist), 'km', a.src && a.src.dist === 'steps' ? 'est.' : ''), acTile('Moving', mmss(a.moving || 0), ''),
+    foot ? acTile('Avg pace', paceTxt(acPaceOf(dist, a.moving)), '/km') : acTile('Avg speed', spdTxt(a.moving ? dist / a.moving : null), 'km/h'),
+    acTile('Climb', a.src && a.src.alt ? String(a.gain || 0) : '—', a.src && a.src.alt ? 'm' : 'no altitude'),
+    a.hr ? acTile('Heart', String(a.hr.avg), 'avg bpm') : acTile('Heart', '—', 'no sensor'),
+    acTile('Energy', String(a.kcal && a.kcal.v || 0), 'kcal', 'est.')];
+  const more = [acTile('Elapsed', mmss(a.elapsed || 0), ''), foot ? acTile('Best pace', a.vmax ? paceTxt(1000 / a.vmax) : '—', '/km') : acTile('Top speed', a.vmax ? spdTxt(a.vmax) : '—', 'km/h'), foot ? acTile('Cadence', a.cad ? String(a.cad.avg) : '—', a.cad ? 'spm' : 'no sensor') : acTile('Elevation', a.alt ? a.alt[0] + ' to ' + a.alt[1] : '—', 'm')];
+  const ins = acInsights(a);
+  const sp = a.splits || [], fastest = sp.length ? Math.min(...sp.map(x => x.s / Math.max(1, x.d))) : 0, slowest = sp.length ? Math.max(...sp.map(x => x.s / Math.max(1, x.d))) : 0;
+  const splitHtml = sp.length ? '<section><p class="lab">' + (a.type === 'ride' ? 'Splits · 5 km' : 'Splits') + '</p><div class="ac-spl">' +
+    '<div class="ac-sr hd2"><span>' + (a.type === 'ride' ? 'Km' : 'Km') + '</span><span>' + (foot ? 'Pace' : 'km/h') + '</span><span></span><span>Climb</span>' + (a.hr ? '<span>HR</span>' : '') + '</div>' +
+    sp.map((x, i) => { const pk = x.s / Math.max(1, x.d), w = slowest > fastest ? .35 + .65 * (slowest - pk) / (slowest - fastest) : 1;
+      return '<div class="ac-sr' + (a.hr ? ' h' : '') + '"><span>' + (x.d < (a.type === 'ride' ? 4900 : 990) ? r1((a.type === 'ride' ? 5 : 1) * i + x.d / 1000) : (a.type === 'ride' ? 5 : 1) * (i + 1)) + '</span><span>' + (foot ? mmss(pk * 1000) : spdTxt(1 / pk)) + '</span><span class="bar"><i style="width:' + (w * 100).toFixed(0) + '%"' + (pk === fastest && sp.length > 1 ? ' class="top"' : '') + '></i></span><span>' + (a.src && a.src.alt ? '+' + x.up : '—') + '</span>' + (a.hr ? '<span>' + (x.hr || '—') + '</span>' : '') + '</div>'; }).join('') + '</div></section>' : '';
+  const xl = kmTxt(dist) + ' km';
+  const charts = s.length >= 3 ? (foot
+      ? acChart(xs, s.map(r => r[3] > .5 ? Math.min(1200, 1000 / r[3]) : null), {title: 'Pace', fmt: v => mmss(v), unit: '/km', inv: true, color: AC_ROUTE, min: 30, area: false, avg: acPaceOf(dist, a.moving), xl})
+      : acChart(xs, s.map(r => r[3] != null ? r[3] * 3.6 : null), {title: 'Speed', fmt: v => v.toFixed(0), unit: 'km/h', color: AC_ROUTE, min: 4, area: true, avg: a.moving ? dist / a.moving * 3.6 : null, xl})) +
+    acChart(xs, s.map(r => r[2]), {title: 'Elevation', fmt: v => Math.round(v) + ' m', color: 'var(--up)', min: 10, area: true, xl}) +
+    acChart(xs, s.map(r => r[4]), {title: 'Heart rate', fmt: v => Math.round(v), unit: 'bpm', color: 'var(--down)', min: 10, avg: a.hr && a.hr.avg, xl}) +
+    acChart(xs, s.map(r => r[5]), {title: 'Cadence', fmt: v => Math.round(v), unit: 'spm', color: 'var(--accent)', min: 10, avg: a.cad && a.cad.avg, xl}) : '';
+  // where each number came from
+  const src = a.src || {}, gaps = (a.gaps || []).reduce((x, g) => x + (g.sec || 0), 0);
+  const srcRows = [['gps', 'Route and distance', src.dist === 'steps' ? 'Estimated from your steps' : src.gps ? 'Measured by GPS · ' + src.gps.pts + ' points, ±' + src.gps.acc + ' m' : 'No GPS fix'],
+    ['gps', 'Climb', src.alt ? 'GPS altitude, smoothed. It can be off by a few metres' : 'Not available'],
+    ['heart', 'Heart rate', a.hr ? 'Measured by ' + esc(a.hr.src) : 'Not measured. Safari cannot reach Bluetooth or Apple Watch'],
+    ['motion', 'Cadence and steps', src.motion ? 'Counted by the motion sensor' : 'Not measured'],
+    ['health', 'Energy', 'Estimated from speed and ' + (a.kcal && a.kcal.kg || 80) + ' kg body weight'],
+    ['other', 'Activity type', a.picked ? 'Picked by you' : a.auto ? 'Detected, ' + Math.round((a.auto.conf || 0) * 100) + ' percent sure' : 'Not detected']];
+  if(gaps) srcRows.push(['other', 'Gaps', mmss(gaps) + ' not tracked while Plates was closed']);
+  const arm = S.ui.armedAct === 'ac-del-' + a.id;
+  openSheet('ac-rep', shTop(acName(a), dLong(a.date) + ' · ' + fTime.format(new Date(a.startedAt || 0))),
+    '<div class="ac-rmap" id="ac-rmap">' + acRouteSvg(a.line, 'ac-rsvg') + '</div>' +
+    '<div class="ac-tiles">' + tiles.join('') + '</div><div class="ac-tiles">' + more.join('') + '</div>' +
+    (ins.length ? '<section><p class="lab">Insights</p><ul class="ac-ins">' + ins.map(([h, t]) => '<li><b>' + esc(h) + '</b><span>' + esc(t) + '</span></li>').join('') + '</ul></section>' : '') +
+    splitHtml + (charts ? '<section class="ac-chs">' + charts + '</section>' : '') +
+    '<section><p class="lab">Where the numbers come from</p><div class="ac-src">' + srcRows.map(([ic, h, t]) => '<div>' + acSvg(ic) + '<span><b>' + h + '</b><small>' + t + '</small></span></div>').join('') + '</div></section>' +
+    '<section><p class="lab">Type</p><div class="row" style="margin-top:0">' + AC_TYPES.map(t => '<button class="chip" data-a="ac-retype" data-id="' + esc(a.id) + '" data-t="' + t + '" aria-pressed="' + (a.type === t) + '">' + acSvg(t) + AC_CHIP[t] + '</button>').join('') + '</div></section>' +
+    '<div class="two">' + (a.track ? '<button class="btn-glass" data-a="ac-gpx" data-id="' + esc(a.id) + '">Export GPX</button>' : '<span></span>') + '<button class="btn-glass danger' + (arm ? ' armed' : '') + '" id="ac-del" data-a="ac-del" data-id="' + esc(a.id) + '">' + (arm ? 'Delete?' : 'Delete') + '</button></div>' +
+    '<button class="btn-quiet" data-a="ac-open">All activities</button>', true);
+  acRepMap(a);
+}
+async function acRepMap(a){
+  acMapRemove('rep');
+  const P = decLine(a.line), box = a.bbox; if(P.length < 2 || !box) return;
+  const el = $('#ac-rmap'); if(!el) return;
+  try{
+    const host = document.createElement('div'); host.className = 'ac-gl'; el.append(host);
+    const m = await acMakeMap(host, {bounds: [[box[0], box[1]], [box[2], box[3]]], fitBoundsOptions: {padding: 34}, pitch: 50, interactive: false});
+    if(sheetMode !== 'ac-rep' || $('#ac-rmap') !== el){ m.remove(); return; }
+    m.fitBounds([[box[0], box[1]], [box[2], box[3]]], {padding: 34, pitch: 50, duration: 0});
+    ACM.rep = m;
+    // the line goes from slow (light) to fast (the clay red) along the way
+    const s = a.series || [], vs = s.map(r => r[3]).filter(v => v != null), lo = vs.length ? Math.min(...vs) : 0, hi = vs.length ? Math.max(...vs) : 1, tot = Math.max(1, a.dist);
+    const stops = []; s.forEach(r => { if(r[3] == null) return; const f = Math.min(1, Math.max(0, r[1] / tot)); if(stops.length && f <= stops[stops.length - 2]) return; stops.push(f, hi > lo ? (r[3] - lo) / (hi - lo) : 1); });
+    m.addSource('route', {type: 'geojson', lineMetrics: true, data: lineGeo(P.map(p => [p[1], p[0]]))});
+    m.addLayer({id: 'route-casing', type: 'line', source: 'route', layout: {'line-cap': 'round', 'line-join': 'round'}, paint: {'line-color': '#fff', 'line-width': 7, 'line-opacity': .9}});
+    m.addLayer({id: 'route', type: 'line', source: 'route', layout: {'line-cap': 'round', 'line-join': 'round'}, paint: {'line-width': 4.5,
+      'line-gradient': stops.length >= 4 ? ['interpolate', ['linear'], ['line-progress']].concat(stops.flatMap((v, i) => i % 2 ? [] : [v, mixHex('#e8b04a', AC_ROUTE, stops[i + 1])])) : AC_ROUTE}});
+    m.addSource('ends', {type: 'geojson', data: {type: 'FeatureCollection', features: [P[0], P[P.length - 1]].map((p, i) => ({type: 'Feature', properties: {c: i ? '#1f1e1d' : '#2f7d4f'}, geometry: {type: 'Point', coordinates: [p[1], p[0]]}}))}});
+    m.addLayer({id: 'ends', type: 'circle', source: 'ends', paint: {'circle-radius': 6, 'circle-color': ['get', 'c'], 'circle-stroke-color': '#fff', 'circle-stroke-width': 2.5}});
+    el.classList.add('gl');
+  }catch(e){}
+}
+
+/* ---- the Activity sheet: start, sensors, trends, records and every activity ---- */
+async function acPerm(){
+  try{ if(navigator.permissions && navigator.permissions.query){ const p = await navigator.permissions.query({name: 'geolocation'}); ACS.perm = ACS.perm === 'granted' ? 'granted' : p.state; acHubPaint(); } }catch(e){}
+}
+function acHub(){
+  openSheet('ac-hub', shTop('Activity', ''), '<div id="ac-hub"></div>', true);
+  acHubPaint(); acPerm();
+}
+function acHubPaint(){
+  const el = $('#ac-hub'); if(!el || sheetMode !== 'ac-hub') return;
+  const L = acList(), pick = acPrefPick(), t = todayISO(), wk = mondayOf(t);
+  const hasMotion = 'DeviceMotionEvent' in window, iosAsk = hasMotion && typeof DeviceMotionEvent.requestPermission === 'function';
+  const gps = !('geolocation' in navigator) ? 'Not on this device' : ACS.perm === 'denied' ? 'Off · turn on in Settings' : ACS.perm === 'granted' ? 'Allowed' : 'Asks when you start';
+  const motion = !hasMotion ? 'Not on this device' : ACS.motionOn ? 'On' : ACS.motionPerm === 'denied' ? 'Off · turn on in Settings' : iosAsk ? '<button class="chip" data-a="ac-motion">Allow</button>' : 'On';
+  const hr = ACS.hrName ? esc(ACS.hrName) : navigator.bluetooth ? '<button class="chip" data-a="ac-hr">Pair strap</button>' : 'Not on iPhone';
+  const sens = [['gps', 'GPS', 'Route, distance, pace and climb', gps], ['motion', 'Motion', 'Auto detect and cadence', motion], ['heart', 'Heart rate', navigator.bluetooth ? 'A Bluetooth chest strap' : 'Safari has no Bluetooth', hr], ['health', 'Apple Health', 'Web apps cannot read or write it', 'Not available']];
+  // eight weeks of distance, all types
+  const weeks = [...Array(8)].map((_, i) => { const a = addDays(wk, (i - 7) * 7), b = addDays(a, 6), xs = L.filter(x => x.date >= a && x.date <= b); return {d: xs.reduce((s, x) => s + (x.dist || 0), 0), n: xs.length}; });
+  const mx = Math.max(1, ...weeks.map(w => w.d)), now = weeks[7];
+  const byType = AC_TYPES.map(ty => [ty, L.filter(x => x.type === ty && x.date >= wk)]).filter(([, xs]) => xs.length);
+  // records
+  const rec = [], name = {'1k': '1 km', '5k': '5 km', '10k': '10 km', half: 'Half marathon', '20k': '20 km', '40k': '40 km'};
+  for(const [ty, keys] of [['run', ['1k', '5k', '10k', 'half']], ['ride', ['20k', '40k']]]){
+    const xs = L.filter(x => x.type === ty);
+    for(const k of keys){ const b = xs.filter(x => x.best && x.best[k]).sort((p, q) => p.best[k] - q.best[k])[0]; if(b) rec.push([AC_T[ty] + ' · ' + name[k], mmss(b.best[k]), b.id]); }
+    const far = xs.slice().sort((p, q) => q.dist - p.dist)[0]; if(far && far.dist > 1000) rec.push(['Longest ' + AC_T[ty].toLowerCase(), kmTxt(far.dist) + ' km', far.id]);
+  }
+  const climb = L.slice().sort((p, q) => (q.gain || 0) - (p.gain || 0))[0]; if(climb && climb.gain >= 30) rec.push(['Biggest climb', climb.gain + ' m', climb.id]);
+  setHTML(el,
+    '<div class="ac-hero">' + (AC ? '<button class="btn-primary wide" data-a="ac-show">' + acSvg(acType() || 'run') + 'Back to your activity</button>'
+      : '<button class="btn-primary wide ac-go" data-a="ac-go">' + acSvg(pick || 'run') + 'Start ' + (pick ? AC_T[pick].toLowerCase() : 'activity') + '</button>') +
+    '<div class="row" style="justify-content:center"><button class="chip" data-a="ac-pref" data-t="" aria-pressed="' + !pick + '">Auto detect</button>' + AC_TYPES.map(ty => '<button class="chip" data-a="ac-pref" data-t="' + ty + '" aria-pressed="' + (pick === ty) + '">' + acSvg(ty) + AC_CHIP[ty] + '</button>').join('') + '</div></div>' +
+    '<section><p class="lab">Sensors</p><div class="ac-src ac-sens">' + sens.map(([ic, h, d, v]) => '<div>' + acSvg(ic) + '<span><b>' + h + '</b><small>' + d + '</small></span><em>' + v + '</em></div>').join('') +
+      '<div>' + acSvg('pause') + '<span><b>Auto pause</b><small>Stops the clock when you stand still</small></span><em><button class="switch" role="switch" aria-checked="' + acAutoPause() + '" data-a="ac-ap" aria-label="Auto pause"></button></em></div></div></section>' +
+    (L.length ? '<section><div class="hd"><p class="lab" style="margin:0">This week</p><small>' + kmTxt(now.d) + ' km · ' + plural(now.n, 'activity', 'activities') + '</small></div>' +
+      (byType.length ? '<div class="ac-wk">' + byType.map(([ty, xs]) => '<span>' + acSvg(ty) + kmTxt(xs.reduce((s, x) => s + x.dist, 0)) + ' km</span>').join('') + '</div>' : '') +
+      '<div class="so-bars ac-bars">' + weeks.map((w, i) => '<i style="--v:' + (w.d / mx) + '" class="' + (i === 7 ? 'now' : '') + '"><b>' + (w.d ? (w.d / 1000).toFixed(w.d < 9950 ? 1 : 0) : '') + '</b></i>').join('') + '</div><p class="so-bl"><span>8 weeks ago</span><span>This week</span></p></section>' : '') +
+    (rec.length ? '<section><p class="lab">Records</p><div class="ac-rec">' + rec.map(([h, v, id]) => '<button data-a="ac-rep" data-id="' + esc(id) + '"><small>' + esc(h) + '</small><b>' + esc(v) + '</b></button>').join('') + '</div></section>' : '') +
+    '<section><p class="lab">' + (L.length ? 'All activities' : 'No activities yet') + '</p>' + (L.length ? '<div class="ac-list">' + L.slice(0, 60).map(a =>
+      '<button class="ac-li" data-a="ac-rep" data-id="' + esc(a.id) + '">' + acRouteSvg(a.line, 'ac-thumb') + '<span><b>' + acSvg(a.type) + esc(acName(a)) + '</b><small>' + esc(dShort(a.date)) + ' · ' + kmTxt(a.dist) + ' km · ' + mmss(a.moving || 0) + ' · ' + acPaceS(a) + '</small></span></button>').join('') + '</div>' : '') + '</section>');
+}
+
+/* ---- the Activity card on the Workout page ---- */
+function renderActCard(){
+  const el = $('#ac-card'); if(!el) return;
+  const L = acList(), last = L[0];
+  const sub = AC ? (AC.state === 'paused' ? 'Paused' : AC.state === 'ready' ? 'Ready to start' : 'Live') + ' · ' + mmss(AC.mov) + ' · ' + kmTxt(AC.dist) + ' km'
+    : last ? 'Last: ' + AC_T[last.type] + ' ' + kmTxt(last.dist) + ' km · ' + dDay(last.date) : 'Run, walk, hike or ride';
+  setHTML(el, '<button class="ac-open" data-a="ac-open"><span class="ac-ic">' + acSvg(AC ? acType() || 'run' : 'run') + '</span><span class="ac-tx"><b>Activity</b><small>' + esc(sub) + '</small></span></button>' +
+    '<button class="btn-primary btn-small" data-a="' + (AC ? 'ac-show' : 'ac-go') + '">' + (AC ? 'Open' : 'Start') + '</button>');
+}
+function acClick(a, b){
+  switch(a){
+    case 'ac-open': acHub(); break;
+    case 'ac-go': acReady(); break;
+    case 'ac-start': acStart(); break;
+    case 'ac-cancel': acStop(); break;
+    case 'ac-pause': acPause(); break;
+    case 'ac-resume': acResume(); break;
+    case 'ac-lap': if(AC && AC.state === 'live'){ const p = AC.laps[AC.laps.length - 1] || {d: 0, s: 0}; AC.laps.push({d: Math.round(AC.dist), s: Math.round(AC.mov)}); const d = AC.dist - p.d, s = AC.mov - p.s; toast('Lap ' + AC.laps.length + ' · ' + mmss(s) + (d > 20 ? ' · ' + (acFoot(acType()) ? paceTxt(s / d * 1000) + ' /km' : spdTxt(d / s) + ' km/h') : ''), true); haptic(); } break;
+    case 'ac-finish': if(S.ui.armedAct === 'ac-finish'){ disarmAct(); acFinish(); } else armAct('ac-finish', acPaintSync); break;
+    case 'ac-discard': if(S.ui.armedAct === 'ac-discard'){ disarmAct(); acDiscard(); } else armAct('ac-discard', acPaintSync); break;
+    case 'ac-hide': acHide(); break;
+    case 'ac-show': closeSheet(); acShow(); break;
+    case 'ac-type': ACS.ui.pick = !ACS.ui.pick; acPaintSync(); break;
+    case 'ac-pick': if(AC){ AC.pick = b.dataset.t || null; ACS.ui.pick = false; haptic(); acPaintSync(); } break;
+    case 'ac-pref': if(b.dataset.t) ls.set('tl.ac.pick', b.dataset.t); else ls.del('tl.ac.pick'); haptic(); acHubPaint(); break;
+    case 'ac-ap': ls.set('tl.ac.ap', acAutoPause() ? '0' : '1'); haptic(); acHubPaint(); break;
+    case 'ac-motion': acMotionAsk(); break;
+    case 'ac-hr': acPairHr(); break;
+    case 'ac-3d': acToggle3d(); break;
+    case 'ac-center': acRecenter(); break;
+    case 'ac-rep': acReport(b.dataset.id); break;
+    case 'ac-retype': acRetype(b.dataset.id, b.dataset.t); break;
+    case 'ac-gpx': acGpx(b.dataset.id); break;
+    case 'ac-del': { const k = 'ac-del-' + b.dataset.id; if(S.ui.armedAct === k){ disarmAct(); acDelete(b.dataset.id); } else armButton('ac-del', k, 'Delete', 'Delete?'); break; }
+  }
+}
+
 /* ---------- events ---------- */
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if(!b) return;
   const a = b.dataset.a;
   if(b.closest('#side') && !a.startsWith('so-')) closeSide();
+  if(a.startsWith('ac-')){ acClick(a, b); return; }
   switch(a){
     case 'quick': startSession(null); break;
     case 'start': startSession(b.dataset.id || null); break;
